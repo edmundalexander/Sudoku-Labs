@@ -321,11 +321,15 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
       const getUserId = () => {
           let uid = localStorage.getItem(KEYS.USER_ID);
           if (!uid) {
-              uid = 'Guest' + Math.floor(Math.random() * 10000);
+              uid = generateGuestId();
               localStorage.setItem(KEYS.USER_ID, uid);
           }
           return uid;
       }
+
+      const generateGuestId = () => {
+        return 'Guest' + Math.floor(Math.random() * 10000);
+      };
 
       // User session management
       const getUserSession = () => {
@@ -342,13 +346,15 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
           if (user && user.username) {
             localStorage.setItem(KEYS.USER_ID, user.username);
           }
-        } catch (e) {}
+        } catch (e) {
+          console.warn('Failed to save user session to localStorage:', e);
+        }
       };
 
       const clearUserSession = () => {
         localStorage.removeItem(KEYS.USER_SESSION);
         // Reset to guest ID
-        const guestId = 'Guest' + Math.floor(Math.random() * 10000);
+        const guestId = generateGuestId();
         localStorage.setItem(KEYS.USER_ID, guestId);
       };
 
@@ -1375,7 +1381,6 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
 
         const handleUserPanelClose = (updatedUser) => {
           if (updatedUser) {
-            setUserSession(updatedUser);
             setUserSession(updatedUser);
           }
           setShowUserPanel(false);
