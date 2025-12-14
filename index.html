@@ -126,6 +126,10 @@
   <body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
     <div id="root"></div>
 
+    <!-- Load configuration from config/config.local.js (local values, not exposed publicly) -->
+    <!-- Falls back to inline CONFIG if file not found -->
+    <script src="config/config.local.js" onerror="console.warn('config.local.js not found, using fallback');"></script>
+
     <script type="text/babel" data-presets="react, typescript">
       const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
 
@@ -255,15 +259,79 @@
         CAMPAIGN_PROGRESS: 'sudoku_v2_campaign'
       };
 
-      // Google Apps Script runs this as an embedded web app
-      // All functions are directly callable via google.script.run
+      // GAS Backend API URL - Configure this with your deployment URL
+      // Format: https://script.google.com/macros/s/[DEPLOYMENT_ID]/exec
+      const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbzZg11UDcIZGbwHvrtxb5E2enGspkQnjsBPbCP5Aw6BYP5Jo5cq3JqPr8PHOZgbgn2kOg/exec';
+      const GAS_URL = (typeof CONFIG !== 'undefined' && CONFIG.GAS_URL) || DEFAULT_GAS_URL;
+
+      // Unified function caller: uses fetch to call GAS API endpoints
       const runGasFn = async (fnName, ...args) => {
-        return new Promise((resolve, reject) => {
-          window.google.script.run
-            .withSuccessHandler(resolve)
-            .withFailureHandler(reject)
-            [fnName](...args);
-        });
+        if (!GAS_URL) {
+          console.error('GAS_URL not configured');
+          return null;
+        }
+
+        try {
+          // Map function names to API actions
+          const actionMap = {
+            generateSudoku: { action: 'generateSudoku', method: 'GET' },
+            getLeaderboardData: { action: 'getLeaderboard', method: 'GET' },
+            saveLeaderboardScore: { action: 'saveScore', method: 'POST' },
+            getChatData: { action: 'getChat', method: 'GET' },
+            postChatData: { action: 'postChat', method: 'POST' },
+            logClientError: { action: 'logError', method: 'POST' }
+          };
+
+          const mapping = actionMap[fnName];
+          if (!mapping) {
+            console.error('Unknown function:', fnName);
+            return null;
+          }
+
+          const { action, method } = mapping;
+          const url = new URL(GAS_URL);
+          url.searchParams.set('action', action);
+
+          if (method === 'GET') {
+            // For GET, add parameters to URL
+            if (args[0] !== undefined) {
+              if (typeof args[0] === 'object') {
+                Object.entries(args[0]).forEach(([k, v]) => {
+                  url.searchParams.set(k, v);
+                });
+              } else {
+                url.searchParams.set('data', args[0]);
+              }
+            }
+
+            const response = await fetch(url.toString(), {
+              method: 'GET',
+              headers: { 'Content-Type': 'application/json' }
+            });
+            
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            return await response.json();
+          } else {
+            // For POST, send data in body
+            const response = await fetch(url.toString(), {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(args[0] || {})
+            });
+            
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            return await response.json();
+          }
+        } catch (error) {
+          console.error('GAS API Error:', error);
+          throw error;
+        }
       };
           console.error('GAS fetch error', err);
           return null;
