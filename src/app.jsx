@@ -123,7 +123,9 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         CHAT: 'sudoku_v2_chat',
         USER_ID: 'sudoku_v2_uid',
         SOUND_ENABLED: 'sudoku_v2_sound',
-        CAMPAIGN_PROGRESS: 'sudoku_v2_campaign'
+        CAMPAIGN_PROGRESS: 'sudoku_v2_campaign',
+        AUTH_USER: 'sudoku_v2_auth_user',
+        AUTH_MODE: 'sudoku_v2_auth_mode'
       };
 
       // GAS Backend API URL - Configure this with your deployment URL
@@ -147,7 +149,11 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
             saveLeaderboardScore: { action: 'saveScore', method: 'GET' },
             getChatData: { action: 'getChat', method: 'GET' },
             postChatData: { action: 'postChat', method: 'GET' },
-            logClientError: { action: 'logError', method: 'GET' }
+            logClientError: { action: 'logError', method: 'GET' },
+            registerUser: { action: 'register', method: 'GET' },
+            loginUser: { action: 'login', method: 'GET' },
+            getUserProfile: { action: 'getUserProfile', method: 'GET' },
+            updateUserProfile: { action: 'updateUserProfile', method: 'GET' }
           };
 
           const mapping = actionMap[fnName];
@@ -314,12 +320,103 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
       }
 
       const getUserId = () => {
+          // Check if user is authenticated
+          const authUser = getAuthUser();
+          if (authUser && authUser.userId) {
+            return authUser.displayName || authUser.username;
+          }
+          
+          // Fall back to guest mode
           let uid = localStorage.getItem(KEYS.USER_ID);
           if (!uid) {
-              uid = 'User' + Math.floor(Math.random() * 10000);
+              uid = 'Guest' + Math.floor(Math.random() * 10000);
               localStorage.setItem(KEYS.USER_ID, uid);
           }
           return uid;
+      }
+
+      // Authentication helpers
+      const getAuthUser = () => {
+        try {
+          const stored = localStorage.getItem(KEYS.AUTH_USER);
+          return stored ? JSON.parse(stored) : null;
+        } catch(e) { return null; }
+      }
+
+      const setAuthUser = (user) => {
+        if (user) {
+          localStorage.setItem(KEYS.AUTH_USER, JSON.stringify(user));
+          localStorage.setItem(KEYS.AUTH_MODE, 'authenticated');
+        } else {
+          localStorage.removeItem(KEYS.AUTH_USER);
+          localStorage.setItem(KEYS.AUTH_MODE, 'guest');
+        }
+      }
+
+      const isAuthenticated = () => {
+        return getAuthUser() !== null;
+      }
+
+      const logout = () => {
+        setAuthUser(null);
+      }
+
+      const registerUser = async (username, password) => {
+        if (!isGasEnvironment()) {
+          return { success: false, error: 'Authentication requires GAS backend' };
+        }
+        
+        try {
+          const result = await runGasFn('registerUser', { username, password });
+          if (result && result.success) {
+            setAuthUser(result.user);
+          }
+          return result;
+        } catch (e) {
+          console.error('Registration error:', e);
+          return { success: false, error: 'Registration failed' };
+        }
+      }
+
+      const loginUser = async (username, password) => {
+        if (!isGasEnvironment()) {
+          return { success: false, error: 'Authentication requires GAS backend' };
+        }
+        
+        try {
+          const result = await runGasFn('loginUser', { username, password });
+          if (result && result.success) {
+            setAuthUser(result.user);
+          }
+          return result;
+        } catch (e) {
+          console.error('Login error:', e);
+          return { success: false, error: 'Login failed' };
+        }
+      }
+
+      const updateProfile = async (updates) => {
+        const authUser = getAuthUser();
+        if (!authUser) return { success: false };
+        
+        try {
+          const result = await runGasFn('updateUserProfile', {
+            userId: authUser.userId,
+            ...updates
+          });
+          
+          if (result && result.success) {
+            // Refresh user profile
+            const profile = await runGasFn('getUserProfile', { userId: authUser.userId });
+            if (profile && profile.success) {
+              setAuthUser(profile.user);
+            }
+          }
+          return result;
+        } catch (e) {
+          console.error('Update profile error:', e);
+          return { success: false };
+        }
       }
 
       const logError = async (message, error) => { 
@@ -432,7 +529,8 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         Lock: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>,
         Star: ({filled}) => <svg xmlns="http://www.w3.org/2000/svg" fill={filled ? "currentColor" : "none"} viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.545.044.77.77.326 1.163l-4.304 3.86a.562.562 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.304-3.86c-.444-.393-.219-1.119.326-1.163l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" /></svg>,
         Chest: () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8"><path d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H4.5a1.5 1.5 0 01-1.5-1.5v-8.25M21 11.25H3M21 11.25a1.5 1.5 0 00-1.5-1.5H16.5m-3 0h3m-3 0c0-1.242-1.008-2.25-2.25-2.25s-2.25 1.008-2.25 2.25m4.5 0h-4.5m4.5 0H21m-4.5 0H4.5m0 0a1.5 1.5 0 00-1.5 1.5m1.5-1.5h-3" /></svg>,
-        Avatar: () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-white drop-shadow-lg"><circle cx="12" cy="12" r="10" className="text-blue-500"/><path fill="white" d="M12 4a4 4 0 100 8 4 4 0 000-8zM6 18a6 6 0 0112 0H6z" /></svg>
+        Avatar: () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-white drop-shadow-lg"><circle cx="12" cy="12" r="10" className="text-blue-500"/><path fill="white" d="M12 4a4 4 0 100 8 4 4 0 000-8zM6 18a6 6 0 0112 0H6z" /></svg>,
+        User: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
       };
 
       const CHAT_POLL_INTERVAL = 5000;
