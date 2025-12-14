@@ -16,7 +16,6 @@ Sudoku Logic Lab is a modern, browser-based Sudoku game featuring:
 ### For Players
 - **[Play the Game](https://edmund-alexander.github.io/Sudoku-Labs/)** - Start playing immediately
 - **[How to Play](How-to-Play)** - Learn the rules and features
-- **[Game Strategies](Game-Strategies)** - Tips for solving puzzles
 
 ### For Developers
 - **[Quick Start Guide](Quick-Start-Guide)** - Get up and running in 5 minutes

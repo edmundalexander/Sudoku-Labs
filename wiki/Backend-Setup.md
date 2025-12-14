@@ -36,8 +36,10 @@ https://docs.google.com/spreadsheets/d/[SHEET_ID]/edit
 
 **Example Sheet ID:**
 ```
-1QU6QNWy6w6CNivq-PvmVJNcM1tUFWgQFzpN01Mo7QFs
+ABC123xyz_EXAMPLE_SHEET_ID_456def
 ```
+
+This is just an example - your actual Sheet ID will be different.
 
 ### Step 2: Create Apps Script Project
 
