@@ -129,6 +129,23 @@ Then on GitHub:
 3. Fill out the PR template
 4. Submit!
 
+### 7. Branch Cleanup
+
+After your PR is merged, clean up your local branch:
+
+```bash
+# Switch to main
+git checkout main
+
+# Delete local branch
+git branch -d feature/your-feature-name
+
+# Fetch latest changes
+git fetch --all --prune
+```
+
+**Note**: Remote branches are cleaned up automatically after PRs are merged. See [BRANCH_CLEANUP.md](../BRANCH_CLEANUP.md) for more details.
+
 ## Pull Request Guidelines
 
 ### PR Title
