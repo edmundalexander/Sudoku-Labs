@@ -126,6 +126,10 @@
   <body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
     <div id="root"></div>
 
+    <!-- Load configuration from config/config.local.js (local values, not exposed publicly) -->
+    <!-- Falls back to inline CONFIG if file not found -->
+    <script src="config/config.local.js" onerror="console.warn('config.local.js not found, using fallback');"></script>
+
     <script type="text/babel" data-presets="react, typescript">
       const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
 
@@ -257,7 +261,9 @@
 
       // Set this to your Apps Script "exec" URL after deployment, e.g.
       // const GAS_URL = 'https://script.google.com/macros/s/XXXXX/exec';
-      const GAS_URL = 'https://script.google.com/macros/s/AKfycbxrJHnw5xFDTPTYiaYPiQd-e0S0mQWF-6bYiHMBOOi3MxlvgVk_coN7Q2kDl_3IWL8M/exec';
+      // This can be overridden by config/config.local.js or window.CONFIG.GAS_URL
+      const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbxrJHnw5xFDTPTYiaYPiQd-e0S0mQWF-6bYiHMBOOi3MxlvgVk_coN7Q2kDl_3IWL8M/exec';
+      const GAS_URL = (typeof CONFIG !== 'undefined' && CONFIG.GAS_URL) || DEFAULT_GAS_URL;
 
       const isGasEnvironment = () => {
         return typeof window !== 'undefined' && window.google && window.google.script;

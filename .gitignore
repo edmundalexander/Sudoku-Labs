@@ -1,0 +1,25 @@
+# Environment & Configuration
+config/config.local.js
+.env
+.env.local
+
+# Logs
+node_modules/
+*.log
+npm-debug.log*
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+dist/
+build/
+.cache/
