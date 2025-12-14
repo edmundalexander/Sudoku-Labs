@@ -1,4 +1,4 @@
-      const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
+const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
 
       // --- CAMPAIGN DATA ---
       const CAMPAIGN_LEVELS = [
@@ -1095,6 +1095,8 @@
                   {/* Right: Sidebar */}
                   <div className="flex flex-col gap-4 w-full lg:w-80">
                       
+
+
                       {/* Stats */}
                       <div className="w-full flex justify-between items-center bg-white dark:bg-gray-800 py-3 px-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 text-sm">
                           <div className="flex flex-col">
@@ -1156,15 +1158,6 @@
                           </div>
                       </div>}
 
-                      {/* Numpad */}
-                      <div className="grid grid-cols-3 gap-2">
-                          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
-                              <button key={num} onClick={() => handleNumberInput(num)} disabled={remaining[num] === 0} className={`h-14 rounded-lg text-xl font-bold transition-all transform active:scale-95 ${remaining[num] === 0 ? 'opacity-20 cursor-not-allowed bg-gray-200 dark:bg-gray-800' : 'bg-white dark:bg-gray-700 shadow-sm hover:bg-blue-50 dark:hover:bg-gray-600 text-blue-600 dark:text-blue-400 border border-gray-200 dark:border-gray-600'}`}>
-                                  {num} <span className="block text-[9px] text-gray-400 font-normal -mt-0.5">{remaining[num]} left</span>
-                              </button>
-                          ))}
-                      </div>
-                      
                       <div className="grid grid-cols-1 gap-2">
                            <button onClick={handleOpenLeaderboard} className="py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded shadow-md text-xs font-bold hover:from-yellow-600 hover:to-orange-600 transition-colors transform hover:-translate-y-0.5">🏆 View Leaderboard</button>
                       </div>
