@@ -21,11 +21,10 @@ jobs:
 
       - name: Assemble Build Directory 📦
         run: |
-          mkdir -p build/config build/src build/docs build/apps_script
-          cp index.html diagnostic.sh build/
+          mkdir -p build/config build/src build/docs
+          cp index.html favicon.svg build/
           cp -r src/. build/src/
           cp -r docs/. build/docs/
-          cp -r apps_script/. build/apps_script/
           cp config/config.example.js build/config/
 
       - name: Inject GAS_URL Secret 🤫
