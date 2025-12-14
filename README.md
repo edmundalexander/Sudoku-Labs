@@ -54,6 +54,8 @@ Just visit the live game: **[Play Now](https://edmund-alexander.github.io/Sudoku
 - **[Architecture](docs/ARCHITECTURE.md)** - System design and component overview
 - **[Configuration](docs/CONFIGURATION.md)** - How to configure the application
 - **[Deployment Checklist](docs/DEPLOYMENT_CHECKLIST.md)** - Complete deployment guide
+- **[Authentication Setup](docs/AUTHENTICATION_SETUP.md)** - Optional authentication system guide
+- **[Security Quick Reference](docs/SECURITY_QUICK_REFERENCE.md)** - Security implementation guide
 - **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
 - **[Wiki](../../wiki)** - Additional guides and resources
 
@@ -218,17 +220,43 @@ const puzzle = await response.json();
 
 ## 🔒 Security
 
+### Current Implementation
 - Configuration files with sensitive data are gitignored
-- No authentication required (public game)
+- Optional authentication with basic password hashing
 - Input sanitization on backend
 - XSS protection via proper escaping
 - HTTPS-only communication
+- Chat messages are sanitized
 
-**Security considerations:**
+### Security Considerations
 - `config.local.js` is never committed (in `.gitignore`)
 - GAS deployment URL can be public (it's just an API endpoint)
-- No personal data is collected
-- Chat messages are sanitized
+- Guest mode: No personal data is collected
+- Authentication uses simple hash (demonstration only)
+
+### ⚠️ Production Security
+
+**The current authentication system uses a simple hash and is NOT suitable for production with sensitive data.**
+
+For production deployments, you must implement proper security measures:
+
+- ✅ **Password Hashing**: Use PBKDF2/bcrypt with salt instead of simple hash
+- ✅ **Rate Limiting**: Prevent brute force attacks (5 attempts per 15 minutes)
+- ✅ **CSRF Protection**: Protect state-changing operations with CSRF tokens
+- ✅ **Session Management**: Use secure tokens with proper expiration
+- ✅ **Input Validation**: Sanitize all user inputs
+
+**See our comprehensive security guides:**
+- **[Security Quick Reference](docs/SECURITY_QUICK_REFERENCE.md)** - Quick implementation guide
+- **[Authentication Setup](docs/AUTHENTICATION_SETUP.md)** - Full security implementation details
+
+**Or use a professional authentication provider:**
+- Firebase Authentication
+- Auth0
+- Google OAuth
+- AWS Cognito
+
+**For casual games with non-sensitive data**, the current implementation is acceptable.
 
 ## 📄 License
 
