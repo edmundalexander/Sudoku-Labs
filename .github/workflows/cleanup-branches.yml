@@ -1,6 +1,6 @@
 name: Clean Up Merged Branches
 
-# This workflow can be manually triggered to clean up branches that have been merged
+# This workflow can be manually triggered or runs weekly to clean up merged branches
 on:
   workflow_dispatch:
     inputs:
@@ -12,6 +12,9 @@ on:
         options:
           - 'true'
           - 'false'
+  schedule:
+    # Run weekly on Sundays at 00:00 UTC
+    - cron: '0 0 * * 0'
 
 permissions:
   contents: write
@@ -24,6 +27,17 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0  # Fetch all history for all branches
+
+      - name: Set execution mode
+        id: set-mode
+        run: |
+          if [ "${{ github.event_name }}" == "schedule" ]; then
+            echo "Running in automatic mode (scheduled)"
+            echo "dry_run=false" >> $GITHUB_OUTPUT
+          else
+            echo "Running in manual mode"
+            echo "dry_run=${{ github.event.inputs.dry_run }}" >> $GITHUB_OUTPUT
+          fi
 
       - name: Configure Git 🔧
         run: |
@@ -70,7 +84,7 @@ jobs:
           echo "MERGED_BRANCHES=$merged_branches" >> $GITHUB_OUTPUT
 
       - name: Delete Merged Branches 🗑️
-        if: github.event.inputs.dry_run == 'false' && steps.find-merged.outputs.MERGED_BRANCHES != ''
+        if: steps.set-mode.outputs.dry_run == 'false' && steps.find-merged.outputs.MERGED_BRANCHES != ''
         run: |
           echo "Deleting merged branches..."
           for branch in ${{ steps.find-merged.outputs.MERGED_BRANCHES }}; do
@@ -79,7 +93,7 @@ jobs:
           done
 
       - name: Dry Run Summary 📊
-        if: github.event.inputs.dry_run == 'true'
+        if: steps.set-mode.outputs.dry_run == 'true'
         run: |
           echo "🔍 DRY RUN MODE - No branches will be deleted"
           echo ""
@@ -95,7 +109,7 @@ jobs:
           echo "To actually delete these branches, run this workflow again with dry_run=false"
 
       - name: Summary 📊
-        if: github.event.inputs.dry_run == 'false'
+        if: steps.set-mode.outputs.dry_run == 'false'
         run: |
           echo "✅ Branch cleanup complete!"
           echo ""
