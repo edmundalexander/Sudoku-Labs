@@ -524,6 +524,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
               if (soundEnabled) SoundManager.play('error');
             }
           } catch (err) {
+            console.error('Login error:', err);
             setError('Connection error. Please try again.');
             if (soundEnabled) SoundManager.play('error');
           } finally {
@@ -567,6 +568,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
               if (soundEnabled) SoundManager.play('error');
             }
           } catch (err) {
+            console.error('Registration error:', err);
             setError('Connection error. Please try again.');
             if (soundEnabled) SoundManager.play('error');
           } finally {
