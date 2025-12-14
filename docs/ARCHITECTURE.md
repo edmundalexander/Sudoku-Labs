@@ -60,6 +60,8 @@ function doGet(e) {
 
 All endpoints: `https://script.google.com/macros/s/[ID]/exec?action=[ACTION]`
 
+### Core Endpoints
+
 | Action | Parameters | Returns |
 |--------|-----------|---------|
 | `generateSudoku` | `difficulty` (Easy/Medium/Hard/Daily) | Sudoku puzzle array |
@@ -70,31 +72,48 @@ All endpoints: `https://script.google.com/macros/s/[ID]/exec?action=[ACTION]`
 | `logError` | `type`, `message`, `userAgent`, `count` | `{logged: true}` |
 | `ping` | none | `{ok: true, timestamp: "..."}` |
 
+### Authentication Endpoints (Optional)
+
+| Action | Parameters | Returns |
+|--------|-----------|---------|
+| `register` | `username`, `password` | `{success, user?, error?}` |
+| `login` | `username`, `password` | `{success, user?, error?}` |
+| `getUserProfile` | `userId` | `{success, user?, error?}` |
+| `updateUserProfile` | `userId`, `displayName?`, `incrementGames?`, `incrementWins?` | `{success, error?}` |
+
+See [AUTHENTICATION_SETUP.md](docs/AUTHENTICATION_SETUP.md) for details on the authentication system.
+
 ## File Structure
 
 ```
 Sudoku-Labs/
 ├── apps_script/
-│   └── Code.gs                 ← Backend code
-├── index.html                  ← Frontend (React)
+│   └── Code.gs                      ← Backend code
+├── src/
+│   └── app.jsx                      ← React application code
+├── index.html                       ← HTML shell
 ├── config/
-│   ├── config.example.js      (Template)
-│   ├── config.local.js        (Private GAS URL - in .gitignore)
-│   └── README.md              (Setup guide)
-├── ARCHITECTURE.md            (This file)
-├── DEPLOYMENT_CHECKLIST.md    (How to deploy)
-└── TROUBLESHOOTING.md         (Known issues & solutions)
+│   ├── config.example.js           (Template)
+│   ├── config.local.js             (Private GAS URL - in .gitignore)
+│   └── README.md                   (Setup guide)
+├── docs/
+│   ├── ARCHITECTURE.md             (This file)
+│   ├── DEPLOYMENT_CHECKLIST.md     (How to deploy)
+│   ├── AUTHENTICATION_SETUP.md     (Auth system guide)
+│   └── TROUBLESHOOTING.md          (Known issues & solutions)
+└── diagnostic.sh                    (API health check script)
 ```
 
 ## Google Sheets Database
 
 Connected via `SHEET_ID` constant in Code.gs
 
-**Three sheets (auto-created):**
+**Four sheets (auto-created):**
 
 1. **Leaderboard**: Name | Time | Difficulty | Date
 2. **Chat**: ID | Sender | Text | Timestamp
 3. **Logs**: Timestamp | Type | Message | UserAgent | Count
+4. **Users** (Optional Auth): UserID | Username | PasswordHash | CreatedAt | DisplayName | TotalGames | TotalWins
 
 ## Why This Architecture Works
 

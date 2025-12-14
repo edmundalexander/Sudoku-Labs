@@ -48,6 +48,18 @@ function doGet(e) {
       case 'ping':
         return makeJsonResponse({ ok: true, timestamp: new Date().toISOString() });
       
+      case 'register':
+        return makeJsonResponse(registerUser(e.parameter));
+      
+      case 'login':
+        return makeJsonResponse(loginUser(e.parameter));
+      
+      case 'getUserProfile':
+        return makeJsonResponse(getUserProfile(e.parameter));
+      
+      case 'updateUserProfile':
+        return makeJsonResponse(updateUserProfile(e.parameter));
+      
       default:
         return makeJsonResponse({ error: 'Unknown action: ' + action });
     }
@@ -261,6 +273,210 @@ function logClientError(entry) {
 }
 
 // ============================================================================
+// USER AUTHENTICATION ENDPOINTS
+// ============================================================================
+
+function registerUser(data) {
+  if (!data || typeof data !== 'object') {
+    return { success: false, error: 'Invalid request data' };
+  }
+  
+  const username = sanitizeInput_(data.username || '', 20);
+  const password = sanitizeInput_(data.password || '', 100);
+  
+  // Validate inputs
+  if (username.length < 3) {
+    return { success: false, error: 'Username must be at least 3 characters' };
+  }
+  
+  if (password.length < 6) {
+    return { success: false, error: 'Password must be at least 6 characters' };
+  }
+  
+  try {
+    const sheet = getSpreadsheet_().getSheetByName('Users');
+    if (!sheet) {
+      return { success: false, error: 'Users sheet not found' };
+    }
+    
+    // Check if username already exists
+    const sheetData = sheet.getDataRange().getValues();
+    for (let i = 1; i < sheetData.length; i++) {
+      if (sheetData[i][1] === username) {
+        return { success: false, error: 'Username already exists' };
+      }
+    }
+    
+    // Create simple hash (NOT secure for production - for demo purposes only)
+    const passwordHash = simpleHash_(password);
+    const userId = 'user_' + new Date().getTime() + '_' + Math.floor(Math.random() * 1000);
+    const createdAt = new Date().toISOString();
+    
+    // Save user: UserID | Username | PasswordHash | CreatedAt | DisplayName | TotalGames | TotalWins
+    sheet.appendRow([userId, username, passwordHash, createdAt, username, 0, 0]);
+    
+    return {
+      success: true,
+      user: {
+        userId: userId,
+        username: username,
+        displayName: username,
+        totalGames: 0,
+        totalWins: 0,
+        createdAt: createdAt
+      }
+    };
+  } catch (err) {
+    Logger.log('registerUser error: ' + err);
+    return { success: false, error: 'Registration failed' };
+  }
+}
+
+function loginUser(data) {
+  if (!data || typeof data !== 'object') {
+    return { success: false, error: 'Invalid request data' };
+  }
+  
+  const username = sanitizeInput_(data.username || '', 20);
+  const password = sanitizeInput_(data.password || '', 100);
+  
+  if (!username || !password) {
+    return { success: false, error: 'Username and password required' };
+  }
+  
+  try {
+    const sheet = getSpreadsheet_().getSheetByName('Users');
+    if (!sheet) {
+      return { success: false, error: 'Users sheet not found' };
+    }
+    
+    const sheetData = sheet.getDataRange().getValues();
+    const passwordHash = simpleHash_(password);
+    
+    // Search for user
+    for (let i = 1; i < sheetData.length; i++) {
+      if (sheetData[i][1] === username && sheetData[i][2] === passwordHash) {
+        return {
+          success: true,
+          user: {
+            userId: sheetData[i][0],
+            username: sheetData[i][1],
+            displayName: sheetData[i][4] || sheetData[i][1],
+            totalGames: Number(sheetData[i][5]) || 0,
+            totalWins: Number(sheetData[i][6]) || 0,
+            createdAt: sheetData[i][3]
+          }
+        };
+      }
+    }
+    
+    return { success: false, error: 'Invalid username or password' };
+  } catch (err) {
+    Logger.log('loginUser error: ' + err);
+    return { success: false, error: 'Login failed' };
+  }
+}
+
+function getUserProfile(data) {
+  if (!data || !data.userId) {
+    return { success: false, error: 'User ID required' };
+  }
+  
+  const userId = sanitizeInput_(data.userId, 50);
+  
+  try {
+    const sheet = getSpreadsheet_().getSheetByName('Users');
+    if (!sheet) {
+      return { success: false, error: 'Users sheet not found' };
+    }
+    
+    const sheetData = sheet.getDataRange().getValues();
+    
+    for (let i = 1; i < sheetData.length; i++) {
+      if (sheetData[i][0] === userId) {
+        return {
+          success: true,
+          user: {
+            userId: sheetData[i][0],
+            username: sheetData[i][1],
+            displayName: sheetData[i][4] || sheetData[i][1],
+            totalGames: Number(sheetData[i][5]) || 0,
+            totalWins: Number(sheetData[i][6]) || 0,
+            createdAt: sheetData[i][3]
+          }
+        };
+      }
+    }
+    
+    return { success: false, error: 'User not found' };
+  } catch (err) {
+    Logger.log('getUserProfile error: ' + err);
+    return { success: false, error: 'Failed to get profile' };
+  }
+}
+
+function updateUserProfile(data) {
+  if (!data || !data.userId) {
+    return { success: false, error: 'User ID required' };
+  }
+  
+  const userId = sanitizeInput_(data.userId, 50);
+  const displayName = data.displayName ? sanitizeInput_(data.displayName, 30) : null;
+  const incrementGames = data.incrementGames === true;
+  const incrementWins = data.incrementWins === true;
+  
+  try {
+    const sheet = getSpreadsheet_().getSheetByName('Users');
+    if (!sheet) {
+      return { success: false, error: 'Users sheet not found' };
+    }
+    
+    const values = sheet.getDataRange().getValues();
+    
+    for (let i = 1; i < values.length; i++) {
+      if (values[i][0] === userId) {
+        const row = i + 1; // Sheet rows are 1-indexed
+        
+        // Update display name if provided
+        if (displayName) {
+          sheet.getRange(row, 5).setValue(displayName);
+        }
+        
+        // Increment counters if requested
+        if (incrementGames) {
+          const currentGames = Number(values[i][5]) || 0;
+          sheet.getRange(row, 6).setValue(currentGames + 1);
+        }
+        
+        if (incrementWins) {
+          const currentWins = Number(values[i][6]) || 0;
+          sheet.getRange(row, 7).setValue(currentWins + 1);
+        }
+        
+        return { success: true };
+      }
+    }
+    
+    return { success: false, error: 'User not found' };
+  } catch (err) {
+    Logger.log('updateUserProfile error: ' + err);
+    return { success: false, error: 'Failed to update profile' };
+  }
+}
+
+// Simple hash function (NOT SECURE - for demo purposes only)
+// In production, use proper authentication service or OAuth
+function simpleHash_(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  return 'hash_' + Math.abs(hash).toString(36);
+}
+
+// ============================================================================
 // SUDOKU GENERATION
 // ============================================================================
 
@@ -394,7 +610,7 @@ function getSpreadsheet_() {
 
 function setupSheets_() {
   const ss = getSpreadsheet_();
-  const sheets = ['Leaderboard', 'Chat', 'Logs'];
+  const sheets = ['Leaderboard', 'Chat', 'Logs', 'Users'];
   
   sheets.forEach(name => {
     if (!ss.getSheetByName(name)) {
@@ -406,6 +622,8 @@ function setupSheets_() {
         sheet.appendRow(['ID', 'Sender', 'Text', 'Timestamp']);
       } else if (name === 'Logs') {
         sheet.appendRow(['Timestamp', 'Type', 'Message', 'UserAgent', 'Count']);
+      } else if (name === 'Users') {
+        sheet.appendRow(['UserID', 'Username', 'PasswordHash', 'CreatedAt', 'DisplayName', 'TotalGames', 'TotalWins']);
       }
     }
   });

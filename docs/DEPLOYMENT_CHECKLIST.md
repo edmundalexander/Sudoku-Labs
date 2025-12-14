@@ -28,7 +28,8 @@
 - In Apps Script, select `setupSheets_` from function dropdown
 - Click **Run** button (▶️)
 - Check Execution log → should see success
-- This creates: Leaderboard, Chat, Logs sheets in your Google Sheet
+- This creates: Leaderboard, Chat, Logs, Users sheets in your Google Sheet
+  - **Note:** The Users sheet is for the optional authentication system
 
 ### 5. Deploy as Web App
 - Click **Deploy** → **New Deployment**
@@ -114,6 +115,17 @@ git push
 ## If Something Goes Wrong
 
 See [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for common issues and solutions.
+
+## Optional: Authentication System
+
+The game now includes an optional authentication system that allows users to:
+- Continue as Guest (default, works exactly as before)
+- Register for an account to track stats across devices
+- Login to sync progress
+
+**To enable authentication, no extra setup is needed!** The system is already included in the deployment above.
+
+For detailed information about the authentication system, see [AUTHENTICATION_SETUP.md](docs/AUTHENTICATION_SETUP.md).
 
 ## Redeployment
 
