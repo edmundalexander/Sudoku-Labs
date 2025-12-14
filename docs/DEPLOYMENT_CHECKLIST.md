@@ -1,11 +1,22 @@
 # Deployment Checklist
 
-## Prerequisites
+This guide covers both **manual deployment** (traditional) and **automated deployment** (for AI agents and CI/CD).
+
+## Choose Your Deployment Method
+
+- **[Manual Deployment](#manual-deployment)** - Traditional copy-paste method
+- **[Automated Deployment](#automated-deployment)** - Using clasp CLI for AI agents
+
+---
+
+## Manual Deployment
+
+### Prerequisites
 - Google account with Google Sheets access
 - GitHub account with GitHub Pages enabled
 - Google Apps Script access
 
-## Part 1: Google Apps Script Backend
+### Part 1: Google Apps Script Backend
 
 ### 1. Create Apps Script Project
 - Go to https://script.google.com/home
@@ -127,7 +138,7 @@ The game now includes an optional authentication system that allows users to:
 
 For detailed information about the authentication system, see [AUTHENTICATION_SETUP.md](docs/AUTHENTICATION_SETUP.md).
 
-## Redeployment
+## Redeployment (Manual)
 
 If you update `Code.gs`:
 1. Paste new code into Apps Script editor
@@ -141,5 +152,136 @@ If you update `index.html`:
 1. Push to GitHub
 2. GitHub Pages auto-deploys
 3. Clear browser cache if needed
+
+---
+
+## Automated Deployment
+
+For AI agents and automated workflows, use the clasp-based deployment system.
+
+### Prerequisites
+
+- Node.js 18+ and npm
+- clasp CLI tool
+- Google Apps Script project with Script ID
+- OAuth credentials for clasp
+
+### Quick Start
+
+1. **Install dependencies**:
+   ```bash
+   npm install
+   npm install -g @google/clasp
+   ```
+
+2. **Set up clasp credentials** (one-time):
+   ```bash
+   clasp login
+   # This opens browser for Google OAuth
+   ```
+
+3. **Create .clasp.json**:
+   ```bash
+   cp .clasp.json.example .clasp.json
+   # Edit .clasp.json and add your Script ID
+   ```
+
+4. **Deploy**:
+   ```bash
+   npm run deploy:gas
+   ```
+
+### Using with GitHub Actions
+
+To enable automated deployment in CI/CD:
+
+1. **Add GitHub Secrets** (Settings > Secrets > Actions):
+   - `CLASP_SCRIPT_ID` - Your GAS project script ID
+   - `GAS_SHEET_ID` - Your Google Sheets database ID
+   - `CLASP_ACCESS_TOKEN` - OAuth access token
+   - `CLASP_REFRESH_TOKEN` - OAuth refresh token
+   - `CLASP_CLIENT_ID` - OAuth client ID
+   - `CLASP_CLIENT_SECRET` - OAuth client secret
+
+2. **Commit with trigger**:
+   ```bash
+   git commit -m "Update backend API [deploy-gas]"
+   git push
+   ```
+
+3. **GitHub Actions will**:
+   - Install dependencies
+   - Set up clasp environment
+   - Push code to Google Apps Script
+   - Create new deployment
+
+### Getting OAuth Credentials
+
+**Option 1: From clasp login (easiest)**
+```bash
+clasp login
+cat ~/.clasprc.json  # Contains all OAuth credentials
+```
+
+**Option 2: Google Cloud Console**
+1. Go to [Google Cloud Console](https://console.cloud.google.com)
+2. Create or select a project
+3. Enable Google Apps Script API
+4. Create OAuth 2.0 credentials
+5. Use the credentials with clasp
+
+### Deployment Options
+
+```bash
+# Full deployment
+npm run deploy:gas
+
+# Push code only (no new deployment version)
+node scripts/deploy-gas.js --push-only
+
+# Dry run (see what would happen)
+node scripts/deploy-gas.js --dry-run
+```
+
+### Documentation
+
+For complete automated deployment documentation, see:
+- **[AI Agent Deployment Guide](AI_AGENT_DEPLOYMENT.md)** - Detailed setup and usage
+- **[Scripts README](../scripts/README.md)** - Script documentation
+
+### Troubleshooting Automated Deployment
+
+**Problem**: "clasp is not installed"
+```bash
+npm install -g @google/clasp
+```
+
+**Problem**: "Missing environment variables"
+```bash
+# Check which are missing
+./scripts/setup-clasp.sh
+```
+
+**Problem**: "Could not read API credentials"
+- Verify OAuth credentials are correct
+- Check credentials haven't expired
+- Ensure proper OAuth scopes
+
+---
+
+## Verification Checklist
+
+- [ ] GAS backend test returns `{"ok":true,...}`
+- [ ] GitHub Pages site loads without errors
+- [ ] Game board generates correctly
+- [ ] Score saves to leaderboard
+- [ ] Chat messages post and display
+- [ ] No 404 or CORS errors in console
+- [ ] Difficulty selection works
+- [ ] Timer and move counter work
+
+## If Something Goes Wrong
+
+See [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for common issues and solutions.
 
 No additional config needed after initial setup!
