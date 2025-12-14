@@ -13,9 +13,10 @@ Short, actionable guidance to get coding agents productive in this repo.
 - Deployment: GAS must be deployed as a Web App with access set to "Anyone (even anonymous)" — otherwise requests will 302/403. See [docs/DEPLOYMENT_CHECKLIST.md](../docs/DEPLOYMENT_CHECKLIST.md).
 
 3) Developer workflows (what to run / test)
+- Local frontend development: Run a local web server (e.g., `python3 -m http.server 8000` or `npx serve`) and open `http://localhost:8000` in your browser. The app loads `src/app.jsx` via in-browser Babel compilation.
 - Quick API health check: `diagnostic.sh` (curl-based) — use this to verify `ping` and headers.
 - Backend edits: copy `apps_script/Code.gs` into a new Apps Script project, run `setupSheets_()` from the Apps Script editor, then Deploy → Web App and copy URL into `config/config.local.js`.
--- Frontend: commit `index.html`, `src/app.jsx` and (locally) `config/config.local.js`. The app currently uses in-browser Babel to compile `src/app.jsx` at runtime. For production consider precompiling/bundling (Vite/webpack) to avoid client-side compilation.
+- Frontend edits: Edit `src/app.jsx` or `index.html`, refresh browser to see changes. No build step needed (Babel compiles in-browser). For production, consider precompiling/bundling (Vite/webpack).
 
 4) Where to make changes (patterns to follow)
 -- Add API actions in `doGet(e)` and mirror them in the `runGasFn` mapping found in `src/app.jsx` (previously inline in `index.html`).
