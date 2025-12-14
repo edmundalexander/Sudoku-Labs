@@ -72,44 +72,80 @@ Alternatively, you can update the existing deployment:
 
 ## Frontend Setup
 
-The frontend code has already been updated in this repository. No additional configuration is needed - the authentication UI will automatically appear on the main menu.
+The frontend code has already been updated in this repository. No additional configuration is needed - the authentication UI will automatically appear contextually when needed.
 
-### How It Works
+### How It Works - Natural Flow Authentication
 
-1. **On First Visit**: Users see a "Sign In" button in the top-left corner of the menu
-2. **Clicking Sign In**: Opens a modal with three equal options:
-   - 🎮 Continue as Guest
-   - 🔑 Login  
-   - ✨ Register
-3. **After Authentication**: Username appears in top-left with a "Logout" button
+The authentication system uses a **natural flow** approach - users are only prompted to sign in when they need a feature that benefits from authentication:
+
+1. **Playing Games**: Users can immediately start playing without any authentication prompt
+2. **Winning a Game**: After completing a puzzle, users see a contextual prompt suggesting they create an account to save their score to the cloud leaderboard
+3. **Using Chat**: When trying to send a chat message, users are prompted to sign in to establish their identity
+4. **Viewing Leaderboard**: When opening the leaderboard, users get a contextual prompt suggesting authentication to track their own progress
+
+### Authentication Modal
+
+When prompted, users see a modal with three equal options:
+- 🎮 **Continue as Guest** - Proceed without signing in
+- 🔑 **Login** - Sign in to existing account
+- ✨ **Register** - Create a new account
+
+Each context provides specific messaging explaining why authentication would be helpful:
+- **Chat**: "💬 Chat with others and share strategies"
+- **Leaderboard**: "🏆 Keep your scores and track your improvement"
+- **Profile**: "📊 View your win rate and total games played"
 
 ### Guest Mode (Default)
 
-- No changes to existing behavior
+- No authentication required to play
 - Progress saved locally in browser (localStorage)
 - Random username assigned (e.g., "Guest1234")
 - Works offline
+- Can send chat messages as guest (if backend is configured)
 
 ### Authenticated Mode
 
 When a user logs in or registers:
-- Username appears in the top-left corner
+- Username appears in the top-left corner of the main menu
 - Stats tracked in Google Sheets Users table
 - Progress synced across devices
 - Campaign progress still local (by design)
+- Identified in chat and leaderboard
 
 ## Testing the Authentication System
 
-### 1. Test Registration
+### 1. Test Natural Flow - Win a Game
 
 1. Open your deployed game
-2. Click "Sign In" button
-3. Click "✨ Register"
-4. Enter a username (min 3 characters) and password (min 6 characters)
-5. Click "Create Account"
-6. You should see your username in the top-left corner
+2. Start a Quick Play game (any difficulty)
+3. Complete the puzzle successfully
+4. After winning, you should see an authentication prompt after ~1.5 seconds
+5. The prompt will explain "Save Your Score" and suggest creating an account
+6. You can choose to continue as guest or sign up
 
-### 2. Verify in Google Sheets
+### 2. Test Natural Flow - Chat
+
+1. Open the game
+2. Click the chat button in the bottom-right
+3. Try to send a message as a guest
+4. You should see an authentication prompt explaining "Join the Conversation"
+5. You can choose to sign in or continue as guest
+
+### 3. Test Natural Flow - Leaderboard
+
+1. Open the game
+2. Click "View Leaderboard" button during gameplay
+3. You should see an authentication prompt suggesting you track your progress
+4. The leaderboard will still open regardless of your choice
+
+### 4. Test Registration
+
+1. When any auth prompt appears, click "✨ Register"
+2. Enter a username (min 3 characters) and password (min 6 characters)
+3. Click "Create Account"
+4. You should see your username in the top-left corner of the main menu
+
+### 5. Verify in Google Sheets
 
 1. Open your Google Sheet
 2. Navigate to the "Users" tab
@@ -120,23 +156,24 @@ When a user logs in or registers:
    - Creation timestamp
    - 0 total games and wins initially
 
-### 3. Test Login
+### 6. Test Login
 
-1. Click "Logout" in the top-left corner
-2. Click "Sign In" button again
+1. Click "Logout" in the top-left corner (on main menu)
+2. Win another game or try to use chat to trigger an auth prompt
 3. Click "🔑 Login"
 4. Enter the same username and password
 5. Click "Login"
-6. You should be logged back in
+6. You should be logged back in with your username showing
 
-### 4. Test Guest Mode
+### 7. Test Guest Mode
 
 1. Open the game (or logout)
-2. Click "Sign In" button
-3. Click "🎮 Continue as Guest"
-4. Modal closes and you can play as guest
+2. Start playing without signing in
+3. Win a game - you'll see the auth prompt but can choose "Continue as Guest"
+4. Your score saves locally only
+5. All features work, but progress isn't synced
 
-### 5. Test Stats Tracking
+### 8. Test Stats Tracking
 
 1. Login with your account
 2. Start a game (Quick Play - any difficulty)
