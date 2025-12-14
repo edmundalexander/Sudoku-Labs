@@ -21,7 +21,8 @@
   ],
   "author": "Edmund Alexander",
   "license": "MIT",
-  "devDependencies": {
-    "@google/clasp": "^2.4.2"
+  "devDependencies": {},
+  "notes": {
+    "clasp": "Install globally: npm install -g @google/clasp"
   }
 }
