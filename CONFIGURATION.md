@@ -1,140 +1,80 @@
-# Secure Configuration System - Implementation Complete ✅
+# Configuration System
 
-## What Was Done
+## Overview
 
-You now have a **secure configuration system** that keeps sensitive data (like your GAS URL) out of version control.
+The frontend uses a secure configuration system to store the GAS deployment URL without committing sensitive data to GitHub.
 
-### Files Created
+## Files
 
-```
-config/
-├── config.example.js    # Public template (safe to commit) - shows what to configure
-├── config.local.js      # Private config (in .gitignore) - your actual GAS URL
-└── README.md           # Setup and security documentation
-```
-
-### How It Works
-
-1. **Frontend Loading** (`index.html` line ~131):
-   ```html
-   <script src="config/config.local.js" onerror="console.warn('config.local.js not found, using fallback');"></script>
-   ```
-   - This loads your local configuration before the app starts
-   - If the file is missing, a warning is logged but the app continues with fallback values
-
-2. **Configuration Variable** (`index.html` line ~263):
-   ```javascript
-   const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/.../exec';
-   const GAS_URL = (typeof CONFIG !== 'undefined' && CONFIG.GAS_URL) || DEFAULT_GAS_URL;
-   ```
-   - Tries to use your local CONFIG first
-   - Falls back to the hardcoded DEFAULT_GAS_URL if config.local.js doesn't exist
-   - This ensures the app works even if config is missing (uses fallback)
-
-3. **Version Control** (`.gitignore`):
-   ```
-   /config/config.local.js
-   ```
-   - Your sensitive `config.local.js` will NEVER be committed to GitHub
-   - Only `config.example.js` and `config/README.md` are committed (public)
-
-## Security Features
-
-✅ **GAS URL is protected** - Never exposed in version control
-✅ **Local development safe** - No need to edit index.html directly
-✅ **Easy to scale** - Add more config values as needed
-✅ **Deployment ready** - Other users can copy config.example.js and customize it
-
-## Your Configuration
-
-Your `config/config.local.js` currently contains:
+### `config/config.example.js` (Public - Committed)
+Template file showing what configuration is needed:
 
 ```javascript
 const CONFIG = {
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbxrJHnw5xFDTPTYiaYPiQd-e0S0mQWF-6bYiHMBOOi3MxlvgVk_coN7Q2kDl_3IWL8M/exec',
+  GAS_URL: 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec',
 };
 ```
 
-This is kept private and only exists in your local workspace.
+### `config/config.local.js` (Private - Not Committed)
+Your actual configuration. Listed in `.gitignore` so it's never pushed to GitHub:
 
-## For Other Developers / Users
+```javascript
+const CONFIG = {
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbzZg11UDcIZGbwHvrtxb5E2enGspkQnjsBPbCP5Aw6BYP5Jo5cq3JqPr8PHOZgbgn2kOg/exec',
+};
+```
 
-When someone clones your repo:
+## How It Works
 
-1. They see `config/config.example.js` with the template
-2. They DON'T see `config/config.local.js` (it's in .gitignore)
-3. They follow the instructions in `config/README.md`:
-   ```bash
-   cp config/config.example.js config/config.local.js
-   # Then edit config/config.local.js with their own GAS URL
-   ```
-4. The app works immediately without modifying any core files
-
-## Adding More Configuration Values
-
-To add more sensitive settings (API keys, feature flags, etc.):
-
-1. **Add to `config/config.example.js`**:
-   ```javascript
-   const CONFIG = {
-     GAS_URL: 'https://script.google.com/macros/s/...',
-     MY_API_KEY: 'example-key-123',  // Add new setting
-     FEATURE_FLAG: true,               // Add another setting
-   };
+1. **Frontend loads config** (`index.html` line ~131):
+   ```html
+   <script src="config/config.local.js"></script>
    ```
 
-2. **Add to `config/config.local.js`**:
+2. **Frontend uses it** (`index.html` line ~263):
+   ```javascript
+   const GAS_URL = (typeof CONFIG !== 'undefined' && CONFIG.GAS_URL) ? CONFIG.GAS_URL : '';
+   ```
+
+3. **If missing, app continues** with empty GAS_URL (shows error in console, but doesn't crash)
+
+## Setup Instructions
+
+### For Development
+1. Copy `config/config.example.js` to `config/config.local.js`
+2. Update `config/config.local.js` with your actual GAS URL
+3. Never commit `config/config.local.js`
+
+### For Deployment
+Your `config/config.local.js` stays private locally:
+- ✅ Not in GitHub (`.gitignore`)
+- ✅ Not in GitHub Pages (only index.html is deployed)
+- ✅ Only needed locally when testing via GitHub Pages
+
+## Why This System
+
+✅ **Security** - Private keys/URLs stay off GitHub
+✅ **Simplicity** - No build step needed
+✅ **Flexibility** - Easy to swap endpoints for testing
+✅ **Scalability** - Add more config values as needed
+
+## Adding More Configuration
+
+To add more settings:
+
+1. Update `config/config.example.js`:
    ```javascript
    const CONFIG = {
-     GAS_URL: 'https://script.google.com/macros/s/YOUR_REAL_ID/exec',
-     MY_API_KEY: 'your-actual-key-here',
+     GAS_URL: 'https://...',
      FEATURE_FLAG: true,
    };
    ```
 
-3. **Use in your code**:
+2. Update `config/config.local.js` with actual values
+
+3. Use in code:
    ```javascript
-   const apiKey = CONFIG.MY_API_KEY;
-   const enabled = CONFIG.FEATURE_FLAG;
+   if (CONFIG.FEATURE_FLAG) { /* ... */ }
    ```
 
-## Verification
-
-Check that everything is working:
-
-```bash
-# Verify config.local.js is ignored
-git check-ignore config/config.local.js
-# Output: .gitignore:2:config/config.local.js     config/config.local.js
-
-# Verify what will be committed
-git status
-# Output: working tree clean (config.local.js not listed)
-
-# See what's actually committed
-git ls-files config/
-# Output: config/README.md and config/config.example.js only
-```
-
-## Current Deployment Status
-
-✅ Code pushed to GitHub (commit 6ae9d4b)
-✅ config.example.js is public on GitHub
-✅ config.local.js is private (in .gitignore)
-✅ Frontend loads config dynamically
-✅ System ready for GitHub Pages + GAS deployment
-
-## Next Steps
-
-1. **Verify setup sheets runs**: Open your Google Apps Script and run `setupSheets_()` to ensure all required sheets are created
-2. **Test locally**: Open index.html in a browser and verify the game works with your GAS URL
-3. **Enable GitHub Pages**: Go to your repo settings and enable GitHub Pages (source: main branch, root folder)
-4. **Test live**: Open your GitHub Pages URL and verify the game connects to GAS
-
----
-
-**Your sensitive data is now secure!** 🔐
-
-The configuration system separates:
-- **Public code** (GitHub) ← always safe
-- **Private config** (local only) ← never exposed
+See `config/README.md` for more details.

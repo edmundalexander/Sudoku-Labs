@@ -3,6 +3,10 @@ config/config.local.js
 .env
 .env.local
 
+# Debug & Diagnostic Scripts
+diagnostic.sh
+*.debug
+
 # Logs
 node_modules/
 *.log

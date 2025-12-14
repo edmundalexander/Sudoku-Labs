@@ -1,153 +1,116 @@
-# Deployment Checklist - GitHub Pages + GAS API
+# Deployment Checklist
 
-Your code is ready to deploy! Follow these steps to get Sudoku Logic Lab live.
+## Prerequisites
+- Google account with Google Sheets access
+- GitHub account with GitHub Pages enabled
+- Google Apps Script access
 
 ## Part 1: Google Apps Script Backend
 
-### Step 1: Create Apps Script Project
+### 1. Create Apps Script Project
 - Go to https://script.google.com/home
 - Click **"New project"**
 - Name it "Sudoku Logic Lab API"
 
-### Step 2: Copy Code.gs
-- In this repository, open `apps_script/Code.gs`
-- Copy ALL the code
-- In your Apps Script editor, paste it into `Code.gs`
-- Press **Ctrl+S** to save
+### 2. Setup Code
+- Open `apps_script/Code.gs` in this repo
+- Copy **all** the code
+- In Apps Script editor, paste into `Code.gs`
+- Save (Ctrl+S)
 
-### Step 3: Update SHEET_ID
-- Open your Google Sheet
-- Copy the ID from the URL: `https://docs.google.com/spreadsheets/d/[SHEET_ID]/edit`
-- In Code.gs, find line: `const SHEET_ID = '...'`
-- Replace with your Sheet ID
+### 3. Update Sheet ID
+- Create or use existing Google Sheet
+- Get Sheet ID from URL: `https://docs.google.com/spreadsheets/d/[SHEET_ID]/edit`
+- In Code.gs line ~13, update: `const SHEET_ID = '[YOUR_SHEET_ID]'`
+- Save
 
-### Step 4: Initialize Database
-- In Apps Script editor, select `setupSheets_` from function dropdown
+### 4. Initialize Database
+- In Apps Script, select `setupSheets_` from function dropdown
 - Click **Run** button (▶️)
-- Check Execution log (should see no errors)
-- This creates: Leaderboard, Chat, Logs sheets
+- Check Execution log → should see success
+- This creates: Leaderboard, Chat, Logs sheets in your Google Sheet
 
-### Step 5: Deploy as Web App
+### 5. Deploy as Web App
 - Click **Deploy** → **New Deployment**
-- Type: Select **"Web App"**
-- Execute as: **Your email address**
-- Who has access: **"Anyone"** ⚠️ **CRITICAL - MUST BE "Anyone"**
+- Type: **Web App**
+- Execute as: **Your email address** (the account that owns the Sheet)
+- Who has access: **"Anyone (even anonymous)"** ⚠️ **CRITICAL - MUST BE "Anyone"**
 - Click **Deploy**
 
-### Step 6: Copy Deployment URL
-- You'll see a popup with your deployment URL
-- It looks like: `https://script.google.com/macros/s/[ID]/exec`
+### 6. Copy Deployment URL
+- You'll see a popup showing your deployment URL
+- Format: `https://script.google.com/macros/s/[SCRIPT_ID]/exec`
 - **Copy this entire URL**
-- Save it somewhere safe
 
-### Step 7: Test GAS Backend
+### 7. Test Backend
 ```bash
-# Replace [URL] with your actual GAS URL
-curl "[URL]?action=ping"
+# Replace with your actual URL
+curl "https://script.google.com/macros/s/YOUR_ID/exec?action=ping"
 
 # Should return:
 # {"ok":true,"timestamp":"2025-12-14T..."}
 ```
 
-If you see 403 errors or "Moved Temporarily", the permissions aren't set correctly. Go back to Step 5 and verify "Who has access: Anyone"
-
----
-
 ## Part 2: GitHub Pages Frontend
 
-### Step 1: Configure GAS URL
+### 1. Update Configuration
 - Open `config/config.local.js`
-- Replace the GAS_URL with your deployment URL from above:
-  ```javascript
-  const CONFIG = {
-    GAS_URL: 'https://script.google.com/macros/s/[YOUR_ID]/exec',
-  };
-  ```
-- Save the file
+- Update `GAS_URL` with your deployment URL from Part 1, Step 6
+- Save
 
-### Step 2: Enable GitHub Pages
-- Go to your repository settings
-- Click **"Pages"** in sidebar
-- Source: Select **"Deploy from a branch"**
-- Branch: Select **"main"** and **"/root"** folder
-- Click **Save**
-- Wait ~1 minute for deployment
+### 2. Commit to GitHub
+```bash
+git add index.html config/config.local.js
+git commit -m "Deploy: Add GAS URL configuration"
+git push
+```
 
-### Step 3: Find Your URL
-- In Pages settings, you'll see: `https://[username].github.io/Sudoku-Labs/`
-- This is your game URL!
+### 3. Enable GitHub Pages
+- Go to GitHub repo settings
+- Scroll to **Pages** section
+- Branch: **main**
+- Folder: **/ (root)**
+- Save
 
-### Step 4: Test Frontend
-- Open `https://[username].github.io/Sudoku-Labs/` in browser
-- Game should load
-- Try starting a game
-- Try saving a score
+### 4. Access Your Game
+- Wait 1-2 minutes for GitHub Pages to build
+- Go to: `https://[username].github.io/[repo-name]/`
+- Game should load!
 
----
+### 5. Test Frontend
+- Start a game (pick difficulty)
+- Solve and submit (score should save)
+- Send chat message (should appear in sheet)
+- Check browser console (F12) for any errors
 
 ## Verification Checklist
 
-### GAS Backend
-- [ ] Code.gs is saved without errors
-- [ ] setupSheets_() ran successfully
-- [ ] Sheets exist: Leaderboard, Chat, Logs
-- [ ] Deployment is set to "Who has access: Anyone"
-- [ ] Deployment URL responds to ping (returns JSON)
+- [ ] GAS backend test returns `{"ok":true,...}`
+- [ ] GitHub Pages site loads without errors
+- [ ] Game board generates correctly
+- [ ] Score saves to leaderboard
+- [ ] Chat messages post and display
+- [ ] No 404 or CORS errors in console
+- [ ] Difficulty selection works
+- [ ] Timer and move counter work
 
-### GitHub Pages Frontend
-- [ ] index.html committed to main branch
-- [ ] GitHub Pages enabled in repo settings
-- [ ] Custom domain configured (optional)
-- [ ] Frontend loads without 403 errors
-- [ ] Game title appears
+## If Something Goes Wrong
 
-### Integration
-- [ ] Frontend loads (GitHub Pages URL)
-- [ ] Game starts without errors
-- [ ] Console shows no errors (F12)
-- [ ] Saving a score works
-- [ ] Leaderboard fetches data
-- [ ] Chat sends/receives messages
+See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for common issues and solutions.
 
----
+## Redeployment
 
-## Troubleshooting
+If you update `Code.gs`:
+1. Paste new code into Apps Script editor
+2. Click **Deploy** → **Manage Deployments**
+3. Click the edit icon on your Web App deployment
+4. Click **Update** (or create new deployment)
+5. Update `config/config.local.js` if URL changed
+6. Push to GitHub
 
-### "Cannot reach API" or 403 errors
-- [ ] GAS deployment URL is correct
-- [ ] GAS "Who has access" is set to "Anyone"
-- [ ] SHEET_ID in Code.gs is correct
-- [ ] Try: `curl "[GAS_URL]?action=ping"` - should return JSON
+If you update `index.html`:
+1. Push to GitHub
+2. GitHub Pages auto-deploys
+3. Clear browser cache if needed
 
-### "Cannot find index.html"
-- [ ] index.html is in repository root
-- [ ] GitHub Pages source is set to main branch
-- [ ] Wait 1-2 minutes for Pages to rebuild
-
-### "Cannot load config"
-- [ ] config.local.js has correct GAS_URL
-- [ ] File path is `config/config.local.js`
-- [ ] Check console (F12) for actual error
-
-### "Sheet not found"
-- [ ] Run `setupSheets_()` in Apps Script editor
-- [ ] Check SHEET_ID matches your Sheet
-- [ ] Verify you have edit access to the Sheet
-
-### Still broken?
-1. Check browser Console (F12) for errors
-2. Check GAS Execution log for errors
-3. Verify GAS deployment URL with curl
-4. See ARCHITECTURE.md for detailed explanation
-
----
-
-## Success!
-
-Once all checks pass:
-- Share `https://[username].github.io/Sudoku-Labs/` with friends
-- Anyone can play without Google sign-in
-- Scores saved to Google Sheets
-- Chat messages visible to all players
-
-**No more 403 errors! 🎉**
+No additional config needed after initial setup!
