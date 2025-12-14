@@ -176,3 +176,58 @@ fetch(url).then(r => r.json()).then(console.log);
 
 ### Issue: Sudoku board won't generate
 **Solution**: Check that difficulty parameter is valid: `Easy`, `Medium`, `Hard`, or `Daily`
+
+## Issue: Git Pull Error - Divergent Branches
+
+### Problem
+When running `git pull`, you may encounter an error:
+```
+hint: You have divergent branches and need to specify how to reconcile them.
+fatal: Need to specify how to reconcile divergent branches.
+```
+
+### Root Cause
+Git 2.27+ requires explicit configuration for how to handle divergent branches during a pull operation. This happens when your local branch and the remote branch have diverged (different commits).
+
+### Solution
+
+Configure how Git should reconcile divergent branches. Choose one of these options:
+
+**Option 1: Merge (Recommended for most users)**
+```bash
+git config pull.rebase false
+```
+This creates a merge commit when pulling changes. It preserves the full history.
+
+**Option 2: Rebase**
+```bash
+git config pull.rebase true
+```
+This replays your local commits on top of the remote changes. Creates a linear history but can be more complex.
+
+**Option 3: Fast-forward Only**
+```bash
+git config pull.ff only
+```
+Only allows pull if it can be fast-forwarded. Fails if branches have diverged.
+
+### Set Globally (All Repositories)
+To set this configuration for all your repositories:
+```bash
+git config --global pull.rebase false  # or true, or pull.ff only
+```
+
+### One-time Override
+To override the configuration for a single pull:
+```bash
+git pull --rebase      # Rebase this time
+git pull --no-rebase   # Merge this time
+git pull --ff-only     # Fast-forward only this time
+```
+
+### Verification
+Check your current configuration:
+```bash
+git config --get pull.rebase  # Shows: false, true, or nothing
+git config --get pull.ff      # Shows: only, or nothing
+```
