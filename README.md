@@ -273,27 +273,30 @@ A modern, feature-rich Sudoku game with campaign mode, real-time chat, leaderboa
 
 ### User Modes
 
-The game supports three equal modes of play:
+The game uses a **natural flow** authentication approach - users are only prompted to sign in when they want features that benefit from authentication:
 
 #### 🎮 Guest Mode (Default)
-- Play immediately without signing up
+- **Play immediately** - No sign-up required
 - Progress saved locally in browser
 - Full access to all game features
 - Random username assigned (e.g., "Guest1234")
+- **Natural prompts**: After winning or when using social features, you'll see contextual suggestions to create an account
 
 #### 🔑 Login
-- Sign in to existing account
+- Sign in to existing account when prompted
 - Access stats from any device
 - Track wins, losses, and completion time
 - Progress synced to cloud
+- **Prompted when**: Winning games, using chat, viewing leaderboard
 
 #### ✨ Register
-- Create a new account
+- Create a new account when you're ready
 - Username and password protected
 - Stats tracked across devices
 - Keep your campaign progress
+- **Prompted naturally**: The game suggests registration at the right moments
 
-**All three options are presented with equal visual weight - users are never forced to create an account!**
+**Key Philosophy**: Users are never forced to create an account! Authentication prompts appear contextually when features benefit from it, always with the option to continue as a guest.
 
 ## Quick Start
 
@@ -326,12 +329,18 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed architecture docum
 
 ## Authentication System
 
-The authentication system is:
+The authentication system uses a **natural flow** approach:
 - ✅ **Optional**: Users can always play as guests
-- ✅ **Non-forceful**: Equal weight given to all three options
+- ✅ **Contextual**: Prompts appear when features benefit from auth (winning, chat, leaderboard)
+- ✅ **Non-forceful**: Users can always choose to continue as guest
 - ✅ **Simple**: Username + password (hashed)
 - ✅ **Cloud-synced**: Stats tracked across devices
 - ⚠️ **Demo-grade security**: Not suitable for sensitive data
+
+**Natural Flow Triggers**:
+- 🏆 After winning a game (suggests saving scores to cloud)
+- 💬 When sending a chat message (establishes identity)
+- 📊 When viewing leaderboard (suggests tracking progress)
 
 **Important Security Note**: The current authentication uses a simple hash for demonstration purposes. For production use with sensitive data, implement proper authentication (Firebase, Auth0, OAuth, etc.). See [docs/AUTHENTICATION_SETUP.md](docs/AUTHENTICATION_SETUP.md) for details.
 
