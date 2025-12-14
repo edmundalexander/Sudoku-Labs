@@ -333,10 +333,6 @@
           throw error;
         }
       };
-          console.error('GAS fetch error', err);
-          return null;
-        }
-      };
 
       const saveGame = (state) => {
         try { localStorage.setItem(KEYS.GAME_STATE, JSON.stringify(state)); } catch (e) {}
