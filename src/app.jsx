@@ -1151,23 +1151,17 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                   <div className="flex flex-col gap-4 w-full lg:w-80">
 
                       {/* Number Pad (top of sidebar) */}
-                      <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                        <h3 className="text-xs font-bold uppercase text-gray-500 mb-2">Numbers</h3>
-                        <div className="grid grid-cols-3 gap-2">
-                          {[1,2,3,4,5,6,7,8,9].map(n => (
-                            <button
-                              key={n}
-                              onClick={() => { if (soundEnabled) SoundManager.play('select'); handleNumberInput(n); }}
-                              disabled={status !== 'playing'}
-                              className={`py-3 rounded-lg font-bold transition-colors ${status === 'playing' ? 'bg-gray-100 dark:bg-gray-700 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600' : 'bg-gray-50 dark:bg-gray-900 opacity-60 cursor-not-allowed'}`}
-                            >
-                              <div className="relative">
-                                <span className="text-lg sm:text-xl">{n}</span>
-                                <span className="absolute -bottom-1 -right-1 text-[10px] px-1 py-0.5 bg-gray-100 dark:bg-gray-900 rounded-full">{remaining[n] || 0}</span>
-                              </div>
-                            </button>
+                      <div className="grid grid-cols-3 gap-2">
+                          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
+                              <button
+                                  key={num}
+                                  onClick={() => { if (soundEnabled) SoundManager.play('select'); handleNumberInput(num); }}
+                                  disabled={(status !== 'playing') || (remaining[num] === 0)}
+                                  className={`h-14 rounded-lg text-xl font-bold transition-all transform active:scale-95 ${((status !== 'playing') || (remaining[num] === 0)) ? 'opacity-20 cursor-not-allowed bg-gray-200 dark:bg-gray-800' : 'bg-white dark:bg-gray-700 shadow-sm hover:bg-blue-50 dark:hover:bg-gray-600 text-blue-600 dark:text-blue-400 border border-gray-200 dark:border-gray-600'}`}
+                              >
+                                  {num} <span className="block text-[9px] text-gray-400 font-normal -mt-0.5">{remaining[num]} left</span>
+                              </button>
                           ))}
-                        </div>
                       </div>
                       
 
