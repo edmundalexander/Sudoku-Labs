@@ -328,7 +328,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
       }
 
       const generateGuestId = () => {
-        return 'Guest' + Math.floor(Math.random() * 10000);
+        return 'User' + Math.floor(Math.random() * 10000);
       };
 
       // User session management
@@ -1154,7 +1154,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         
         // User Authentication State
         const [showUserPanel, setShowUserPanel] = useState(false);
-        const [userSession, setUserSession] = useState(getUserSession());
+        const [appUserSession, setAppUserSession] = useState(getUserSession());
         
         const timerRef = useRef(null);
         const chatEndRef = useRef(null);
@@ -1211,7 +1211,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                setChatMessages(prev => {
                    if (prev.length > 0 && msgs.length > prev.length) {
                        const lastMsg = msgs[msgs.length - 1];
-                       if (!isChatOpen && lastMsg.sender !== getUserId()) {
+                       if (!isChatOpen && lastMsg.sender !== getCurrentUserId()) {
                            setChatNotification(lastMsg);
                            if (soundEnabled) SoundManager.play('chat');
                            setTimeout(() => setChatNotification(null), 4000);
@@ -1335,6 +1335,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                         const updatedProfile = await runGasFn('getUserProfile', { userId: session.userId });
                         if (updatedProfile && updatedProfile.success) {
                             setUserSession(updatedProfile.user);
+                            setAppUserSession(updatedProfile.user);
                         }
                     } catch (err) {
                         console.error('Failed to update user stats:', err);
@@ -1386,6 +1387,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         const handleUserPanelClose = (updatedUser) => {
           if (updatedUser) {
             setUserSession(updatedUser);
+            setAppUserSession(updatedUser);
           }
           setShowUserPanel(false);
         };
@@ -1521,7 +1523,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                     darkMode={darkMode} toggleDarkMode={toggleDarkMode}
                     loading={loading} soundEnabled={soundEnabled} toggleSound={toggleSound}
                     onShowUserPanel={() => setShowUserPanel(true)}
-                    userSession={userSession}
+                    userSession={appUserSession}
                 />
                 {showUserPanel && <UserPanel soundEnabled={soundEnabled} onClose={handleUserPanelClose} />}
                 </>
@@ -1564,7 +1566,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                     {loading && <span className="text-xs text-blue-500 animate-pulse">Generating...</span>}
                     <button onClick={() => setShowUserPanel(true)} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors relative">
                         <Icons.User />
-                        {userSession && (
+                        {appUserSession && (
                           <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full"></span>
                         )}
                     </button>
