@@ -3,22 +3,22 @@
 Short, actionable guidance to get coding agents productive in this repo.
 
 1) Big picture
-- Frontend: [index.html](index.html) — React UI compiled in-browser and hosted on GitHub Pages.
+-- Frontend: [index.html](index.html) — HTML shell. The React/Babel app was moved to `src/app.jsx` and is compiled in-browser (Babel standalone). Hosted on GitHub Pages.
 - Backend: [apps_script/Code.gs](apps_script/Code.gs) — Google Apps Script Web App exposing a GET-based API routed via `doGet()` using an `action` query parameter.
 - Data store: Google Sheets (three sheets: `Leaderboard`, `Chat`, `Logs`) accessed by `SHEET_ID` in `Code.gs`.
 
 2) Key conventions and gotchas
-- All client ↔ GAS calls use HTTP GET with `action` query param (see `runGasFn` in [index.html](index.html) and `doGet` in [apps_script/Code.gs](apps_script/Code.gs)). Avoid introducing POST-only patterns — public GAS deployments redirect POSTs to auth pages.
+-- All client ↔ GAS calls use HTTP GET with `action` query param (see `runGasFn` in [index.html](index.html) / `src/app.jsx` and `doGet` in [apps_script/Code.gs](apps_script/Code.gs)). Avoid introducing POST-only patterns — public GAS deployments redirect POSTs to auth pages.
 - Config: `config/config.example.js` is the template; local secrets live in `config/config.local.js` (gitignored). The frontend loads `config/config.local.js` if present.
 - Deployment: GAS must be deployed as a Web App with access set to "Anyone (even anonymous)" — otherwise requests will 302/403. See [docs/DEPLOYMENT_CHECKLIST.md](docs/DEPLOYMENT_CHECKLIST.md).
 
 3) Developer workflows (what to run / test)
 - Quick API health check: `diagnostic.sh` (curl-based) — use this to verify `ping` and headers.
 - Backend edits: copy `apps_script/Code.gs` into a new Apps Script project, run `setupSheets_()` from the Apps Script editor, then Deploy → Web App and copy URL into `config/config.local.js`.
-- Frontend: commit `index.html` and (locally) `config/config.local.js` and enable GitHub Pages on `main` root.
+-- Frontend: commit `index.html`, `src/app.jsx` and (locally) `config/config.local.js`. The app currently uses in-browser Babel to compile `src/app.jsx` at runtime. For production consider precompiling/bundling (Vite/webpack) to avoid client-side compilation.
 
 4) Where to make changes (patterns to follow)
-- Add API actions in `doGet(e)` and mirror them in `runGasFn` mapping in [index.html](index.html).
+-- Add API actions in `doGet(e)` and mirror them in the `runGasFn` mapping found in `src/app.jsx` (previously inline in `index.html`).
 - Persisted data must be sanitized using existing helpers `sanitizeInput_` / `sanitizeOutput_` in `Code.gs`.
 - To add config values, update `config/config.example.js` and expect developers to mirror them in `config.local`.
 
@@ -32,7 +32,8 @@ Short, actionable guidance to get coding agents productive in this repo.
 
 7) Files to inspect when troubleshooting
 - [apps_script/Code.gs](apps_script/Code.gs) — routing, SHEET_ID constant, helpers
-- [index.html](index.html) — frontend API mappings, `runGasFn`, and config usage
+- [index.html](index.html) — HTML shell; loads `src/app.jsx` (Babel/React) and `config/config.local.js`.
+- [src/app.jsx](src/app.jsx) — extracted in-browser React/Babel app (components, `runGasFn`, UI logic). Edit here for frontend behavior.
 - [config/config.example.js](config/config.example.js) and [config/README.md](config/README.md)
 - [docs/DEPLOYMENT_CHECKLIST.md](docs/DEPLOYMENT_CHECKLIST.md) and [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
 - `diagnostic.sh` — quick CLI checks
