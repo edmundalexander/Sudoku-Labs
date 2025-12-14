@@ -123,13 +123,8 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         CHAT: 'sudoku_v2_chat',
         USER_ID: 'sudoku_v2_uid',
         SOUND_ENABLED: 'sudoku_v2_sound',
-        CAMPAIGN_PROGRESS: 'sudoku_v2_campaign',
-        AUTH_USER: 'sudoku_v2_auth_user',
-        AUTH_MODE: 'sudoku_v2_auth_mode'
+        CAMPAIGN_PROGRESS: 'sudoku_v2_campaign'
       };
-      
-      // UI Configuration Constants
-      const AUTH_PROMPT_DELAY_MS = 1500; // Delay before showing auth prompt after winning
 
       // GAS Backend API URL - Configure this with your deployment URL
       // Format: https://script.google.com/macros/s/[DEPLOYMENT_ID]/exec
@@ -152,11 +147,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
             saveLeaderboardScore: { action: 'saveScore', method: 'GET' },
             getChatData: { action: 'getChat', method: 'GET' },
             postChatData: { action: 'postChat', method: 'GET' },
-            logClientError: { action: 'logError', method: 'GET' },
-            registerUser: { action: 'register', method: 'GET' },
-            loginUser: { action: 'login', method: 'GET' },
-            getUserProfile: { action: 'getUserProfile', method: 'GET' },
-            updateUserProfile: { action: 'updateUserProfile', method: 'GET' }
+            logClientError: { action: 'logError', method: 'GET' }
           };
 
           const mapping = actionMap[fnName];
@@ -322,104 +313,13 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         localStorage.setItem(KEYS.CAMPAIGN_PROGRESS, JSON.stringify(prog));
       }
 
-      const getUserDisplayName = () => {
-          // Check if user is authenticated
-          const authUser = getAuthUser();
-          if (authUser && authUser.userId) {
-            return authUser.displayName || authUser.username;
-          }
-          
-          // Fall back to guest mode
+      const getUserId = () => {
           let uid = localStorage.getItem(KEYS.USER_ID);
           if (!uid) {
-              uid = 'Guest' + Math.floor(Math.random() * 10000);
+              uid = 'User' + Math.floor(Math.random() * 10000);
               localStorage.setItem(KEYS.USER_ID, uid);
           }
           return uid;
-      }
-
-      // Authentication helpers
-      const getAuthUser = () => {
-        try {
-          const stored = localStorage.getItem(KEYS.AUTH_USER);
-          return stored ? JSON.parse(stored) : null;
-        } catch(e) { return null; }
-      }
-
-      const setAuthUser = (user) => {
-        if (user) {
-          localStorage.setItem(KEYS.AUTH_USER, JSON.stringify(user));
-          localStorage.setItem(KEYS.AUTH_MODE, 'authenticated');
-        } else {
-          localStorage.removeItem(KEYS.AUTH_USER);
-          localStorage.setItem(KEYS.AUTH_MODE, 'guest');
-        }
-      }
-
-      const isAuthenticated = () => {
-        return getAuthUser() !== null;
-      }
-
-      const logout = () => {
-        setAuthUser(null);
-      }
-
-      const registerUser = async (username, password) => {
-        if (!isGasEnvironment()) {
-          return { success: false, error: 'Authentication requires GAS backend' };
-        }
-        
-        try {
-          const result = await runGasFn('registerUser', { username, password });
-          if (result && result.success) {
-            setAuthUser(result.user);
-          }
-          return result;
-        } catch (e) {
-          console.error('Registration error:', e);
-          return { success: false, error: 'Registration failed' };
-        }
-      }
-
-      const loginUser = async (username, password) => {
-        if (!isGasEnvironment()) {
-          return { success: false, error: 'Authentication requires GAS backend' };
-        }
-        
-        try {
-          const result = await runGasFn('loginUser', { username, password });
-          if (result && result.success) {
-            setAuthUser(result.user);
-          }
-          return result;
-        } catch (e) {
-          console.error('Login error:', e);
-          return { success: false, error: 'Login failed' };
-        }
-      }
-
-      const updateProfile = async (updates) => {
-        const authUser = getAuthUser();
-        if (!authUser) return { success: false };
-        
-        try {
-          const result = await runGasFn('updateUserProfile', {
-            userId: authUser.userId,
-            ...updates
-          });
-          
-          if (result && result.success) {
-            // Refresh user profile
-            const profile = await runGasFn('getUserProfile', { userId: authUser.userId });
-            if (profile && profile.success) {
-              setAuthUser(profile.user);
-            }
-          }
-          return result;
-        } catch (e) {
-          console.error('Update profile error:', e);
-          return { success: false };
-        }
       }
 
       const logError = async (message, error) => { 
@@ -532,8 +432,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         Lock: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>,
         Star: ({filled}) => <svg xmlns="http://www.w3.org/2000/svg" fill={filled ? "currentColor" : "none"} viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.545.044.77.77.326 1.163l-4.304 3.86a.562.562 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.304-3.86c-.444-.393-.219-1.119.326-1.163l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" /></svg>,
         Chest: () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8"><path d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H4.5a1.5 1.5 0 01-1.5-1.5v-8.25M21 11.25H3M21 11.25a1.5 1.5 0 00-1.5-1.5H16.5m-3 0h3m-3 0c0-1.242-1.008-2.25-2.25-2.25s-2.25 1.008-2.25 2.25m4.5 0h-4.5m4.5 0H21m-4.5 0H4.5m0 0a1.5 1.5 0 00-1.5 1.5m1.5-1.5h-3" /></svg>,
-        Avatar: () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-white drop-shadow-lg"><circle cx="12" cy="12" r="10" className="text-blue-500"/><path fill="white" d="M12 4a4 4 0 100 8 4 4 0 000-8zM6 18a6 6 0 0112 0H6z" /></svg>,
-        User: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+        Avatar: () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-white drop-shadow-lg"><circle cx="12" cy="12" r="10" className="text-blue-500"/><path fill="white" d="M12 4a4 4 0 100 8 4 4 0 000-8zM6 18a6 6 0 0112 0H6z" /></svg>
       };
 
       const CHAT_POLL_INTERVAL = 5000;
@@ -712,248 +611,8 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
          )
       };
 
-
-      const AuthModal = ({ onClose, soundEnabled, onAuthSuccess, context = 'general' }) => {
-        const [mode, setMode] = useState('choice'); // 'choice', 'login', 'register'
-        const [username, setUsername] = useState('');
-        const [password, setPassword] = useState('');
-        const [error, setError] = useState('');
-        const [loading, setLoading] = useState(false);
-        
-        // Context-specific messaging
-        const contextMessages = {
-          chat: {
-            title: 'Join the Conversation',
-            subtitle: 'Create an account or sign in to chat with other players',
-            benefit: '💬 Chat with others and share strategies'
-          },
-          leaderboard: {
-            title: 'Save Your Score',
-            subtitle: 'Track your progress and compete on the global leaderboard',
-            benefit: '🏆 Keep your scores and track your improvement'
-          },
-          profile: {
-            title: 'Track Your Progress',
-            subtitle: 'Create an account to save your stats and progress',
-            benefit: '📊 View your win rate and total games played'
-          },
-          general: {
-            title: 'Welcome!',
-            subtitle: "Choose how you'd like to play",
-            benefit: null
-          }
-        };
-        
-        const currentContext = contextMessages[context] || contextMessages.general;
-
-        const handleLogin = async () => {
-          if (!username || !password) {
-            setError('Please enter username and password');
-            return;
-          }
-          
-          setLoading(true);
-          setError('');
-          
-          try {
-            const result = await loginUser(username, password);
-            if (result.success) {
-              if (soundEnabled) SoundManager.play('success');
-              onAuthSuccess(result.user);
-              onClose();
-            } else {
-              setError(result.error || 'Login failed');
-              if (soundEnabled) SoundManager.play('error');
-            }
-          } catch (e) {
-            setError('Login failed. Please try again.');
-            if (soundEnabled) SoundManager.play('error');
-          } finally {
-            setLoading(false);
-          }
-        };
-
-        const handleRegister = async () => {
-          if (!username || !password) {
-            setError('Please enter username and password');
-            return;
-          }
-          
-          if (username.length < 3) {
-            setError('Username must be at least 3 characters');
-            return;
-          }
-          
-          if (password.length < 6) {
-            setError('Password must be at least 6 characters');
-            return;
-          }
-          
-          setLoading(true);
-          setError('');
-          
-          try {
-            const result = await registerUser(username, password);
-            if (result.success) {
-              if (soundEnabled) SoundManager.play('success');
-              onAuthSuccess(result.user);
-              onClose();
-            } else {
-              setError(result.error || 'Registration failed');
-              if (soundEnabled) SoundManager.play('error');
-            }
-          } catch (e) {
-            setError('Registration failed. Please try again.');
-            if (soundEnabled) SoundManager.play('error');
-          } finally {
-            setLoading(false);
-          }
-        };
-
-        const handleGuest = () => {
-          if (soundEnabled) SoundManager.play('select');
-          onClose();
-        };
-
-        return (
-          <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-md animate-fade-in">
-            <div className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white p-8 rounded-2xl shadow-2xl max-w-md w-full relative border border-gray-200 dark:border-gray-700 animate-pop">
-              <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
-                <Icons.X />
-              </button>
-
-              {mode === 'choice' && (
-                <div className="space-y-6">
-                  <div className="text-center mb-6">
-                    <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white">
-                      <Icons.User />
-                    </div>
-                    <h2 className="text-2xl font-bold">{currentContext.title}</h2>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">{currentContext.subtitle}</p>
-                    {currentContext.benefit && (
-                      <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-lg text-sm text-blue-700 dark:text-blue-300">
-                        {currentContext.benefit}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-3">
-                    <button
-                      onClick={handleGuest}
-                      className="w-full py-4 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl font-semibold transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2"
-                    >
-                      <span>🎮</span> Continue as Guest
-                    </button>
-
-                    <button
-                      onClick={() => { if (soundEnabled) SoundManager.play('select'); setMode('login'); }}
-                      className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2"
-                    >
-                      <span>🔑</span> Login
-                    </button>
-
-                    <button
-                      onClick={() => { if (soundEnabled) SoundManager.play('select'); setMode('register'); }}
-                      className="w-full py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl font-semibold transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2"
-                    >
-                      <span>✨</span> Register
-                    </button>
-                  </div>
-
-                  {!isGasEnvironment() && (
-                    <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg text-xs text-yellow-800 dark:text-yellow-200 text-center">
-                      Authentication requires GAS backend. Configure GAS_URL to enable.
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {(mode === 'login' || mode === 'register') && (
-                <div className="space-y-6">
-                  <div className="text-center mb-6">
-                    <h2 className="text-2xl font-bold">{mode === 'login' ? 'Login' : 'Create Account'}</h2>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                      {mode === 'login' ? 'Welcome back!' : 'Join the Sudoku community'}
-                    </p>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Username</label>
-                      <input
-                        type="text"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === 'Enter') mode === 'login' ? handleLogin() : handleRegister(); }}
-                        className="w-full px-4 py-3 rounded-lg bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-blue-500 outline-none transition-shadow"
-                        placeholder="Enter username"
-                        disabled={loading}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Password</label>
-                      <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === 'Enter') mode === 'login' ? handleLogin() : handleRegister(); }}
-                        className="w-full px-4 py-3 rounded-lg bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-blue-500 outline-none transition-shadow"
-                        placeholder="Enter password"
-                        disabled={loading}
-                      />
-                      {mode === 'register' && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Minimum 6 characters</p>
-                      )}
-                    </div>
-
-                    {error && (
-                      <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-600 dark:text-red-400">
-                        {error}
-                      </div>
-                    )}
-
-                    <button
-                      onClick={mode === 'login' ? handleLogin : handleRegister}
-                      disabled={loading}
-                      className="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl font-bold transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                      {loading ? 'Please wait...' : mode === 'login' ? 'Login' : 'Create Account'}
-                    </button>
-
-                    <button
-                      onClick={() => { if (soundEnabled) SoundManager.play('select'); setMode('choice'); setError(''); }}
-                      disabled={loading}
-                      className="w-full py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-xl font-semibold transition-colors disabled:opacity-50"
-                    >
-                      Back
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        );
-      };
-
-      const OpeningScreen = ({ onStart, onResume, onCampaign, hasSavedGame, darkMode, toggleDarkMode, loading, soundEnabled, toggleSound, authUser, onLogout }) => (
+      const OpeningScreen = ({ onStart, onResume, onCampaign, hasSavedGame, darkMode, toggleDarkMode, loading, soundEnabled, toggleSound }) => (
         <div className="min-h-screen flex flex-col items-center justify-center p-4 text-gray-900 dark:text-gray-100 animate-fade-in relative z-10">
-           {authUser && (
-             <div className="absolute top-4 left-4">
-               <div className="flex items-center gap-2 bg-white dark:bg-gray-800 px-4 py-2 rounded-full shadow-lg border border-gray-200 dark:border-gray-700">
-                 <div className="flex items-center gap-2">
-                   <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                     {(authUser.displayName || authUser.username || 'U')[0].toUpperCase()}
-                   </div>
-                   <span className="font-medium text-sm">{authUser.displayName || authUser.username}</span>
-                 </div>
-                 <button onClick={onLogout} className="text-xs px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors">
-                   Logout
-                 </button>
-               </div>
-             </div>
-           )}
-           
            <div className="absolute top-4 right-4 flex gap-2">
               <button onClick={toggleSound} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
                   {soundEnabled ? <Icons.VolumeUp /> : <Icons.VolumeOff />}
@@ -1094,11 +753,6 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         const [campaignProgress, setCampaignProgress] = useState(getCampaignProgress());
         const [questCompleted, setQuestCompleted] = useState(false);
         
-        // Auth State
-        const [authUser, setAuthUserState] = useState(getAuthUser());
-        const [showAuthModal, setShowAuthModal] = useState(false);
-        const [authContext, setAuthContext] = useState('general'); // Context for why auth is needed
-        
         const timerRef = useRef(null);
         const chatEndRef = useRef(null);
         const isSendingRef = useRef(false);
@@ -1154,7 +808,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                setChatMessages(prev => {
                    if (prev.length > 0 && msgs.length > prev.length) {
                        const lastMsg = msgs[msgs.length - 1];
-                       if (!isChatOpen && lastMsg.sender !== getUserDisplayName()) {
+                       if (!isChatOpen && lastMsg.sender !== getUserId()) {
                            setChatNotification(lastMsg);
                            if (soundEnabled) SoundManager.play('chat');
                            setTimeout(() => setChatNotification(null), 4000);
@@ -1188,22 +842,6 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
             });
         };
 
-        const handleAuthSuccess = (user) => {
-          setAuthUserState(user);
-        };
-
-        const handleLogout = () => {
-          if (soundEnabled) SoundManager.play('uiTap');
-          logout();
-          setAuthUserState(null);
-        };
-
-        const handleShowAuthModal = (context = 'general') => {
-          if (soundEnabled) SoundManager.play('select');
-          setAuthContext(context);
-          setShowAuthModal(true);
-        };
-
         const startNewGame = async (diff, quest = null) => {
           if(soundEnabled) SoundManager.init();
           setLoading(true);
@@ -1225,11 +863,6 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
             setTimer(0); setMistakes(0); setHistory([newBoard]); setSelectedCell(null);
             setShowModal('none'); setActiveQuest(quest); setQuestCompleted(false);
             setView('game');
-            
-            // Track game start for authenticated users (all games including quests)
-            if (authUser) {
-              await updateProfile({ incrementGames: true });
-            }
           } catch (e) { console.error(e); alert("Failed to start game."); } finally { setLoading(false); }
         };
 
@@ -1282,22 +915,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         }, [board, selectedCell, status, mode, mistakes, soundEnabled, timer]);
 
         const handleWin = async (finalBoard, finalMistakes, finalTime) => {
-            // Prompt for authentication after winning if not authenticated and GAS is available
-            // This allows users to save their score to cloud
-            // Note: Skip prompt during campaign mode to avoid interrupting the quest flow
-            if (!authUser && isGasEnvironment() && !activeQuest) {
-              // Use a slight delay so the user sees they won first
-              setTimeout(() => {
-                handleShowAuthModal('leaderboard');
-              }, AUTH_PROMPT_DELAY_MS);
-            }
-            
-            saveScore({ name: getUserDisplayName(), time: finalTime, difficulty, date: new Date().toLocaleDateString() });
-            
-            // Update user profile if authenticated
-            if (authUser) {
-              await updateProfile({ incrementGames: true, incrementWins: true });
-            }
+            saveScore({ name: getUserId(), time: finalTime, difficulty, date: new Date().toLocaleDateString() });
             
             if (activeQuest) {
                 const gameStats = { status: 'won', time: finalTime, mistakes: finalMistakes };
@@ -1329,13 +947,6 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
 
         const handleChatSend = async (text) => {
             const txt = text.trim(); if (!txt) return;
-            
-            // Prompt for authentication if not authenticated and GAS is available
-            if (!authUser && isGasEnvironment()) {
-              handleShowAuthModal('chat');
-              return;
-            }
-            
             if (soundEnabled) SoundManager.play('uiTap');
             setChatInput('');
             const msg = { id: Date.now().toString(), sender: userId, text: txt, timestamp: Date.now() };
@@ -1394,21 +1005,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
 
         const handleOpenLeaderboard = async () => {
             if (soundEnabled) SoundManager.play('uiTap');
-            
-            // Check auth status before async operations to avoid race conditions
-            const shouldPromptAuth = !authUser && isGasEnvironment();
-            
-            // Fetch leaderboard data
-            const leaderboardData = await getLeaderboard();
-            setLeaderboard(leaderboardData);
-            
-            // Show leaderboard modal
-            setShowModal('leaderboard');
-            
-            // Suggest authentication if viewing leaderboard as guest
-            if (shouldPromptAuth) {
-              handleShowAuthModal('leaderboard');
-            }
+            setLeaderboard(await getLeaderboard()); setShowModal('leaderboard');
         };
 
         const toggleChat = () => {
@@ -1460,7 +1057,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         };
 
         const remaining = getRemainingNumbers();
-        const userId = getUserDisplayName();
+        const userId = getUserId();
 
         // --- RENDER LOGIC ---
 
@@ -1479,26 +1076,14 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         // 2. MAIN MENU (Opening Screen)
         if (view === 'menu') {
             return (
-                <>
-                  <OpeningScreen 
-                      onStart={startNewGame} 
-                      onResume={() => { setView('game'); setStatus('playing'); }}
-                      onCampaign={() => setView('campaign')}
-                      hasSavedGame={status === 'paused'}
-                      darkMode={darkMode} toggleDarkMode={toggleDarkMode}
-                      loading={loading} soundEnabled={soundEnabled} toggleSound={toggleSound}
-                      authUser={authUser}
-                      onLogout={handleLogout}
-                  />
-                  {showAuthModal && (
-                    <AuthModal 
-                      onClose={() => setShowAuthModal(false)} 
-                      soundEnabled={soundEnabled}
-                      onAuthSuccess={handleAuthSuccess}
-                      context={authContext}
-                    />
-                  )}
-                </>
+                <OpeningScreen 
+                    onStart={startNewGame} 
+                    onResume={() => { setView('game'); setStatus('playing'); }}
+                    onCampaign={() => setView('campaign')}
+                    hasSavedGame={status === 'paused'}
+                    darkMode={darkMode} toggleDarkMode={toggleDarkMode}
+                    loading={loading} soundEnabled={soundEnabled} toggleSound={toggleSound}
+                />
             );
         }
 
