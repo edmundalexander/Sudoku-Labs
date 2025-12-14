@@ -47,9 +47,6 @@ Sudoku Logic Lab is a modern, browser-based Sudoku game featuring:
 ### User Guides
 - **[How to Play](How-to-Play)** - Game rules and features
 
-### Technical Guides
-- **[Contributing](Contributing)** - How to contribute to the project
-
 ### Maintenance & Support
 - **[Troubleshooting](Troubleshooting)** - Common problems and fixes
 - **[FAQ](FAQ)** - Frequently asked questions
