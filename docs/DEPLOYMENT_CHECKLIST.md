@@ -83,6 +83,23 @@ git push
 - Send chat message (should appear in sheet)
 - Check browser console (F12) for any errors
 
+## Part 3: Configure GitHub Secrets and Pages
+
+### 1. Add GAS_URL as a Repository Secret
+- In your GitHub repository, go to **Settings** > **Secrets and variables** > **Actions**.
+- Click **New repository secret**.
+- Name the secret `GAS_URL`.
+- Paste your full Google Apps Script deployment URL into the "Value" field.
+- Click **Add secret**.
+
+### 2. Update GitHub Pages Source
+- Once the deployment action has run for the first time (after your next `git push`), a new branch called `gh-pages` will be created.
+- Go back to your repository **Settings** > **Pages**.
+- Change the **Source** from `main` branch to `gh-pages` branch.
+- Save your changes. Your site will now be deployed from the `gh-pages` branch, which includes the `config.local.js` file with your secret URL.
+
+---
+
 ## Verification Checklist
 
 - [ ] GAS backend test returns `{"ok":true,...}`
