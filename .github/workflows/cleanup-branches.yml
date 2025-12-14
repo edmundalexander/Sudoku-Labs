@@ -1,0 +1,103 @@
+name: Clean Up Merged Branches
+
+# This workflow can be manually triggered to clean up branches that have been merged
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (show what would be deleted without actually deleting)'
+        required: true
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup-branches:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetch all history for all branches
+
+      - name: Configure Git 🔧
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Find Merged Branches 🔍
+        id: find-merged
+        run: |
+          echo "Finding branches merged into main..."
+          
+          # Get all remote branches except main, gh-pages, and the current branch
+          all_branches=$(git ls-remote --heads origin | grep -v "main\|gh-pages" | sed 's|.*refs/heads/||' | sort)
+          
+          echo "All non-protected branches:"
+          echo "$all_branches"
+          echo ""
+          
+          # Find branches that are merged into main
+          merged_branches=""
+          for branch in $all_branches; do
+            # Check if branch is merged by comparing commits
+            git fetch origin $branch:refs/remotes/origin/$branch 2>/dev/null || continue
+            
+            # Check if the branch's commits are all in main
+            not_in_main=$(git log origin/main..origin/$branch --oneline | wc -l)
+            
+            if [ "$not_in_main" -eq 0 ]; then
+              echo "✅ Branch '$branch' is fully merged into main"
+              if [ -z "$merged_branches" ]; then
+                merged_branches="$branch"
+              else
+                merged_branches="$merged_branches $branch"
+              fi
+            else
+              echo "⏭️  Branch '$branch' has $not_in_main commits not in main (keeping)"
+            fi
+          done
+          
+          echo ""
+          echo "Merged branches to delete: $merged_branches"
+          
+          # Save for next step
+          echo "MERGED_BRANCHES=$merged_branches" >> $GITHUB_OUTPUT
+
+      - name: Delete Merged Branches 🗑️
+        if: github.event.inputs.dry_run == 'false' && steps.find-merged.outputs.MERGED_BRANCHES != ''
+        run: |
+          echo "Deleting merged branches..."
+          for branch in ${{ steps.find-merged.outputs.MERGED_BRANCHES }}; do
+            echo "Deleting: $branch"
+            git push origin --delete "$branch" || echo "Failed to delete $branch"
+          done
+
+      - name: Dry Run Summary 📊
+        if: github.event.inputs.dry_run == 'true'
+        run: |
+          echo "🔍 DRY RUN MODE - No branches will be deleted"
+          echo ""
+          if [ -n "${{ steps.find-merged.outputs.MERGED_BRANCHES }}" ]; then
+            echo "The following branches would be deleted:"
+            for branch in ${{ steps.find-merged.outputs.MERGED_BRANCHES }}; do
+              echo "  - $branch"
+            done
+          else
+            echo "No merged branches found to delete."
+          fi
+          echo ""
+          echo "To actually delete these branches, run this workflow again with dry_run=false"
+
+      - name: Summary 📊
+        if: github.event.inputs.dry_run == 'false'
+        run: |
+          echo "✅ Branch cleanup complete!"
+          echo ""
+          echo "Remaining branches:"
+          git ls-remote --heads origin | sed 's|.*refs/heads/||' | sort
