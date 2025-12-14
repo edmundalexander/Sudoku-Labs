@@ -1322,18 +1322,21 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
             saveScore({ name: currentUserId, time: finalTime, difficulty, date: new Date().toLocaleDateString() });
             
             // Update user stats if authenticated
+            // Note: This function is only called when the player wins, so we increment both games and wins
+            // Game losses are not tracked in the current implementation
             if (isUserAuthenticated() && isGasEnvironment()) {
                 const session = getUserSession();
                 if (session && session.userId) {
                     try {
                         await runGasFn('updateUserProfile', { 
-                            userId: session.userId, 
+                            userId: session.userId,  // Backend requires userId for lookups
                             incrementGames: true,
                             incrementWins: true
                         });
-                        // Refresh user profile
+                        // Refresh user profile to get updated stats
                         const updatedProfile = await runGasFn('getUserProfile', { userId: session.userId });
                         if (updatedProfile && updatedProfile.success) {
+                            // Update both global storage and component state for consistency
                             setUserSession(updatedProfile.user);
                             setAppUserSession(updatedProfile.user);
                         }
@@ -1386,6 +1389,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
 
         const handleUserPanelClose = (updatedUser) => {
           if (updatedUser) {
+            // Update both global storage and component state for consistency
             setUserSession(updatedUser);
             setAppUserSession(updatedUser);
           }
