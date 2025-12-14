@@ -127,6 +127,9 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         AUTH_USER: 'sudoku_v2_auth_user',
         AUTH_MODE: 'sudoku_v2_auth_mode'
       };
+      
+      // UI Configuration Constants
+      const AUTH_PROMPT_DELAY_MS = 1500; // Delay before showing auth prompt after winning
 
       // GAS Backend API URL - Configure this with your deployment URL
       // Format: https://script.google.com/macros/s/[DEPLOYMENT_ID]/exec
@@ -710,12 +713,38 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
       };
 
 
-      const AuthModal = ({ onClose, soundEnabled, onAuthSuccess }) => {
+      const AuthModal = ({ onClose, soundEnabled, onAuthSuccess, context = 'general' }) => {
         const [mode, setMode] = useState('choice'); // 'choice', 'login', 'register'
         const [username, setUsername] = useState('');
         const [password, setPassword] = useState('');
         const [error, setError] = useState('');
         const [loading, setLoading] = useState(false);
+        
+        // Context-specific messaging
+        const contextMessages = {
+          chat: {
+            title: 'Join the Conversation',
+            subtitle: 'Create an account or sign in to chat with other players',
+            benefit: '💬 Chat with others and share strategies'
+          },
+          leaderboard: {
+            title: 'Save Your Score',
+            subtitle: 'Track your progress and compete on the global leaderboard',
+            benefit: '🏆 Keep your scores and track your improvement'
+          },
+          profile: {
+            title: 'Track Your Progress',
+            subtitle: 'Create an account to save your stats and progress',
+            benefit: '📊 View your win rate and total games played'
+          },
+          general: {
+            title: 'Welcome!',
+            subtitle: "Choose how you'd like to play",
+            benefit: null
+          }
+        };
+        
+        const currentContext = contextMessages[context] || contextMessages.general;
 
         const handleLogin = async () => {
           if (!username || !password) {
@@ -799,8 +828,13 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                     <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white">
                       <Icons.User />
                     </div>
-                    <h2 className="text-2xl font-bold">Welcome!</h2>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Choose how you'd like to play</p>
+                    <h2 className="text-2xl font-bold">{currentContext.title}</h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">{currentContext.subtitle}</p>
+                    {currentContext.benefit && (
+                      <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-lg text-sm text-blue-700 dark:text-blue-300">
+                        {currentContext.benefit}
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-3">
@@ -902,30 +936,23 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         );
       };
 
-      const OpeningScreen = ({ onStart, onResume, onCampaign, hasSavedGame, darkMode, toggleDarkMode, loading, soundEnabled, toggleSound, authUser, onShowAuth, onLogout }) => (
+      const OpeningScreen = ({ onStart, onResume, onCampaign, hasSavedGame, darkMode, toggleDarkMode, loading, soundEnabled, toggleSound, authUser, onLogout }) => (
         <div className="min-h-screen flex flex-col items-center justify-center p-4 text-gray-900 dark:text-gray-100 animate-fade-in relative z-10">
-           <div className="absolute top-4 left-4">
-              {authUser ? (
-                <div className="flex items-center gap-2 bg-white dark:bg-gray-800 px-4 py-2 rounded-full shadow-lg border border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                      {(authUser.displayName || authUser.username || 'U')[0].toUpperCase()}
-                    </div>
-                    <span className="font-medium text-sm">{authUser.displayName || authUser.username}</span>
-                  </div>
-                  <button onClick={onLogout} className="text-xs px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors">
-                    Logout
-                  </button>
-                </div>
-              ) : (
-                <button 
-                  onClick={onShowAuth} 
-                  className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 py-2 rounded-full shadow-lg font-semibold transition-all transform hover:scale-[1.02]"
-                >
-                  <Icons.User /> Sign In
-                </button>
-              )}
-           </div>
+           {authUser && (
+             <div className="absolute top-4 left-4">
+               <div className="flex items-center gap-2 bg-white dark:bg-gray-800 px-4 py-2 rounded-full shadow-lg border border-gray-200 dark:border-gray-700">
+                 <div className="flex items-center gap-2">
+                   <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                     {(authUser.displayName || authUser.username || 'U')[0].toUpperCase()}
+                   </div>
+                   <span className="font-medium text-sm">{authUser.displayName || authUser.username}</span>
+                 </div>
+                 <button onClick={onLogout} className="text-xs px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors">
+                   Logout
+                 </button>
+               </div>
+             </div>
+           )}
            
            <div className="absolute top-4 right-4 flex gap-2">
               <button onClick={toggleSound} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
@@ -1070,6 +1097,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         // Auth State
         const [authUser, setAuthUserState] = useState(getAuthUser());
         const [showAuthModal, setShowAuthModal] = useState(false);
+        const [authContext, setAuthContext] = useState('general'); // Context for why auth is needed
         
         const timerRef = useRef(null);
         const chatEndRef = useRef(null);
@@ -1170,8 +1198,9 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
           setAuthUserState(null);
         };
 
-        const handleShowAuthModal = () => {
+        const handleShowAuthModal = (context = 'general') => {
           if (soundEnabled) SoundManager.play('select');
+          setAuthContext(context);
           setShowAuthModal(true);
         };
 
@@ -1253,6 +1282,16 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         }, [board, selectedCell, status, mode, mistakes, soundEnabled, timer]);
 
         const handleWin = async (finalBoard, finalMistakes, finalTime) => {
+            // Prompt for authentication after winning if not authenticated and GAS is available
+            // This allows users to save their score to cloud
+            // Note: Skip prompt during campaign mode to avoid interrupting the quest flow
+            if (!authUser && isGasEnvironment() && !activeQuest) {
+              // Use a slight delay so the user sees they won first
+              setTimeout(() => {
+                handleShowAuthModal('leaderboard');
+              }, AUTH_PROMPT_DELAY_MS);
+            }
+            
             saveScore({ name: getUserDisplayName(), time: finalTime, difficulty, date: new Date().toLocaleDateString() });
             
             // Update user profile if authenticated
@@ -1290,6 +1329,13 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
 
         const handleChatSend = async (text) => {
             const txt = text.trim(); if (!txt) return;
+            
+            // Prompt for authentication if not authenticated and GAS is available
+            if (!authUser && isGasEnvironment()) {
+              handleShowAuthModal('chat');
+              return;
+            }
+            
             if (soundEnabled) SoundManager.play('uiTap');
             setChatInput('');
             const msg = { id: Date.now().toString(), sender: userId, text: txt, timestamp: Date.now() };
@@ -1348,7 +1394,21 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
 
         const handleOpenLeaderboard = async () => {
             if (soundEnabled) SoundManager.play('uiTap');
-            setLeaderboard(await getLeaderboard()); setShowModal('leaderboard');
+            
+            // Check auth status before async operations to avoid race conditions
+            const shouldPromptAuth = !authUser && isGasEnvironment();
+            
+            // Fetch leaderboard data
+            const leaderboardData = await getLeaderboard();
+            setLeaderboard(leaderboardData);
+            
+            // Show leaderboard modal
+            setShowModal('leaderboard');
+            
+            // Suggest authentication if viewing leaderboard as guest
+            if (shouldPromptAuth) {
+              handleShowAuthModal('leaderboard');
+            }
         };
 
         const toggleChat = () => {
@@ -1428,7 +1488,6 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                       darkMode={darkMode} toggleDarkMode={toggleDarkMode}
                       loading={loading} soundEnabled={soundEnabled} toggleSound={toggleSound}
                       authUser={authUser}
-                      onShowAuth={handleShowAuthModal}
                       onLogout={handleLogout}
                   />
                   {showAuthModal && (
@@ -1436,6 +1495,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                       onClose={() => setShowAuthModal(false)} 
                       soundEnabled={soundEnabled}
                       onAuthSuccess={handleAuthSuccess}
+                      context={authContext}
                     />
                   )}
                 </>
