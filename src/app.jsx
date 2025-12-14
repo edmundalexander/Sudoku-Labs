@@ -496,7 +496,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         const [password, setPassword] = useState('');
         const [error, setError] = useState('');
         const [loading, setLoading] = useState(false);
-        const [userSession, setUserSession] = useState(getUserSession());
+        const [localUserSession, setLocalUserSession] = useState(getUserSession());
 
         const handleLogin = async () => {
           if (!username || !password) {
@@ -515,6 +515,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
           try {
             const result = await runGasFn('loginUser', { username, password });
             if (result && result.success) {
+              setLocalUserSession(result.user);
               setUserSession(result.user);
               if (soundEnabled) SoundManager.play('success');
               onClose(result.user);
@@ -557,6 +558,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
           try {
             const result = await runGasFn('registerUser', { username, password });
             if (result && result.success) {
+              setLocalUserSession(result.user);
               setUserSession(result.user);
               if (soundEnabled) SoundManager.play('success');
               onClose(result.user);
@@ -574,7 +576,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
 
         const handleLogout = () => {
           clearUserSession();
-          setUserSession(null);
+          setLocalUserSession(null);
           if (soundEnabled) SoundManager.play('uiTap');
           onClose(null);
         };
@@ -585,11 +587,11 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         };
 
         // If user is already logged in, show profile
-        if (userSession) {
+        if (localUserSession) {
           return (
             <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-sm animate-pop relative">
-                <button onClick={() => onClose(userSession)} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                <button onClick={() => onClose(localUserSession)} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
                   <Icons.X />
                 </button>
                 
@@ -597,23 +599,23 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                   <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
                     <Icons.User />
                   </div>
-                  <h2 className="text-2xl font-bold text-gray-800 dark:text-white">{userSession.displayName || userSession.username}</h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">@{userSession.username}</p>
+                  <h2 className="text-2xl font-bold text-gray-800 dark:text-white">{localUserSession.displayName || localUserSession.username}</h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">@{localUserSession.username}</p>
                 </div>
 
                 <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg mb-6 space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600 dark:text-gray-400">Total Games:</span>
-                    <span className="font-bold text-gray-800 dark:text-white">{userSession.totalGames || 0}</span>
+                    <span className="font-bold text-gray-800 dark:text-white">{localUserSession.totalGames || 0}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600 dark:text-gray-400">Total Wins:</span>
-                    <span className="font-bold text-green-600 dark:text-green-400">{userSession.totalWins || 0}</span>
+                    <span className="font-bold text-green-600 dark:text-green-400">{localUserSession.totalWins || 0}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600 dark:text-gray-400">Win Rate:</span>
                     <span className="font-bold text-blue-600 dark:text-blue-400">
-                      {userSession.totalGames > 0 ? Math.round((userSession.totalWins / userSession.totalGames) * 100) : 0}%
+                      {localUserSession.totalGames > 0 ? Math.round((localUserSession.totalWins / localUserSession.totalGames) * 100) : 0}%
                     </span>
                   </div>
                 </div>
