@@ -319,7 +319,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         localStorage.setItem(KEYS.CAMPAIGN_PROGRESS, JSON.stringify(prog));
       }
 
-      const getUserId = () => {
+      const getUserDisplayName = () => {
           // Check if user is authenticated
           const authUser = getAuthUser();
           if (authUser && authUser.userId) {
@@ -909,9 +909,9 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                 <div className="flex items-center gap-2 bg-white dark:bg-gray-800 px-4 py-2 rounded-full shadow-lg border border-gray-200 dark:border-gray-700">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                      {authUser.displayName[0].toUpperCase()}
+                      {(authUser.displayName || authUser.username || 'U')[0].toUpperCase()}
                     </div>
-                    <span className="font-medium text-sm">{authUser.displayName}</span>
+                    <span className="font-medium text-sm">{authUser.displayName || authUser.username}</span>
                   </div>
                   <button onClick={onLogout} className="text-xs px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors">
                     Logout
@@ -1126,7 +1126,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                setChatMessages(prev => {
                    if (prev.length > 0 && msgs.length > prev.length) {
                        const lastMsg = msgs[msgs.length - 1];
-                       if (!isChatOpen && lastMsg.sender !== getUserId()) {
+                       if (!isChatOpen && lastMsg.sender !== getUserDisplayName()) {
                            setChatNotification(lastMsg);
                            if (soundEnabled) SoundManager.play('chat');
                            setTimeout(() => setChatNotification(null), 4000);
@@ -1197,8 +1197,8 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
             setShowModal('none'); setActiveQuest(quest); setQuestCompleted(false);
             setView('game');
             
-            // Track game start for authenticated users
-            if (authUser && !quest) {
+            // Track game start for authenticated users (all games including quests)
+            if (authUser) {
               await updateProfile({ incrementGames: true });
             }
           } catch (e) { console.error(e); alert("Failed to start game."); } finally { setLoading(false); }
@@ -1253,7 +1253,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         }, [board, selectedCell, status, mode, mistakes, soundEnabled, timer]);
 
         const handleWin = async (finalBoard, finalMistakes, finalTime) => {
-            saveScore({ name: getUserId(), time: finalTime, difficulty, date: new Date().toLocaleDateString() });
+            saveScore({ name: getUserDisplayName(), time: finalTime, difficulty, date: new Date().toLocaleDateString() });
             
             // Update user profile if authenticated
             if (authUser) {
@@ -1400,7 +1400,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         };
 
         const remaining = getRemainingNumbers();
-        const userId = getUserId();
+        const userId = getUserDisplayName();
 
         // --- RENDER LOGIC ---
 

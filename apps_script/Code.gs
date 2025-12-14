@@ -302,7 +302,7 @@ function registerUser(data) {
     // Check if username already exists
     const data = sheet.getDataRange().getValues();
     for (let i = 1; i < data.length; i++) {
-      if (data[i][0] === username) {
+      if (data[i][1] === username) {
         return { success: false, error: 'Username already exists' };
       }
     }
