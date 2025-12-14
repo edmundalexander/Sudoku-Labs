@@ -5,7 +5,8 @@ config/config.local.js
 
 # Debug & Diagnostic Scripts
 *.debug
-diagnostic.local.sh
+diagnostic.*.sh
+*.local.sh
 
 # Logs
 node_modules/
