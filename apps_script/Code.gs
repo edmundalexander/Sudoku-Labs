@@ -110,46 +110,6 @@ function doPost(e) {
 }
 
 // ============================================================================
-// RATE LIMITING HELPERS (simple in-memory cache via CacheService)
-// ============================================================================
-function _getCache() {
-  return CacheService.getScriptCache();
-}
-
-function _isRateLimited(action, identifier) {
-  // action: 'chat' or 'saveScore' etc.
-  // identifier: sender name or client id
-  const cache = _getCache();
-  const limits = {
-    chat: { global: 60, perUser: 5, windowSec: 60 },
-    saveScore: { global: 30, perUser: 2, windowSec: 60 }
-  };
-
-  const cfg = limits[action];
-  if (!cfg) return false; // no limit configured
-
-  const gKey = 'rl:' + action + ':global';
-  const uKey = 'rl:' + action + ':user:' + (identifier || 'anon');
-
-  const gCount = Number(cache.get(gKey)) || 0;
-  if (gCount >= cfg.global) return true;
-
-  const uCount = Number(cache.get(uKey)) || 0;
-  if (uCount >= cfg.perUser) return true;
-
-  // increment counters with expiration
-  try {
-    cache.put(gKey, String(gCount + 1), cfg.windowSec);
-    cache.put(uKey, String(uCount + 1), cfg.windowSec);
-  } catch (err) {
-    // CacheService may fail; allow through if so
-    Logger.log('Cache put error: ' + err);
-  }
-
-  return false;
-}
-
-// ============================================================================
 // HELPER - JSON Response with CORS headers
 // ============================================================================
 
@@ -204,33 +164,9 @@ function saveLeaderboardScore(entry) {
   const safeDate = sanitizeInput_(entry.date || new Date().toISOString(), 20);
   
   try {
-    // Rate limit check (per-user + global)
-    if (_isRateLimited('saveScore', safeName)) {
-      return { error: 'rate_limited', message: 'Too many score submissions, try again later' };
-    }
-
     const sheet = getSpreadsheet_().getSheetByName('Leaderboard');
     if (sheet) {
-      // Prevent duplicate rapid submissions: if identical entry exists in last 60s, skip
-      const data = sheet.getDataRange().getValues();
-      const now = Date.now();
-      const lookbackMs = 60 * 1000;
-      let duplicate = false;
-      for (let i = data.length - 1; i >= Math.max(1, data.length - 50); i--) {
-        const row = data[i];
-        const name = String(row[0] || '');
-        const timeVal = Number(row[1]) || 0;
-        const diff = String(row[2] || '');
-        const dateStr = row[3] || '';
-        const ts = dateStr ? new Date(dateStr).getTime() : 0;
-        if (name === safeName && timeVal === safeTime && diff === safeDiff && now - ts < lookbackMs) {
-          duplicate = true;
-          break;
-        }
-      }
-      if (!duplicate) {
-        sheet.appendRow([safeName, safeTime, safeDiff, safeDate]);
-      }
+      sheet.appendRow([safeName, safeTime, safeDiff, safeDate]);
     }
   } catch (err) {
     Logger.log('saveLeaderboardScore error: ' + err);
@@ -281,11 +217,6 @@ function postChatData(msg) {
   const timestamp = new Date().toISOString();
   
   try {
-    // Rate limit check (per-user + global)
-    if (_isRateLimited('chat', safeSender)) {
-      return getChatData(); // silently ignore or return current chat to caller
-    }
-
     const sheet = getSpreadsheet_().getSheetByName('Chat');
     if (sheet) {
       sheet.appendRow([safeId, safeSender, safeText, timestamp]);
@@ -494,4 +425,3 @@ function sanitizeOutput_(val) {
   if (typeof val === 'string') return val;
   return String(val || '');
 }
-
