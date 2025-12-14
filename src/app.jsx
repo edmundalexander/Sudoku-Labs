@@ -123,7 +123,8 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         CHAT: 'sudoku_v2_chat',
         USER_ID: 'sudoku_v2_uid',
         SOUND_ENABLED: 'sudoku_v2_sound',
-        CAMPAIGN_PROGRESS: 'sudoku_v2_campaign'
+        CAMPAIGN_PROGRESS: 'sudoku_v2_campaign',
+        USER_SESSION: 'sudoku_v2_user_session'
       };
 
       // GAS Backend API URL - Configure this with your deployment URL
@@ -147,7 +148,11 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
             saveLeaderboardScore: { action: 'saveScore', method: 'GET' },
             getChatData: { action: 'getChat', method: 'GET' },
             postChatData: { action: 'postChat', method: 'GET' },
-            logClientError: { action: 'logError', method: 'GET' }
+            logClientError: { action: 'logError', method: 'GET' },
+            registerUser: { action: 'register', method: 'GET' },
+            loginUser: { action: 'login', method: 'GET' },
+            getUserProfile: { action: 'getUserProfile', method: 'GET' },
+            updateUserProfile: { action: 'updateUserProfile', method: 'GET' }
           };
 
           const mapping = actionMap[fnName];
@@ -316,11 +321,55 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
       const getUserId = () => {
           let uid = localStorage.getItem(KEYS.USER_ID);
           if (!uid) {
-              uid = 'User' + Math.floor(Math.random() * 10000);
+              uid = generateGuestId();
               localStorage.setItem(KEYS.USER_ID, uid);
           }
           return uid;
       }
+
+      const generateGuestId = () => {
+        return 'User' + Math.floor(Math.random() * 10000);
+      };
+
+      // User session management
+      const getUserSession = () => {
+        try {
+          const session = localStorage.getItem(KEYS.USER_SESSION);
+          return session ? JSON.parse(session) : null;
+        } catch (e) { return null; }
+      };
+
+      const setUserSession = (user) => {
+        try {
+          localStorage.setItem(KEYS.USER_SESSION, JSON.stringify(user));
+          // Also update USER_ID to match authenticated username
+          if (user && user.username) {
+            localStorage.setItem(KEYS.USER_ID, user.username);
+          }
+        } catch (e) {
+          console.warn('Failed to save user session to localStorage:', e);
+        }
+      };
+
+      const clearUserSession = () => {
+        localStorage.removeItem(KEYS.USER_SESSION);
+        // Reset to guest ID
+        const guestId = generateGuestId();
+        localStorage.setItem(KEYS.USER_ID, guestId);
+      };
+
+      const getCurrentUserId = () => {
+        const session = getUserSession();
+        if (session && session.username) {
+          return session.username;
+        }
+        return getUserId();
+      };
+
+      const isUserAuthenticated = () => {
+        const session = getUserSession();
+        return session !== null && session.userId;
+      };
 
       const logError = async (message, error) => { 
         console.log(message, error); 
@@ -432,10 +481,354 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         Lock: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>,
         Star: ({filled}) => <svg xmlns="http://www.w3.org/2000/svg" fill={filled ? "currentColor" : "none"} viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.545.044.77.77.326 1.163l-4.304 3.86a.562.562 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.304-3.86c-.444-.393-.219-1.119.326-1.163l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" /></svg>,
         Chest: () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8"><path d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H4.5a1.5 1.5 0 01-1.5-1.5v-8.25M21 11.25H3M21 11.25a1.5 1.5 0 00-1.5-1.5H16.5m-3 0h3m-3 0c0-1.242-1.008-2.25-2.25-2.25s-2.25 1.008-2.25 2.25m4.5 0h-4.5m4.5 0H21m-4.5 0H4.5m0 0a1.5 1.5 0 00-1.5 1.5m1.5-1.5h-3" /></svg>,
-        Avatar: () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-white drop-shadow-lg"><circle cx="12" cy="12" r="10" className="text-blue-500"/><path fill="white" d="M12 4a4 4 0 100 8 4 4 0 000-8zM6 18a6 6 0 0112 0H6z" /></svg>
+        Avatar: () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-white drop-shadow-lg"><circle cx="12" cy="12" r="10" className="text-blue-500"/><path fill="white" d="M12 4a4 4 0 100 8 4 4 0 000-8zM6 18a6 6 0 0112 0H6z" /></svg>,
+        User: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>,
+        Login: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" /></svg>,
+        Logout: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" /></svg>
       };
 
       const CHAT_POLL_INTERVAL = 5000;
+
+      // --- USER PANEL COMPONENT ---
+      const UserPanel = ({ soundEnabled, onClose }) => {
+        const [mode, setMode] = useState('menu'); // menu, login, register
+        const [username, setUsername] = useState('');
+        const [password, setPassword] = useState('');
+        const [error, setError] = useState('');
+        const [loading, setLoading] = useState(false);
+        const [localUserSession, setLocalUserSession] = useState(getUserSession());
+
+        const handleLogin = async () => {
+          if (!username || !password) {
+            setError('Please enter username and password');
+            return;
+          }
+
+          if (!isGasEnvironment()) {
+            setError('Authentication requires backend connection');
+            return;
+          }
+
+          setLoading(true);
+          setError('');
+          
+          try {
+            const result = await runGasFn('loginUser', { username, password });
+            if (result && result.success) {
+              setLocalUserSession(result.user);
+              setUserSession(result.user);
+              if (soundEnabled) SoundManager.play('success');
+              onClose(result.user);
+            } else {
+              setError(result.error || 'Login failed');
+              if (soundEnabled) SoundManager.play('error');
+            }
+          } catch (err) {
+            console.error('Login error:', err);
+            setError('Connection error. Please try again.');
+            if (soundEnabled) SoundManager.play('error');
+          } finally {
+            setLoading(false);
+          }
+        };
+
+        const handleRegister = async () => {
+          if (!username || !password) {
+            setError('Please enter username and password');
+            return;
+          }
+
+          if (username.length < 3) {
+            setError('Username must be at least 3 characters');
+            return;
+          }
+
+          if (password.length < 6) {
+            setError('Password must be at least 6 characters');
+            return;
+          }
+
+          if (!isGasEnvironment()) {
+            setError('Authentication requires backend connection');
+            return;
+          }
+
+          setLoading(true);
+          setError('');
+          
+          try {
+            const result = await runGasFn('registerUser', { username, password });
+            if (result && result.success) {
+              setLocalUserSession(result.user);
+              setUserSession(result.user);
+              if (soundEnabled) SoundManager.play('success');
+              onClose(result.user);
+            } else {
+              setError(result.error || 'Registration failed');
+              if (soundEnabled) SoundManager.play('error');
+            }
+          } catch (err) {
+            console.error('Registration error:', err);
+            setError('Connection error. Please try again.');
+            if (soundEnabled) SoundManager.play('error');
+          } finally {
+            setLoading(false);
+          }
+        };
+
+        const handleLogout = () => {
+          clearUserSession();
+          setLocalUserSession(null);
+          if (soundEnabled) SoundManager.play('uiTap');
+          onClose(null);
+        };
+
+        const handleContinueAsGuest = () => {
+          if (soundEnabled) SoundManager.play('uiTap');
+          onClose(null);
+        };
+
+        // If user is already logged in, show profile
+        if (localUserSession) {
+          return (
+            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-sm animate-pop relative">
+                <button onClick={() => onClose(localUserSession)} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                  <Icons.X />
+                </button>
+                
+                <div className="text-center mb-6">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                    <Icons.User />
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-800 dark:text-white">{localUserSession.displayName || localUserSession.username}</h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">@{localUserSession.username}</p>
+                </div>
+
+                <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg mb-6 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600 dark:text-gray-400">Total Games:</span>
+                    <span className="font-bold text-gray-800 dark:text-white">{localUserSession.totalGames || 0}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600 dark:text-gray-400">Total Wins:</span>
+                    <span className="font-bold text-green-600 dark:text-green-400">{localUserSession.totalWins || 0}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600 dark:text-gray-400">Win Rate:</span>
+                    <span className="font-bold text-blue-600 dark:text-blue-400">
+                      {localUserSession.totalGames > 0 ? Math.round((localUserSession.totalWins / localUserSession.totalGames) * 100) : 0}%
+                    </span>
+                  </div>
+                </div>
+
+                <button 
+                  onClick={handleLogout}
+                  className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition-colors flex items-center justify-center gap-2"
+                >
+                  <Icons.Logout /> Logout
+                </button>
+              </div>
+            </div>
+          );
+        }
+
+        // Auth mode selection menu
+        if (mode === 'menu') {
+          return (
+            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-sm animate-pop relative">
+                <button onClick={handleContinueAsGuest} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                  <Icons.X />
+                </button>
+                
+                <div className="text-center mb-6">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                    <Icons.User />
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">Welcome!</h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Sign in to track your progress across devices</p>
+                </div>
+
+                <div className="space-y-3">
+                  <button 
+                    onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); setMode('login'); }}
+                    className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Icons.Login /> Sign In
+                  </button>
+                  
+                  <button 
+                    onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); setMode('register'); }}
+                    className="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Icons.User /> Create Account
+                  </button>
+
+                  <button 
+                    onClick={handleContinueAsGuest}
+                    className="w-full py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg font-bold transition-colors"
+                  >
+                    Continue as Guest
+                  </button>
+                </div>
+
+                {!isGasEnvironment() && (
+                  <div className="mt-4 text-xs text-center text-yellow-600 dark:text-yellow-400">
+                    ⚠️ Backend not configured. Authentication unavailable.
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        }
+
+        // Login form
+        if (mode === 'login') {
+          return (
+            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-sm animate-pop relative">
+                <button onClick={() => setMode('menu')} className="absolute top-4 left-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                  <Icons.Undo />
+                </button>
+                <button onClick={handleContinueAsGuest} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                  <Icons.X />
+                </button>
+                
+                <div className="text-center mb-6 mt-4">
+                  <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Sign In</h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Welcome back!</p>
+                </div>
+
+                {error && (
+                  <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300 text-sm">
+                    {error}
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Username</label>
+                    <input
+                      type="text"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                      placeholder="Enter username"
+                      disabled={loading}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Password</label>
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                      placeholder="Enter password"
+                      disabled={loading}
+                    />
+                  </div>
+
+                  <button 
+                    onClick={handleLogin}
+                    disabled={loading}
+                    className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading ? 'Signing in...' : 'Sign In'}
+                  </button>
+
+                  <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+                    Don't have an account?{' '}
+                    <button onClick={() => { setMode('register'); setError(''); }} className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+                      Create one
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        // Register form
+        if (mode === 'register') {
+          return (
+            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-sm animate-pop relative">
+                <button onClick={() => setMode('menu')} className="absolute top-4 left-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                  <Icons.Undo />
+                </button>
+                <button onClick={handleContinueAsGuest} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                  <Icons.X />
+                </button>
+                
+                <div className="text-center mb-6 mt-4">
+                  <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Create Account</h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Join the Sudoku community!</p>
+                </div>
+
+                {error && (
+                  <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300 text-sm">
+                    {error}
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Username</label>
+                    <input
+                      type="text"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleRegister()}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                      placeholder="Choose a username (3+ chars)"
+                      disabled={loading}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Password</label>
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleRegister()}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                      placeholder="Choose a password (6+ chars)"
+                      disabled={loading}
+                    />
+                  </div>
+
+                  <button 
+                    onClick={handleRegister}
+                    disabled={loading}
+                    className="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading ? 'Creating Account...' : 'Create Account'}
+                  </button>
+
+                  <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+                    Already have an account?{' '}
+                    <button onClick={() => { setMode('login'); setError(''); }} className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+                      Sign in
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg text-xs text-yellow-800 dark:text-yellow-300">
+                  <strong>Note:</strong> This is a demo authentication system. Don't use sensitive passwords.
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        return null;
+      };
 
       const CampaignMap = ({ progress, onPlayLevel, soundEnabled, onBack }) => {
          const [selectedLevel, setSelectedLevel] = useState(null);
@@ -611,9 +1004,15 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
          )
       };
 
-      const OpeningScreen = ({ onStart, onResume, onCampaign, hasSavedGame, darkMode, toggleDarkMode, loading, soundEnabled, toggleSound }) => (
+      const OpeningScreen = ({ onStart, onResume, onCampaign, hasSavedGame, darkMode, toggleDarkMode, loading, soundEnabled, toggleSound, onShowUserPanel, userSession }) => (
         <div className="min-h-screen flex flex-col items-center justify-center p-4 text-gray-900 dark:text-gray-100 animate-fade-in relative z-10">
            <div className="absolute top-4 right-4 flex gap-2">
+              <button onClick={onShowUserPanel} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors relative">
+                  <Icons.User />
+                  {userSession && (
+                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full"></span>
+                  )}
+              </button>
               <button onClick={toggleSound} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
                   {soundEnabled ? <Icons.VolumeUp /> : <Icons.VolumeOff />}
               </button>
@@ -753,6 +1152,10 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         const [campaignProgress, setCampaignProgress] = useState(getCampaignProgress());
         const [questCompleted, setQuestCompleted] = useState(false);
         
+        // User Authentication State
+        const [showUserPanel, setShowUserPanel] = useState(false);
+        const [appUserSession, setAppUserSession] = useState(getUserSession());
+        
         const timerRef = useRef(null);
         const chatEndRef = useRef(null);
         const isSendingRef = useRef(false);
@@ -808,7 +1211,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                setChatMessages(prev => {
                    if (prev.length > 0 && msgs.length > prev.length) {
                        const lastMsg = msgs[msgs.length - 1];
-                       if (!isChatOpen && lastMsg.sender !== getUserId()) {
+                       if (!isChatOpen && lastMsg.sender !== getCurrentUserId()) {
                            setChatNotification(lastMsg);
                            if (soundEnabled) SoundManager.play('chat');
                            setTimeout(() => setChatNotification(null), 4000);
@@ -915,7 +1318,33 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         }, [board, selectedCell, status, mode, mistakes, soundEnabled, timer]);
 
         const handleWin = async (finalBoard, finalMistakes, finalTime) => {
-            saveScore({ name: getUserId(), time: finalTime, difficulty, date: new Date().toLocaleDateString() });
+            const currentUserId = getCurrentUserId();
+            saveScore({ name: currentUserId, time: finalTime, difficulty, date: new Date().toLocaleDateString() });
+            
+            // Update user stats if authenticated
+            // Note: This function is only called when the player wins, so we increment both games and wins
+            // Game losses are not tracked in the current implementation
+            if (isUserAuthenticated() && isGasEnvironment()) {
+                const session = getUserSession();
+                if (session && session.userId) {
+                    try {
+                        await runGasFn('updateUserProfile', { 
+                            userId: session.userId,  // Backend requires userId for lookups
+                            incrementGames: true,
+                            incrementWins: true
+                        });
+                        // Refresh user profile to get updated stats
+                        const updatedProfile = await runGasFn('getUserProfile', { userId: session.userId });
+                        if (updatedProfile && updatedProfile.success) {
+                            // Update both global storage and component state for consistency
+                            setUserSession(updatedProfile.user);
+                            setAppUserSession(updatedProfile.user);
+                        }
+                    } catch (err) {
+                        console.error('Failed to update user stats:', err);
+                    }
+                }
+            }
             
             if (activeQuest) {
                 const gameStats = { status: 'won', time: finalTime, mistakes: finalMistakes };
@@ -949,12 +1378,22 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
             const txt = text.trim(); if (!txt) return;
             if (soundEnabled) SoundManager.play('uiTap');
             setChatInput('');
-            const msg = { id: Date.now().toString(), sender: userId, text: txt, timestamp: Date.now() };
+            const currentUserId = getCurrentUserId();
+            const msg = { id: Date.now().toString(), sender: currentUserId, text: txt, timestamp: Date.now() };
             setChatMessages(prev => [...prev, msg]); 
             isSendingRef.current = true;
             const updated = await postChatMessage(msg);
             if (updated && Array.isArray(updated)) setChatMessages(updated);
             isSendingRef.current = false;
+        };
+
+        const handleUserPanelClose = (updatedUser) => {
+          if (updatedUser) {
+            // Update both global storage and component state for consistency
+            setUserSession(updatedUser);
+            setAppUserSession(updatedUser);
+          }
+          setShowUserPanel(false);
         };
 
         useEffect(() => {
@@ -1057,25 +1496,29 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         };
 
         const remaining = getRemainingNumbers();
-        const userId = getUserId();
+        const userId = getCurrentUserId();
 
         // --- RENDER LOGIC ---
 
         // 1. CAMPAIGN MAP
         if (view === 'campaign') {
             return (
-                <CampaignMap 
-                    progress={campaignProgress} 
-                    onPlayLevel={(level) => startNewGame(level.difficulty, level)} 
-                    soundEnabled={soundEnabled}
-                    onBack={() => { if(soundEnabled) SoundManager.play('uiTap'); setView('menu'); }}
-                />
+                <>
+                  <CampaignMap 
+                      progress={campaignProgress} 
+                      onPlayLevel={(level) => startNewGame(level.difficulty, level)} 
+                      soundEnabled={soundEnabled}
+                      onBack={() => { if(soundEnabled) SoundManager.play('uiTap'); setView('menu'); }}
+                  />
+                  {showUserPanel && <UserPanel soundEnabled={soundEnabled} onClose={handleUserPanelClose} />}
+                </>
             );
         }
 
         // 2. MAIN MENU (Opening Screen)
         if (view === 'menu') {
             return (
+                <>
                 <OpeningScreen 
                     onStart={startNewGame} 
                     onResume={() => { setView('game'); setStatus('playing'); }}
@@ -1083,7 +1526,11 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                     hasSavedGame={status === 'paused'}
                     darkMode={darkMode} toggleDarkMode={toggleDarkMode}
                     loading={loading} soundEnabled={soundEnabled} toggleSound={toggleSound}
+                    onShowUserPanel={() => setShowUserPanel(true)}
+                    userSession={appUserSession}
                 />
+                {showUserPanel && <UserPanel soundEnabled={soundEnabled} onClose={handleUserPanelClose} />}
+                </>
             );
         }
 
@@ -1121,6 +1568,12 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                   </div>
                   <div className="flex gap-2 items-center">
                     {loading && <span className="text-xs text-blue-500 animate-pulse">Generating...</span>}
+                    <button onClick={() => setShowUserPanel(true)} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors relative">
+                        <Icons.User />
+                        {appUserSession && (
+                          <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full"></span>
+                        )}
+                    </button>
                     <button onClick={toggleSound} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
                         {soundEnabled ? <Icons.VolumeUp /> : <Icons.VolumeOff />}
                     </button>
@@ -1271,6 +1724,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                </button>
             </div>
             {renderModal()}
+            {showUserPanel && <UserPanel soundEnabled={soundEnabled} onClose={handleUserPanelClose} />}
             <div className="mt-4 text-[10px] text-gray-400 text-center max-w-md">
               <p>Sudoku Logic Lab v2.1</p>
               <p className="mt-1">
