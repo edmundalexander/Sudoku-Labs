@@ -1,17 +1,188 @@
-# ✅ Sudoku Logic Lab - Working Architecture
+# ✅ Sudoku Logic Lab - GitHub Pages + GAS API Architecture
 
 ## Architecture Overview
 
-**Embedded Google Apps Script Web App** - Frontend and backend in same GAS project.
+**Separated Frontend and Backend** - GitHub Pages + Google Apps Script API
 
 ```
-Google Apps Script Project
-├── Code.gs (Backend: Sudoku generation, Leaderboard, Chat, Logs)
-└── index.html (Frontend: React game UI)
-    └── Served via HtmlService.createTemplateFromFile('index')
-
-All frontend-backend calls use: google.script.run (direct function calls)
+GitHub Pages                           Google Apps Script
+(Frontend)                             (Backend API)
+    ↓                                       ↓
+index.html                           Code.gs (doGet/doPost)
+(React, Game UI)      ←→ (fetch)      (Sudoku logic,
+(google.script.run)      HTTP           Leaderboard,
+                                        Chat, Logs)
+                             ↓
+                        Google Sheets
+                    (Leaderboard, Chat, Logs)
 ```
+
+## How It Works
+
+### Frontend (GitHub Pages)
+- **File**: `index.html` (React game)
+- **Hosted on**: GitHub Pages (or any static host)
+- **Calls backend via**: `fetch()` HTTP requests
+- **No authentication needed**: Anyone can play
+
+### Backend (Google Apps Script)
+- **File**: `apps_script/Code.gs`
+- **Deployed as**: Web App with public access
+- **API endpoints**: doGet/doPost with action parameter
+- **Stores data in**: Google Sheets via SpreadsheetApp API
+
+### Communication Pattern
+
+#### GET Requests (Read operations)
+```javascript
+// Frontend calls:
+const url = new URL(GAS_URL);
+url.searchParams.set('action', 'generateSudoku');
+url.searchParams.set('difficulty', 'Easy');
+fetch(url).then(r => r.json());
+
+// Backend handles:
+function doGet(e) {
+  if (e.parameter.action === 'generateSudoku') {
+    return makeJsonResponse(generateSudoku(e.parameter.difficulty));
+  }
+}
+```
+
+#### POST Requests (Write operations)
+```javascript
+// Frontend calls:
+fetch(GAS_URL + '?action=saveScore', {
+  method: 'POST',
+  body: JSON.stringify({ name, time, difficulty })
+}).then(r => r.json());
+
+// Backend handles:
+function doPost(e) {
+  if (e.parameter.action === 'saveScore') {
+    const data = JSON.parse(e.postData.contents);
+    return makeJsonResponse(saveLeaderboardScore(data));
+  }
+}
+```
+
+## API Endpoints
+
+All endpoints are called via `https://script.google.com/macros/s/[ID]/exec?action=[ACTION]`
+
+### GET Endpoints
+
+| Action | Parameters | Returns |
+|--------|-----------|---------|
+| `generateSudoku` | `difficulty` (Easy/Medium/Hard/Daily) | Sudoku puzzle array |
+| `getLeaderboard` | none | Array of scores |
+| `getChat` | none | Last 50 chat messages |
+| `ping` | none | `{ok: true, timestamp: "..."}` |
+
+### POST Endpoints
+
+| Action | Body | Returns |
+|--------|------|---------|
+| `saveScore` | `{name, time, difficulty, date}` | Updated leaderboard |
+| `postChat` | `{sender, text, id, timestamp}` | Updated chat |
+| `logError` | `{type, message, userAgent, count}` | `{logged: true}` |
+
+## File Structure
+
+```
+Sudoku-Labs/
+├── apps_script/
+│   └── Code.gs                 ← Copy to Apps Script editor
+├── index.html                  ← Deploy to GitHub Pages
+├── config/
+│   ├── config.example.js      (Template - commit to GitHub)
+│   ├── config.local.js        (Private - not committed)
+│   └── README.md              (Setup guide)
+├── ARCHITECTURE.md            (This file)
+├── DEPLOYMENT_CHECKLIST.md    (Deployment steps)
+└── CONFIGURATION.md           (Config system docs)
+```
+
+## Frontend Function Wrapper
+
+The `runGasFn()` function in index.html handles all backend calls:
+
+```javascript
+const runGasFn = async (fnName, ...args) => {
+  // Maps function names to API actions
+  // Handles GET/POST routing automatically
+  // Returns parsed JSON response
+};
+
+// Usage examples:
+const puzzle = await runGasFn('generateSudoku', 'Easy');
+const scores = await runGasFn('getLeaderboardData');
+await runGasFn('saveLeaderboardScore', { name, time, difficulty, date });
+await runGasFn('postChatData', { sender, text, id, timestamp });
+```
+
+## Google Sheets Database
+
+Connected via `SHEET_ID = '1a7-R53GPrnR0etBKPwqRA09-ZCHjO_DxPFvkKN_ZTWE'`
+
+**Three sheets (auto-created by setupSheets_()):**
+
+1. **Leaderboard**
+   - Name | Time (seconds) | Difficulty | Date
+   - Stores all game scores
+
+2. **Chat**
+   - ID | Sender | Text | Timestamp
+   - Last 50 messages returned to frontend
+
+3. **Logs**
+   - Timestamp | Type | Message | UserAgent | Count
+   - Client-side errors logged server-side
+
+## Deployment
+
+### GitHub Pages (Frontend)
+1. Commit `index.html` to GitHub
+2. Enable GitHub Pages in repo settings
+3. Frontend is now live at `https://[username].github.io/[repo]/`
+
+### Google Apps Script (Backend)
+1. Create new Apps Script project
+2. Paste `Code.gs` content
+3. Update `SHEET_ID` to your Google Sheet
+4. Deploy as **Web App**:
+   - Execute as: Your email
+   - Who has access: **Anyone** (CRITICAL!)
+5. Copy deployment URL
+6. Update `config/config.local.js` with GAS URL
+7. Run `setupSheets_()` in Apps Script editor
+
+See [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md) for detailed steps.
+
+## Why This Architecture Works
+
+✅ **Separation of concerns** - Frontend and backend independent
+✅ **No CORS issues** - GAS allows cross-origin requests from anywhere
+✅ **Scalable** - Update frontend on GitHub without touching GAS
+✅ **Serverless** - No VPS/server to manage
+✅ **Free hosting** - GitHub Pages (frontend) + GAS quota (backend)
+✅ **Open data** - Anyone can access the public GAS API
+✅ **Secure** - Private functions (ending with _) not callable
+
+## Key Differences from Embedded Approach
+
+| Feature | Embedded GAS | API (This) |
+|---------|-------------|-----------|
+| Frontend | Served by GAS | GitHub Pages |
+| Backend | Same project | Separate project |
+| Calls | `google.script.run` | `fetch()` |
+| Deployment | Single URL | Two deployments |
+| Complexity | Simpler | More flexible |
+| Distribution | GAS only | Anywhere |
+| CORS issues | None (same-origin) | Can fetch from any origin |
+
+This approach gives you more flexibility while maintaining security and simplicity!
+
 
 ## Key Components
 
