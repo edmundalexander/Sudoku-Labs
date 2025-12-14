@@ -18,7 +18,6 @@ jobs:
       - name: Configure Git 🔧
         run: |
           git config pull.rebase false
-          git config pull.ff false
 
       - name: Assemble Build Directory 📦
         run: |
