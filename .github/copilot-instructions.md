@@ -29,11 +29,17 @@ Short, actionable guide to get an AI coding agent productive in this repo.
   curl "$GAS_URL?action=ping"
   curl "$GAS_URL?action=generateSudoku&difficulty=Easy"
   ```
-- Edit/deploy GAS:
+- **Edit/deploy GAS (Manual method)**:
   1. Paste `apps_script/Code.gs` into a new Apps Script project.
-  2. Run `setupSheets_()` once to create `Leaderboard`, `Chat`, `Logs`.
+  2. Run `setupSheets_()` once to create `Leaderboard`, `Chat`, `Logs`, `Users`.
   3. Deploy → Web App, execute as owner, set Who has access = Anyone (even anonymous).
   4. Copy the deployment URL into `config/config.local.js` as `CONFIG.GAS_URL`.
+- **Edit/deploy GAS (Automated method - for AI agents)**:
+  1. Install dependencies: `npm install`
+  2. Set up clasp: `./scripts/setup-clasp.sh` (requires OAuth credentials)
+  3. Deploy: `npm run deploy:gas` or `node scripts/deploy-gas.js`
+  4. GitHub Actions: Commit with `[deploy-gas]` in message to auto-deploy
+  5. See [docs/AI_AGENT_DEPLOYMENT.md](docs/AI_AGENT_DEPLOYMENT.md) for full details
 - Frontend local testing: serve the repo (simple Python/Node static server) and open `index.html`. The app compiles `src/app.jsx` in-browser; for production precompile and bundle.
 
 **Patterns & conventions to preserve when coding**

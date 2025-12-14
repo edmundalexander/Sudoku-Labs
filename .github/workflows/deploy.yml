@@ -38,3 +38,49 @@ jobs:
         with:
           branch: gh-pages
           folder: build
+
+  deploy-gas:
+    runs-on: ubuntu-latest
+    # Only run if commit message contains [deploy-gas] and secrets are configured
+    if: contains(github.event.head_commit.message, '[deploy-gas]')
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js 🔧
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies 📦
+        run: |
+          npm install -g @google/clasp
+          npm install
+
+      - name: Deploy to Google Apps Script 🚀
+        env:
+          CLASP_SCRIPT_ID: ${{ secrets.CLASP_SCRIPT_ID }}
+          GAS_SHEET_ID: ${{ secrets.GAS_SHEET_ID }}
+          CLASP_ACCESS_TOKEN: ${{ secrets.CLASP_ACCESS_TOKEN }}
+          CLASP_REFRESH_TOKEN: ${{ secrets.CLASP_REFRESH_TOKEN }}
+          CLASP_CLIENT_ID: ${{ secrets.CLASP_CLIENT_ID }}
+          CLASP_CLIENT_SECRET: ${{ secrets.CLASP_CLIENT_SECRET }}
+        run: |
+          # Check if secrets are set
+          if [ -z "$CLASP_SCRIPT_ID" ]; then
+            echo "⚠️ CLASP_SCRIPT_ID not set - skipping GAS deployment"
+            echo "See docs/AI_AGENT_DEPLOYMENT.md for setup instructions"
+            exit 0
+          fi
+          
+          # Run deployment script
+          npm run deploy:gas
+
+      - name: Verify Deployment ✅
+        if: success()
+        run: |
+          echo "✓ Google Apps Script deployment completed successfully"
+          echo "Next steps:"
+          echo "1. Verify deployment at https://script.google.com"
+          echo "2. Test API endpoints"
+          echo "3. Update frontend if needed"

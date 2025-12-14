@@ -1,0 +1,166 @@
+name: Example - Full Deployment with GAS
+
+# This is an example workflow that shows how to deploy both
+# frontend (GitHub Pages) and backend (Google Apps Script)
+# in a single workflow.
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # Allow manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  # Job 1: Deploy Frontend to GitHub Pages
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code 🛎️
+        uses: actions/checkout@v3
+
+      - name: Configure Git 🔧
+        run: |
+          git config pull.rebase false
+
+      - name: Assemble Build Directory 📦
+        run: |
+          mkdir -p build/config build/src build/docs
+          cp index.html favicon.svg build/
+          cp -r src/. build/src/
+          cp -r docs/. build/docs/
+          cp config/config.example.js build/config/
+
+      - name: Inject GAS_URL Secret 🤫
+        run: |
+          echo "window.CONFIG = { GAS_URL: '${{ secrets.GAS_URL }}' };" > build/config/config.local.js
+        env:
+          GAS_URL: ${{ secrets.GAS_URL }}
+
+      - name: Deploy to GitHub Pages 🚀
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: build
+
+  # Job 2: Deploy Backend to Google Apps Script
+  deploy-backend:
+    runs-on: ubuntu-latest
+    # Only run if:
+    # 1. Commit message contains [deploy-gas], OR
+    # 2. Workflow was manually triggered, OR
+    # 3. Changes were made to apps_script/Code.gs
+    if: |
+      contains(github.event.head_commit.message, '[deploy-gas]') ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.head_commit.modified, 'apps_script/Code.gs')
+    
+    steps:
+      - name: Checkout Code 🛎️
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js 🔧
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies 📦
+        run: |
+          npm install -g @google/clasp
+          npm install
+
+      - name: Validate Environment 🔍
+        run: |
+          echo "Checking if GAS deployment is configured..."
+          if [ -z "${{ secrets.CLASP_SCRIPT_ID }}" ]; then
+            echo "⚠️ CLASP_SCRIPT_ID not configured"
+            echo "See docs/OAUTH_SETUP_GUIDE.md for setup instructions"
+            exit 0
+          fi
+          echo "✓ GAS deployment is configured"
+
+      - name: Deploy to Google Apps Script 🚀
+        env:
+          CLASP_SCRIPT_ID: ${{ secrets.CLASP_SCRIPT_ID }}
+          GAS_SHEET_ID: ${{ secrets.GAS_SHEET_ID }}
+          CLASP_ACCESS_TOKEN: ${{ secrets.CLASP_ACCESS_TOKEN }}
+          CLASP_REFRESH_TOKEN: ${{ secrets.CLASP_REFRESH_TOKEN }}
+          CLASP_CLIENT_ID: ${{ secrets.CLASP_CLIENT_ID }}
+          CLASP_CLIENT_SECRET: ${{ secrets.CLASP_CLIENT_SECRET }}
+        run: |
+          npm run deploy:gas
+
+      - name: Verify Deployment ✅
+        if: success()
+        run: |
+          echo "============================================"
+          echo "✓ Deployment completed successfully!"
+          echo "============================================"
+          echo ""
+          echo "Next steps:"
+          echo "1. Verify at https://script.google.com"
+          echo "2. Test endpoint: curl '${{ secrets.GAS_URL }}?action=ping'"
+          echo "3. Check execution logs in Apps Script console"
+          echo ""
+          echo "Script ID: ${{ secrets.CLASP_SCRIPT_ID }}"
+          echo "============================================"
+
+      - name: Report Deployment Failure ❌
+        if: failure()
+        run: |
+          echo "============================================"
+          echo "❌ Deployment failed!"
+          echo "============================================"
+          echo ""
+          echo "Troubleshooting:"
+          echo "1. Check environment variables are set correctly"
+          echo "2. Verify OAuth credentials haven't expired"
+          echo "3. Ensure Apps Script API is enabled"
+          echo "4. See docs/TROUBLESHOOTING.md for more help"
+          echo ""
+          echo "============================================"
+
+  # Job 3: Integration Test (optional)
+  test-deployment:
+    runs-on: ubuntu-latest
+    needs: [deploy-frontend, deploy-backend]
+    if: success()
+    steps:
+      - name: Test Frontend 🌐
+        run: |
+          echo "Testing frontend deployment..."
+          # Add frontend tests here
+          # curl https://username.github.io/Sudoku-Labs/
+          
+      - name: Test Backend API 🔌
+        if: secrets.GAS_URL != ''
+        run: |
+          echo "Testing backend API..."
+          
+          # Test ping endpoint
+          RESPONSE=$(curl -s "${{ secrets.GAS_URL }}?action=ping")
+          echo "Ping response: $RESPONSE"
+          
+          # Verify response contains expected data
+          if echo "$RESPONSE" | grep -q '"ok":true'; then
+            echo "✓ Backend API is responding correctly"
+          else
+            echo "❌ Backend API response unexpected"
+            exit 1
+          fi
+
+      - name: Report Test Results 📊
+        if: always()
+        run: |
+          echo "============================================"
+          echo "Deployment Test Results"
+          echo "============================================"
+          echo ""
+          echo "Frontend: Deployed to GitHub Pages"
+          echo "Backend: Deployed to Google Apps Script"
+          echo "Status: ${{ job.status }}"
+          echo ""
+          echo "============================================"

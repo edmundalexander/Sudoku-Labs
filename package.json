@@ -1,0 +1,28 @@
+{
+  "name": "sudoku-labs",
+  "version": "2.1.0",
+  "description": "A modern Sudoku game with leaderboard, chat, and campaign features",
+  "scripts": {
+    "deploy:gas": "node scripts/deploy-gas.js",
+    "setup:clasp": "clasp login --no-localhost",
+    "push:gas": "clasp push",
+    "deploy:gas-version": "clasp deploy",
+    "open:gas": "clasp open"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/edmund-alexander/Sudoku-Labs.git"
+  },
+  "keywords": [
+    "sudoku",
+    "game",
+    "react",
+    "google-apps-script"
+  ],
+  "author": "Edmund Alexander",
+  "license": "MIT",
+  "devDependencies": {},
+  "notes": {
+    "clasp": "Install globally: npm install -g @google/clasp"
+  }
+}

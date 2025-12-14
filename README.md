@@ -54,6 +54,8 @@ Just visit the live game: **[Play Now](https://edmund-alexander.github.io/Sudoku
 - **[Architecture](docs/ARCHITECTURE.md)** - System design and component overview
 - **[Configuration](docs/CONFIGURATION.md)** - How to configure the application
 - **[Deployment Checklist](docs/DEPLOYMENT_CHECKLIST.md)** - Complete deployment guide
+- **[AI Agent Deployment](docs/AI_AGENT_DEPLOYMENT.md)** - Automated deployment for AI agents
+- **[OAuth Setup Guide](docs/OAUTH_SETUP_GUIDE.md)** - Getting credentials for automated deployment
 - **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
 - **[Wiki](../../wiki)** - Additional guides and resources
 
@@ -137,12 +139,20 @@ See [Configuration Guide](docs/CONFIGURATION.md) for details.
 
 ### Backend (Google Apps Script)
 
+**Manual Deployment:**
 1. Create a new Apps Script project at [script.google.com](https://script.google.com)
 2. Copy code from `apps_script/Code.gs`
 3. Deploy as Web App with "Anyone" access
 4. Copy deployment URL to `config/config.local.js`
 
-**Full deployment guide:** [DEPLOYMENT_CHECKLIST.md](docs/DEPLOYMENT_CHECKLIST.md)
+**Automated Deployment (for AI agents & CI/CD):**
+1. Install clasp: `npm install -g @google/clasp`
+2. Configure OAuth credentials (see [OAUTH_SETUP_GUIDE.md](docs/OAUTH_SETUP_GUIDE.md))
+3. Deploy: `npm run deploy:gas`
+4. Or commit with `[deploy-gas]` in message for GitHub Actions
+
+**Full deployment guide:** [DEPLOYMENT_CHECKLIST.md](docs/DEPLOYMENT_CHECKLIST.md)  
+**Automated deployment:** [AI_AGENT_DEPLOYMENT.md](docs/AI_AGENT_DEPLOYMENT.md)
 
 ## 🎮 How to Play
 
