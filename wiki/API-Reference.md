@@ -455,7 +455,7 @@ curl "${GAS_URL}?action=getChat"
 - **[Backend Setup](Backend-Setup)** - Deploy the API
 - **[Configuration](Configuration-Guide)** - Configure the frontend
 - **[Troubleshooting](Troubleshooting)** - Fix common issues
-- **[Security](Security-Best-Practices)** - Security considerations
+- **[Backend Code](https://github.com/edmund-alexander/Sudoku-Labs/blob/main/apps_script/Code.gs)** - See sanitization and security in backend
 
 ---
 

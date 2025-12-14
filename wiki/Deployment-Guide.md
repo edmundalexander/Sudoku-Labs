@@ -374,7 +374,7 @@ See [Troubleshooting](Troubleshooting) for more issues.
 - Lazy loading (if needed)
 - Image optimization
 
-See [Performance Optimization](Performance-Optimization) for details.
+Refer to online resources and best practices for web performance optimization.
 
 ## Custom Domain (Optional)
 

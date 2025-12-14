@@ -452,7 +452,6 @@ Add Google Analytics:
 - **[Backend Setup](Backend-Setup)** - Set up the API
 - **[Configuration](Configuration-Guide)** - Advanced config
 - **[Troubleshooting](Troubleshooting)** - Fix common issues
-- **[Performance Optimization](Performance-Optimization)** - Speed improvements
 
 ---
 

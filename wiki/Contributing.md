@@ -296,7 +296,7 @@ function sanitizeInput_(text) {
 - Use React's built-in XSS protection
 - Sanitize on both client and server
 
-See [Security Best Practices](Security-Best-Practices) for more.
+For more security information, see the backend code documentation in `apps_script/Code.gs`.
 
 ## Review Process
 

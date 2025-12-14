@@ -47,15 +47,9 @@ Sudoku Logic Lab is a modern, browser-based Sudoku game featuring:
 
 ### User Guides
 - **[How to Play](How-to-Play)** - Game rules and features
-- **[Game Strategies](Game-Strategies)** - Tips and techniques
-- **[Leaderboard Guide](Leaderboard-Guide)** - Understanding rankings
-- **[Chat Features](Chat-Features)** - Using the chat system
 
 ### Technical Guides
-- **[Code Structure](Code-Structure)** - Project organization
-- **[Testing Guide](Testing-Guide)** - How to test changes
-- **[Security Best Practices](Security-Best-Practices)** - Secure development
-- **[Performance Optimization](Performance-Optimization)** - Speed improvements
+- **[Contributing](Contributing)** - How to contribute to the project
 
 ### Maintenance & Support
 - **[Troubleshooting](Troubleshooting)** - Common problems and fixes
@@ -68,7 +62,7 @@ Sudoku Logic Lab is a modern, browser-based Sudoku game featuring:
 The Wiki is maintained alongside the codebase. To update:
 
 1. Edit markdown files in the `/wiki` directory of the repository
-2. Follow the [Wiki Maintenance Guide](Wiki-Maintenance-Guide)
+2. Follow the guidelines in `WIKI_SETUP.md` in the repository root
 3. Submit a pull request with your changes
 4. Wiki pages will be synced to GitHub Wiki
 

@@ -341,7 +341,7 @@ npm install --save-dev cypress
 npm install --save-dev @playwright/test
 ```
 
-See [Testing Guide](Testing-Guide) for implementation details.
+Refer to the respective testing framework documentation for implementation details.
 
 ## Hot Reload Development
 
@@ -520,8 +520,6 @@ Check:
 ## Next Steps
 
 - **[Contributing](Contributing)** - Contribution guidelines
-- **[Code Structure](Code-Structure)** - Understanding the codebase
-- **[Testing Guide](Testing-Guide)** - Writing tests
 - **[API Reference](API-Reference)** - Backend API documentation
 
 ---

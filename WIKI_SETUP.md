@@ -72,16 +72,8 @@ Troubleshooting.md             # Common issues (links to docs/)
 Backend-Setup.md               # Google Apps Script setup
 Frontend-Setup.md              # GitHub Pages setup
 Development-Setup.md           # Local development environment
-Code-Structure.md              # Project organization
 Contributing.md                # Contribution guidelines
 FAQ.md                         # Frequently asked questions
-Game-Strategies.md             # Sudoku solving techniques
-Leaderboard-Guide.md           # Leaderboard system
-Chat-Features.md               # Chat system documentation
-Security-Best-Practices.md     # Security guidelines
-Performance-Optimization.md    # Performance tips
-Testing-Guide.md               # Testing procedures
-Wiki-Maintenance-Guide.md      # This file
 Changelog.md                   # Version history
 ```
 
@@ -102,24 +94,12 @@ Changelog.md                   # Version history
 - API Reference
 - Architecture
 - Configuration Guide
-- Code Structure
-
-**User Guides**
-- How to Play
-- Game Strategies
-- Leaderboard Guide
-- Chat Features
-
-**Developer Guides**
-- Contributing
-- Testing Guide
-- Security Best Practices
-- Performance Optimization
 
 **Support**
 - Troubleshooting
 - FAQ
 - Changelog
+- Contributing
 
 ## Maintenance Workflow
 

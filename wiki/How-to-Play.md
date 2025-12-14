@@ -169,7 +169,7 @@ If a number appears in only two positions in two rows, and those positions are i
 An advanced extension of X-Wing using three rows/columns.
 
 ### More Strategies
-Check out the [Game Strategies](Game-Strategies) page for detailed techniques.
+Practice these techniques in the game to improve your solving skills. The more you play, the better you'll get at recognizing patterns!
 
 ## Scoring System
 
@@ -257,10 +257,9 @@ See the [Troubleshooting](Troubleshooting) guide.
 
 ## Next Steps
 
-- **[Game Strategies](Game-Strategies)** - Advanced solving techniques
-- **[Leaderboard Guide](Leaderboard-Guide)** - Understanding rankings
-- **[Chat Features](Chat-Features)** - Using the chat system
 - **[FAQ](FAQ)** - More questions answered
+- **[Troubleshooting](Troubleshooting)** - Fix common issues
+- **[Quick Start Guide](Quick-Start-Guide)** - Set up your own instance
 
 ---
 

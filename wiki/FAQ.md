@@ -71,9 +71,7 @@ Not currently. Once you start a puzzle, you should complete it in one session.
 
 ### How does the leaderboard work?
 
-The leaderboard tracks the fastest completion times for each difficulty level. Lower time = higher rank.
-
-See the [Leaderboard Guide](Leaderboard-Guide) for details.
+The leaderboard tracks the fastest completion times for each difficulty level. Lower time = higher rank. Scores are stored in Google Sheets and displayed to all players sorted by time.
 
 ### Are there separate leaderboards for each difficulty?
 
@@ -235,7 +233,7 @@ See [Troubleshooting](Troubleshooting).
 - Use a different browser
 - Clear browser cache
 
-See [Performance Optimization](Performance-Optimization).
+See [Troubleshooting](Troubleshooting) for more solutions.
 
 ## Contributing Questions
 
