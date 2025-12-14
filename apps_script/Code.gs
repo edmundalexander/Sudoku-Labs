@@ -300,9 +300,9 @@ function registerUser(data) {
     }
     
     // Check if username already exists
-    const data = sheet.getDataRange().getValues();
-    for (let i = 1; i < data.length; i++) {
-      if (data[i][1] === username) {
+    const sheetData = sheet.getDataRange().getValues();
+    for (let i = 1; i < sheetData.length; i++) {
+      if (sheetData[i][1] === username) {
         return { success: false, error: 'Username already exists' };
       }
     }
@@ -350,21 +350,21 @@ function loginUser(data) {
       return { success: false, error: 'Users sheet not found' };
     }
     
-    const data = sheet.getDataRange().getValues();
+    const sheetData = sheet.getDataRange().getValues();
     const passwordHash = simpleHash_(password);
     
     // Search for user
-    for (let i = 1; i < data.length; i++) {
-      if (data[i][1] === username && data[i][2] === passwordHash) {
+    for (let i = 1; i < sheetData.length; i++) {
+      if (sheetData[i][1] === username && sheetData[i][2] === passwordHash) {
         return {
           success: true,
           user: {
-            userId: data[i][0],
-            username: data[i][1],
-            displayName: data[i][4] || data[i][1],
-            totalGames: Number(data[i][5]) || 0,
-            totalWins: Number(data[i][6]) || 0,
-            createdAt: data[i][3]
+            userId: sheetData[i][0],
+            username: sheetData[i][1],
+            displayName: sheetData[i][4] || sheetData[i][1],
+            totalGames: Number(sheetData[i][5]) || 0,
+            totalWins: Number(sheetData[i][6]) || 0,
+            createdAt: sheetData[i][3]
           }
         };
       }
@@ -390,19 +390,19 @@ function getUserProfile(data) {
       return { success: false, error: 'Users sheet not found' };
     }
     
-    const data = sheet.getDataRange().getValues();
+    const sheetData = sheet.getDataRange().getValues();
     
-    for (let i = 1; i < data.length; i++) {
-      if (data[i][0] === userId) {
+    for (let i = 1; i < sheetData.length; i++) {
+      if (sheetData[i][0] === userId) {
         return {
           success: true,
           user: {
-            userId: data[i][0],
-            username: data[i][1],
-            displayName: data[i][4] || data[i][1],
-            totalGames: Number(data[i][5]) || 0,
-            totalWins: Number(data[i][6]) || 0,
-            createdAt: data[i][3]
+            userId: sheetData[i][0],
+            username: sheetData[i][1],
+            displayName: sheetData[i][4] || sheetData[i][1],
+            totalGames: Number(sheetData[i][5]) || 0,
+            totalWins: Number(sheetData[i][6]) || 0,
+            createdAt: sheetData[i][3]
           }
         };
       }
