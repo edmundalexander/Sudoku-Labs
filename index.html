@@ -126,10 +126,6 @@
   <body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
     <div id="root"></div>
 
-    <!-- Load configuration from config/config.local.js (local values, not exposed publicly) -->
-    <!-- Falls back to inline CONFIG if file not found -->
-    <script src="config/config.local.js" onerror="console.warn('config.local.js not found, using fallback');"></script>
-
     <script type="text/babel" data-presets="react, typescript">
       const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
 
@@ -259,65 +255,16 @@
         CAMPAIGN_PROGRESS: 'sudoku_v2_campaign'
       };
 
-      // Set this to your Apps Script "exec" URL after deployment, e.g.
-      // const GAS_URL = 'https://script.google.com/macros/s/XXXXX/exec';
-      // This can be overridden by config/config.local.js or window.CONFIG.GAS_URL
-      // Project: Sudoku Logic Lab API
-      const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbzZg11UDcIZGbwHvrtxb5E2enGspkQnjsBPbCP5Aw6BYP5Jo5cq3JqPr8PHOZgbgn2kOg/exec';
-      const GAS_URL = (typeof CONFIG !== 'undefined' && CONFIG.GAS_URL) || DEFAULT_GAS_URL;
-
-      const isGasEnvironment = () => {
-        return typeof window !== 'undefined' && window.google && window.google.script;
-      };
-
-      // Unified runner: prefer native google.script.run when embedded in GAS web app;
-      // otherwise call the Apps Script exec URL (GAS_URL) via fetch. Set `GAS_URL`
-      // to your deployed web app URL to enable remote calls from GitHub Pages.
+      // Google Apps Script runs this as an embedded web app
+      // All functions are directly callable via google.script.run
       const runGasFn = async (fnName, ...args) => {
-        if (isGasEnvironment()) {
-          return new Promise((resolve, reject) => {
-            window.google.script.run
-              .withSuccessHandler(resolve)
-              .withFailureHandler(reject)
-              [fnName](...args);
-          });
-        }
-
-        if (!GAS_URL || GAS_URL.includes('REPLACE')) return null;
-
-        const actionMap = {
-          generateSudoku: 'generateSudoku',
-          getLeaderboardData: 'getLeaderboard',
-          saveLeaderboardScore: 'saveScore',
-          getChatData: 'getChat',
-          postChatData: 'postChat',
-          logClientError: 'logError'
-        };
-        const action = actionMap[fnName] || fnName;
-
-        try {
-          if (['generateSudoku', 'getLeaderboard', 'getChat'].includes(action)) {
-            const url = new URL(GAS_URL);
-            url.searchParams.set('action', action);
-            if (args[0] !== undefined) {
-              const first = args[0];
-              if (typeof first === 'object') {
-                Object.entries(first).forEach(([k, v]) => url.searchParams.set(k, v));
-              } else {
-                url.searchParams.set('data', first);
-              }
-            }
-            const resp = await fetch(url.toString(), { credentials: 'omit' });
-            return await resp.json();
-          } else {
-            const resp = await fetch(GAS_URL + '?action=' + encodeURIComponent(action), {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(args[0] || {})
-            });
-            return await resp.json();
-          }
-        } catch (err) {
+        return new Promise((resolve, reject) => {
+          window.google.script.run
+            .withSuccessHandler(resolve)
+            .withFailureHandler(reject)
+            [fnName](...args);
+        });
+      };
           console.error('GAS fetch error', err);
           return null;
         }
