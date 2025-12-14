@@ -128,7 +128,8 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
 
       // GAS Backend API URL - Configure this with your deployment URL
       // Format: https://script.google.com/macros/s/[DEPLOYMENT_ID]/exec
-      const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbzZg11UDcIZGbwHvrtxb5E2enGspkQnjsBPbCP5Aw6BYP5Jo5cq3JqPr8PHOZgbgn2kOg/exec';
+      // SECURITY: Do not hardcode deployment URLs. Use config/config.local.js in production.
+      const DEFAULT_GAS_URL = '';
       const GAS_URL = (typeof CONFIG !== 'undefined' && CONFIG.GAS_URL) || DEFAULT_GAS_URL;
 
       // Unified function caller: uses fetch to call GAS API endpoints
