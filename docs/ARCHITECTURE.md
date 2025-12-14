@@ -54,7 +54,7 @@ function doGet(e) {
 }
 ```
 
-**Why GET for all operations?** See [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+**Why GET for all operations?** See [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
 
 ## API Endpoints
 
@@ -118,4 +118,4 @@ Connected via `SHEET_ID` constant in Code.gs
    - Deploy as Web App (Anyone access)
    - Update `config/config.local.js` with deployment URL
 
-See [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md) for detailed steps.
+See [DEPLOYMENT_CHECKLIST.md](docs/DEPLOYMENT_CHECKLIST.md) for detailed steps.

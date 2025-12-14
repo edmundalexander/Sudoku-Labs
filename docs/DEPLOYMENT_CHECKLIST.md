@@ -96,7 +96,7 @@ git push
 
 ## If Something Goes Wrong
 
-See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for common issues and solutions.
+See [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for common issues and solutions.
 
 ## Redeployment
 
