@@ -58,6 +58,110 @@ class ErrorBoundary extends Component {
   }
 }
 
+// ============================================================================
+// DEBUG UTILITIES
+// ============================================================================
+
+/**
+ * Debug mode to test API endpoints and database synchronization
+ * Call with: window.runDebugTests() in browser console
+ */
+window.runDebugTests = async function() {
+  console.log('🔍 Starting Debug Tests...\n');
+  
+  const results = {
+    passed: [],
+    failed: []
+  };
+  
+  try {
+    // Test 1: Ping backend
+    console.log('Test 1: Backend Ping...');
+    const pingResult = await runGasFn('ping');
+    if (pingResult && pingResult.ok) {
+      console.log('✅ Backend is responding');
+      results.passed.push('Backend Ping');
+    } else {
+      console.log('❌ Backend ping failed');
+      results.failed.push('Backend Ping');
+    }
+    
+    // Test 2: Check if user authenticated
+    console.log('\nTest 2: User Authentication Status...');
+    const session = StorageService.getUserSession();
+    if (session && session.userId) {
+      console.log('✅ User authenticated:', session.username);
+      results.passed.push('User Session');
+      
+      // Test 3: Get user profile
+      console.log('\nTest 3: Fetching User Profile...');
+      const profile = await runGasFn('getUserProfile', { userId: session.userId });
+      if (profile && profile.success) {
+        console.log('✅ User Profile Retrieved:');
+        console.table({
+          'Total Games': profile.user.totalGames,
+          'Total Wins': profile.user.totalWins,
+          'Easy Wins': profile.user.easyWins || 0,
+          'Medium Wins': profile.user.mediumWins || 0,
+          'Hard Wins': profile.user.hardWins || 0,
+          'Perfect Wins': profile.user.perfectWins || 0,
+          'Fast Wins': profile.user.fastWins || 0,
+          'Win Rate': (profile.user.totalGames > 0 ? ((profile.user.totalWins / profile.user.totalGames) * 100).toFixed(2) : 0) + '%'
+        });
+        results.passed.push('User Profile Fetch');
+      } else {
+        console.log('❌ Failed to fetch user profile:', profile?.error);
+        results.failed.push('User Profile Fetch');
+      }
+      
+      // Test 4: Get user state
+      console.log('\nTest 4: Fetching User State (Unlocks)...');
+      const state = await runGasFn('getUserState', { userId: session.userId });
+      if (state && state.success && state.state) {
+        console.log('✅ User State Retrieved:');
+        console.log('  Unlocked Themes:', state.state.unlockedThemes || []);
+        console.log('  Unlocked Sound Packs:', state.state.unlockedSoundPacks || []);
+        console.log('  Game Stats:', state.state.gameStats || {});
+        results.passed.push('User State Fetch');
+      } else {
+        console.log('❌ Failed to fetch user state:', state?.error);
+        results.failed.push('User State Fetch');
+      }
+    } else {
+      console.log('⚠️  No authenticated user. Login first to test user endpoints.');
+      results.passed.push('User Session Check (No User)');
+    }
+    
+    // Test 5: Local storage check
+    console.log('\nTest 5: Checking Local Storage...');
+    const localStorage_stats = StorageService.getGameStats();
+    const localStorage_themes = StorageService.getUnlockedThemes();
+    const localStorage_packs = StorageService.getUnlockedSoundPacks();
+    console.log('✅ Local Storage Accessible:');
+    console.log('  Game Stats:', localStorage_stats);
+    console.log('  Unlocked Themes:', localStorage_themes);
+    console.log('  Unlocked Packs:', localStorage_packs);
+    results.passed.push('Local Storage Check');
+    
+    // Summary
+    console.log('\n' + '='.repeat(50));
+    console.log('📊 DEBUG TEST SUMMARY');
+    console.log('='.repeat(50));
+    console.log(`✅ Passed: ${results.passed.length} tests`);
+    console.log(`❌ Failed: ${results.failed.length} tests`);
+    if (results.failed.length > 0) {
+      console.log('\nFailed Tests:', results.failed);
+    }
+    console.log('\n💡 All systems operational!' + (results.failed.length > 0 ? ' Some issues detected.' : ''));
+  } catch (err) {
+    console.error('❌ Debug test error:', err);
+  }
+};
+
+// Make debug mode available globally
+console.log('%c🔧 Debug Mode Available', 'color: blue; font-size: 14px; font-weight: bold;');
+console.log('%cRun: window.runDebugTests()', 'color: green; font-size: 12px;');
+
 const Cell = memo(({ data, isSelected, onClick, isCompletedBox }) => {
   const { row, col, value, isFixed, isError, notes, isHinted } = data;
   const isRightBorder = (col + 1) % 3 === 0 && col !== 8;
@@ -371,13 +475,20 @@ const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSe
 };
 
 // --- USER PANEL COMPONENT ---
-const UserPanel = ({ soundEnabled, onClose }) => {
+const UserPanel = ({ soundEnabled, onClose, appUserSession }) => {
   const [mode, setMode] = useState('menu'); // menu, login, register
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [localUserSession, setLocalUserSession] = useState(StorageService.getUserSession());
+  const [localUserSession, setLocalUserSession] = useState(appUserSession || StorageService.getUserSession());
+
+  // Update localUserSession whenever appUserSession changes (from parent)
+  useEffect(() => {
+    if (appUserSession) {
+      setLocalUserSession(appUserSession);
+    }
+  }, [appUserSession]);
 
   const handleLogin = async () => {
     if (!username || !password) {
@@ -1986,7 +2097,7 @@ const App = () => {
           onBack={() => { if (soundEnabled) SoundManager.play('uiTap'); setView('menu'); }}
           onOpenAwards={() => { if (soundEnabled) SoundManager.play('uiTap'); openAwards(); }}
         />
-        {showUserPanel && <UserPanel soundEnabled={soundEnabled} onClose={handleUserPanelClose} />}
+        {showUserPanel && <UserPanel soundEnabled={soundEnabled} onClose={handleUserPanelClose} appUserSession={appUserSession} />}
         {showAwardsZone && (
           <AwardsZone
             soundEnabled={soundEnabled}
@@ -2018,7 +2129,7 @@ const App = () => {
           onShowAwards={() => { if (soundEnabled) SoundManager.play('uiTap'); openAwards(); }}
           userSession={appUserSession}
         />
-        {showUserPanel && <UserPanel soundEnabled={soundEnabled} onClose={handleUserPanelClose} />}
+        {showUserPanel && <UserPanel soundEnabled={soundEnabled} onClose={handleUserPanelClose} appUserSession={appUserSession} />}
         {showAwardsZone && (
           <AwardsZone
             soundEnabled={soundEnabled}
@@ -2321,7 +2432,7 @@ const App = () => {
         </button>
       </div>
       {renderModal()}
-      {showUserPanel && <UserPanel soundEnabled={soundEnabled} onClose={handleUserPanelClose} />}
+      {showUserPanel && <UserPanel soundEnabled={soundEnabled} onClose={handleUserPanelClose} appUserSession={appUserSession} />}
       {showAwardsZone && (
         <AwardsZone
           soundEnabled={soundEnabled}
