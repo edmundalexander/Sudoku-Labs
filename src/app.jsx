@@ -2143,8 +2143,8 @@ const App = () => {
         />
       )}
 
-      {/* Footer - positioned below content */}
-      <footer className="mt-auto pt-8 pb-4 text-[10px] sm:text-xs md:text-sm lg:text-base text-gray-400 text-center max-w-md px-2 w-full">
+      {/* Footer - positioned with reduced spacing */}
+      <footer className="mt-6 sm:mt-8 pt-4 pb-4 text-[10px] sm:text-xs md:text-sm lg:text-base text-gray-400 text-center max-w-md px-2 w-full">
         <p>Sudoku Logic Lab v2.1</p>
         <p className="mt-1">
           Lovingly created by Edmund
