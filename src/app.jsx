@@ -1419,7 +1419,19 @@ const App = () => {
       try {
         const remote = await runGasFn('getUserState', { userId: appUserSession.userId });
         if (remote?.success && remote.state?.gameStats) {
-          StorageService.saveGameStats(remote.state.gameStats);
+          const remoteStats = remote.state.gameStats;
+          StorageService.saveGameStats(remoteStats);
+          
+          // Re-run unlock checks now that we have latest stats
+          const newThemes = UnlockService.checkThemeUnlocks(remoteStats);
+          if (newThemes.length > 0) {
+            setUnlockedThemes(StorageService.getUnlockedThemes());
+          }
+          
+          const newPacks = UnlockService.checkSoundPackUnlocks(remoteStats);
+          if (newPacks.length > 0) {
+            setUnlockedSoundPacks(StorageService.getUnlockedSoundPacks());
+          }
         }
       } catch (err) {
         console.error('Failed to sync game stats:', err);
