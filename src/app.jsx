@@ -397,8 +397,37 @@ const KEYS = {
   ACTIVE_THEME: 'sudoku_v2_active_theme',
   UNLOCKED_SOUND_PACKS: 'sudoku_v2_unlocked_sound_packs',
   ACTIVE_SOUND_PACK: 'sudoku_v2_active_sound_pack',
-  GAME_STATS: 'sudoku_v2_game_stats'
+  GAME_STATS: 'sudoku_v2_game_stats',
+  USER_STATUS: 'sudoku_v2_user_status'
 };
+
+// Build emoji library by range to keep bundle light while covering 700+ glyphs
+const isEmojiChar = (ch) => /\p{Emoji}/u.test(ch);
+const buildEmojiList = (ranges) => {
+  const seen = new Set();
+  const out = [];
+  ranges.forEach(([start, end]) => {
+    for (let cp = start; cp <= end; cp++) {
+      const ch = String.fromCodePoint(cp);
+      if (isEmojiChar(ch) && !seen.has(ch)) {
+        seen.add(ch);
+        out.push(ch);
+      }
+    }
+  });
+  return out;
+};
+
+const EMOJI_CATEGORIES = [
+  { id: 'smileys', label: 'Smileys', emojis: buildEmojiList([[0x1f600, 0x1f64f]]) },
+  { id: 'gestures', label: 'Gestures', emojis: buildEmojiList([[0x1f44a, 0x1f4ff], [0x270a, 0x270d]]) },
+  { id: 'animals', label: 'Animals', emojis: buildEmojiList([[0x1f400, 0x1f43f], [0x1f980, 0x1f9ae]]) },
+  { id: 'food', label: 'Food', emojis: buildEmojiList([[0x1f347, 0x1f37f], [0x1f950, 0x1f97a]]) },
+  { id: 'activities', label: 'Activities', emojis: buildEmojiList([[0x1f3a0, 0x1f3fa], [0x26bd, 0x26be], [0x1f93f, 0x1f94f]]) },
+  { id: 'travel', label: 'Travel', emojis: buildEmojiList([[0x1f680, 0x1f6ff], [0x1f690, 0x1f6c5]]) },
+  { id: 'objects', label: 'Objects', emojis: buildEmojiList([[0x1f4a0, 0x1f4ff], [0x1f9e0, 0x1f9ff]]) },
+  { id: 'symbols', label: 'Symbols', emojis: buildEmojiList([[0x1f300, 0x1f5ff], [0x2600, 0x26ff]]) }
+];
 
 // GAS Backend API URL - Configure this with your deployment URL
 // Format: https://script.google.com/macros/s/[DEPLOYMENT_ID]/exec
@@ -558,25 +587,48 @@ const getLocalChat = () => {
   try { return JSON.parse(localStorage.getItem(KEYS.CHAT)) || []; } catch (e) { return []; }
 }
 
+const getUserStatus = () => {
+  try {
+    return localStorage.getItem(KEYS.USER_STATUS) || '';
+  } catch (e) {
+    return '';
+  }
+};
+
+const saveUserStatus = (status) => {
+  try {
+    const trimmed = (status || '').slice(0, 50);
+    localStorage.setItem(KEYS.USER_STATUS, trimmed);
+  } catch (e) { }
+};
+
+const normalizeChatMessage = (msg) => ({
+  id: msg.id,
+  sender: msg.sender,
+  text: msg.text,
+  timestamp: msg.timestamp,
+  status: msg.status || ''
+});
+
 const getChatMessages = async () => {
   if (isGasEnvironment()) {
     try {
       const data = await runGasFn('getChatData');
-      if (Array.isArray(data)) return data;
+      if (Array.isArray(data)) return data.map(normalizeChatMessage);
     } catch (e) { }
   }
-  return getLocalChat();
+  return getLocalChat().map(normalizeChatMessage);
 };
 
 const postChatMessage = async (msg) => {
   if (isGasEnvironment()) {
     try {
       const data = await runGasFn('postChatData', msg);
-      if (Array.isArray(data)) return data;
+      if (Array.isArray(data)) return data.map(normalizeChatMessage);
     } catch (e) { }
   }
   const current = getLocalChat();
-  current.push(msg);
+  current.push(normalizeChatMessage(msg));
   const trimmed = current.length > 50 ? current.slice(current.length - 50) : current;
   localStorage.setItem(KEYS.CHAT, JSON.stringify(trimmed));
   return trimmed;
@@ -1832,10 +1884,13 @@ const App = () => {
   const [showModal, setShowModal] = useState('none');
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatInput, setChatInput] = useState('');
+  const [userStatus, setUserStatus] = useState(getUserStatus());
   const [chatMessages, setChatMessages] = useState([]);
   const [chatNotification, setChatNotification] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [emojiCategory, setEmojiCategory] = useState(EMOJI_CATEGORIES[0].id);
 
   // Campaign State
   const [activeQuest, setActiveQuest] = useState(null);
@@ -1961,6 +2016,17 @@ const App = () => {
     window.addEventListener('error', handleError);
     return () => window.removeEventListener('error', handleError);
   }, []);
+
+  useEffect(() => {
+    saveUserStatus(userStatus);
+  }, [userStatus]);
+
+  useEffect(() => {
+    if (!showEmojiPicker) return undefined;
+    const handleKey = (e) => { if (e.key === 'Escape') setShowEmojiPicker(false); };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [showEmojiPicker]);
 
   useEffect(() => () => {
     if (persistTimerRef.current) clearTimeout(persistTimerRef.current);
@@ -2223,12 +2289,17 @@ const App = () => {
     }
   };
 
+  const handleEmojiInsert = (emoji) => {
+    if (soundEnabled) SoundManager.play('uiTap');
+    setChatInput((prev) => `${prev}${emoji}`);
+  };
+
   const handleChatSend = async (text) => {
     const txt = text.trim(); if (!txt) return;
     if (soundEnabled) SoundManager.play('uiTap');
     setChatInput('');
     const currentUserId = getCurrentUserId();
-    const msg = { id: Date.now().toString(), sender: currentUserId, text: txt, timestamp: Date.now() };
+    const msg = { id: Date.now().toString(), sender: currentUserId, text: txt, timestamp: Date.now(), status: (userStatus || '').slice(0, 50) };
     setChatMessages(prev => [...prev, msg]);
     isSendingRef.current = true;
     const updated = await postChatMessage(msg);
@@ -2338,7 +2409,9 @@ const App = () => {
 
   const toggleChat = () => {
     if (soundEnabled) SoundManager.play('uiTap');
-    setChatNotification(null); setIsChatOpen(prev => !prev);
+    setChatNotification(null);
+    setShowEmojiPicker(false);
+    setIsChatOpen(prev => !prev);
   };
 
   const renderModal = () => {
@@ -2633,24 +2706,68 @@ const App = () => {
         )}
         {isChatOpen && (
           <div className="bg-white dark:bg-gray-800 w-72 sm:w-80 h-80 sm:h-96 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 flex flex-col animate-pop overflow-hidden mb-2">
-            <div className="p-2.5 sm:p-3 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-700/30">
-              <span className="font-bold text-xs sm:text-sm text-gray-700 dark:text-gray-200">Live Chat</span>
-              <div className="flex items-center gap-2"><span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span></span></div>
+            <div className="p-2.5 sm:p-3 border-b border-gray-100 dark:border-gray-700 flex flex-col gap-2 bg-gray-50 dark:bg-gray-700/30">
+              <div className="flex justify-between items-center">
+                <span className="font-bold text-xs sm:text-sm text-gray-700 dark:text-gray-200">Live Chat</span>
+                <div className="flex items-center gap-2"><span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span></span></div>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  className="flex-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg px-2 py-1 text-[10px] sm:text-xs focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="Set a status (50 chars)"
+                  maxLength={50}
+                  value={userStatus}
+                  onChange={(e) => setUserStatus(e.target.value.slice(0, 50))}
+                />
+              </div>
             </div>
             <div className="flex-1 overflow-y-auto p-2.5 sm:p-3 space-y-2.5 sm:space-y-3 bg-gray-50/50 dark:bg-gray-900/50 scrollbar-thin">
               {chatMessages.length === 0 && <p className="text-center text-xs text-gray-400 mt-4">No messages yet. Say hi!</p>}
               {chatMessages.map(msg => (
                 <div key={msg.id} className={`flex flex-col ${msg.sender === userId ? 'items-end' : 'items-start'}`}>
-                  <span className="text-[8px] sm:text-[9px] text-gray-400 mb-0.5 px-1">{msg.sender === userId ? 'You' : msg.sender}</span>
+                  <div className="flex items-center gap-1 text-[8px] sm:text-[9px] text-gray-500 mb-0.5 px-1 max-w-[90%]">
+                    <span className="font-semibold text-gray-600 dark:text-gray-300">{msg.sender === userId ? 'You' : msg.sender}</span>
+                    {msg.status && <span className="text-gray-400 truncate">· {msg.status}</span>}
+                  </div>
                   <div className={`px-2.5 sm:px-3 py-1.5 text-xs max-w-[85%] break-words ${msg.sender === userId ? 'bg-blue-600 text-white rounded-2xl rounded-tr-sm' : 'bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-2xl rounded-tl-sm shadow-sm'}`}>{msg.text}</div>
                 </div>
               ))}
               <div ref={chatEndRef} />
             </div>
             <div className="p-1.5 sm:p-2 border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
-              <div className="flex gap-1.5 sm:gap-2">
+              <div className="relative flex gap-1.5 sm:gap-2 items-center">
+                <button
+                  aria-label="Emoji picker"
+                  className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 text-lg"
+                  onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); setShowEmojiPicker((v) => !v); }}
+                >😀</button>
                 <input className="flex-1 bg-gray-100 dark:bg-gray-900 border-0 rounded-lg px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none transition-shadow" placeholder="Type a message..." maxLength={140} value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleChatSend(chatInput); }} />
                 <button className="p-1.5 sm:p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex-shrink-0" onClick={() => handleChatSend(chatInput)}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M3.105 2.289a.75.75 0 00-.826.95l1.414 4.925A1.5 1.5 0 005.135 9.25h6.115a.75.75 0 010 1.5H5.135a1.5 1.5 0 00-1.442 1.086l-1.414 4.926a.75.75 0 00.826.95 28.896 28.896 0 0015.293-7.154.75.75 0 000-1.115A28.897 28.897 0 003.105 2.289z" /></svg></button>
+
+                {showEmojiPicker && (
+                  <div className="absolute bottom-12 left-0 right-0 bg-white dark:bg-gray-900 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 p-2 z-10">
+                    <div className="flex gap-1 overflow-x-auto pb-1">
+                      {EMOJI_CATEGORIES.map((cat) => (
+                        <button
+                          key={cat.id}
+                          onClick={() => setEmojiCategory(cat.id)}
+                          className={`px-2 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap ${emojiCategory === cat.id ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200'}`}
+                        >
+                          {cat.label}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="mt-2 max-h-36 overflow-y-auto grid grid-cols-8 gap-1 text-lg">
+                      {(EMOJI_CATEGORIES.find((c) => c.id === emojiCategory) || EMOJI_CATEGORIES[0]).emojis.map((emo) => (
+                        <button
+                          key={emo}
+                          className="h-8 w-8 flex items-center justify-center rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+                          onClick={() => handleEmojiInsert(emo)}
+                        >{emo}</button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
