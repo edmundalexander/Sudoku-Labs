@@ -1996,10 +1996,10 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                     </div>
                 )}
 
-                <div className="flex flex-col xl:flex-row gap-4 sm:gap-6 md:gap-7 lg:gap-8 justify-center items-start">
+                <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 md:gap-7 lg:gap-8 justify-center items-start">
                   
                   {/* Left: Board */}
-                  <div className="flex-shrink-0 mx-auto xl:mx-0">
+                  <div className="flex-shrink-0 mx-auto lg:mx-0">
                       <SudokuBoard 
                           board={board} selectedId={selectedCell} 
                           onCellClick={(id) => { if(soundEnabled) SoundManager.play('select'); setSelectedCell(id); }} 
@@ -2008,7 +2008,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                   </div>
 
                   {/* Right: Sidebar */}
-                  <div className="flex flex-col gap-3 sm:gap-4 w-full max-w-md xl:w-80 mx-auto xl:mx-0">
+                  <div className="flex flex-col gap-3 sm:gap-4 w-full max-w-md lg:w-80 mx-auto lg:mx-0">
 
                       {/* Number Pad (top of sidebar) */}
                       <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
