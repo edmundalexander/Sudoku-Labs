@@ -458,7 +458,16 @@ const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSe
                 )}
               </div>
             </div>
-            <div className={`mt-3 h-12 rounded ${theme.background} border border-gray-300 dark:border-gray-600`}></div>
+            {/* Theme preview - show sample cells */}
+            <div className={`mt-3 p-2 rounded-lg ${theme.background} border border-gray-300 dark:border-gray-600`}>
+              <div className="flex justify-center gap-1">
+                {[1, 2, 3].map(n => (
+                  <div key={n} className={`w-8 h-8 ${theme.cellBg} border border-gray-400/50 rounded flex items-center justify-center text-sm font-semibold text-gray-700 dark:text-gray-200`}>
+                    {n}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         );
       })}
