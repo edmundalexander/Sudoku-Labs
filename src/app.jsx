@@ -633,7 +633,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         const { row, col, value, isFixed, isError, notes, isHinted } = data;
         const isRightBorder = (col + 1) % 3 === 0 && col !== 8;
         const isBottomBorder = (row + 1) % 3 === 0 && row !== 8;
-        let baseClasses = "relative flex items-center justify-center text-base sm:text-lg md:text-xl font-medium cursor-pointer transition-all duration-200 select-none h-9 w-9 sm:h-11 sm:w-11 md:h-12 md:w-12 lg:h-[52px] lg:w-[52px]";
+        let baseClasses = "relative flex items-center justify-center text-base sm:text-lg md:text-xl font-medium cursor-pointer transition-all duration-200 select-none h-8 w-8 sm:h-10 sm:w-10 md:h-11 md:w-11 lg:h-12 lg:w-12";
         if (isRightBorder) baseClasses += " border-r-2 border-gray-400 dark:border-gray-500";
         else baseClasses += " border-r border-gray-200 dark:border-gray-700";
         if (isBottomBorder) baseClasses += " border-b-2 border-gray-400 dark:border-gray-500";
@@ -704,8 +704,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         Avatar: () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-white drop-shadow-lg"><circle cx="12" cy="12" r="10" className="text-blue-500"/><path fill="white" d="M12 4a4 4 0 100 8 4 4 0 000-8zM6 18a6 6 0 0112 0H6z" /></svg>,
         User: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>,
         Login: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" /></svg>,
-        Logout: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" /></svg>,
-        Palette: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M4.098 19.902a3.75 3.75 0 005.304 0l6.401-6.402M6.75 21A3.75 3.75 0 013 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 003.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008z" /></svg>
+        Logout: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" /></svg>
       };
 
       const CHAT_POLL_INTERVAL = 5000;
@@ -760,7 +759,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                 <Icons.X />
               </button>
               
-              <h2 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3 text-gray-900 dark:text-gray-100 flex items-center gap-2"><Icons.Palette /> Themes</h2>
+              <h2 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3 text-gray-900 dark:text-gray-100">🎨 Themes</h2>
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
                 Unlock themes by completing challenges. Customize your Sudoku experience!
               </p>
@@ -1342,8 +1341,8 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
       };
 
       const OpeningScreen = ({ onStart, onResume, onCampaign, hasSavedGame, darkMode, toggleDarkMode, loading, soundEnabled, toggleSound, onShowUserPanel, onShowThemes, userSession }) => (
-        <div className="min-h-screen flex flex-col items-center justify-center p-3 sm:p-4 md:p-6 text-gray-900 dark:text-gray-100 animate-fade-in relative z-10">
-           <div className="absolute top-2 right-2 sm:top-3 sm:right-3 md:top-4 md:right-4 flex gap-1 sm:gap-2">
+        <div className="min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 text-gray-900 dark:text-gray-100 animate-fade-in relative z-10">
+           <div className="absolute top-2 right-2 sm:top-4 sm:right-4 flex gap-1 sm:gap-2">
               <button onClick={onShowUserPanel} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors relative">
                   <Icons.User />
                   {userSession && (
@@ -1351,7 +1350,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                   )}
               </button>
               <button onClick={onShowThemes} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Themes">
-                  <Icons.Palette />
+                  🎨
               </button>
               <button onClick={toggleSound} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
                   {soundEnabled ? <Icons.VolumeUp /> : <Icons.VolumeOff />}
@@ -1361,11 +1360,11 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
               </button>
            </div>
            
-           <div className="text-center mb-5 sm:mb-6 md:mb-8">
-             <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight mb-2">Sudoku <span className="text-blue-600">Logic</span> Lab</h1>
+           <div className="text-center mb-6 sm:mb-10">
+             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight mb-2">Sudoku <span className="text-blue-600">Logic</span> Lab</h1>
            </div>
 
-           <div className="w-full max-w-sm space-y-2.5 sm:space-y-3">
+           <div className="w-full max-w-sm space-y-3 sm:space-y-4">
               <button 
                   onClick={() => { if(soundEnabled) SoundManager.play('select'); onCampaign(); }}
                   className="w-full py-3 sm:py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl shadow-lg font-bold text-base sm:text-lg transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2"
@@ -1383,8 +1382,8 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                 </button>
               )}
               
-              <div className="bg-white dark:bg-gray-800 p-3 sm:p-4 md:p-5 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700">
-                <h2 className="text-xs sm:text-sm font-bold uppercase text-gray-500 mb-2.5 sm:mb-3 text-center">
+              <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700">
+                <h2 className="text-xs sm:text-sm font-bold uppercase text-gray-500 mb-3 sm:mb-4 text-center">
                     {loading ? 'Generating Puzzle...' : 'Quick Play'}
                 </h2>
                 <div className="grid grid-cols-2 gap-2 sm:gap-3">
@@ -1402,7 +1401,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
               </div>
            </div>
            
-           <footer className="mt-5 sm:mt-6 md:mt-8 text-xs md:text-sm text-gray-400">v2.1 &bull; Logic Lab Series</footer>
+           <footer className="mt-6 sm:mt-8 text-xs md:text-sm lg:text-base text-gray-400">v2.1 &bull; Logic Lab Series</footer>
         </div>
       );
 
@@ -1439,7 +1438,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
 
                 {newlyUnlockedThemes && newlyUnlockedThemes.length > 0 && (
                     <div className="my-3 sm:my-4 p-2.5 sm:p-3 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 rounded-lg border-2 border-purple-300 dark:border-purple-700 animate-pulse-glow">
-                        <p className="text-sm sm:text-base font-bold text-purple-700 dark:text-purple-300 mb-2 flex items-center justify-center gap-1.5"><Icons.Palette /> New Theme{newlyUnlockedThemes.length > 1 ? 's' : ''} Unlocked!</p>
+                        <p className="text-sm sm:text-base font-bold text-purple-700 dark:text-purple-300 mb-2">🎨 New Theme{newlyUnlockedThemes.length > 1 ? 's' : ''} Unlocked!</p>
                         <div className="flex flex-wrap gap-2 justify-center">
                             {newlyUnlockedThemes.map(themeId => (
                                 <div key={themeId} className="flex items-center gap-1 bg-white dark:bg-gray-800 px-2 py-1 rounded-lg border border-purple-200 dark:border-purple-800">
@@ -1959,14 +1958,14 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         // 4. GAME SCREEN
         const activeTheme = THEMES[activeThemeId] || THEMES.default;
         return (
-          <div className={`min-h-screen flex flex-col items-center p-2 sm:p-3 md:p-4 transition-colors duration-300 text-gray-900 dark:text-gray-100 ${activeTheme.background}`}>
-            <div className="w-full max-w-[1400px] flex flex-col gap-2 sm:gap-3 md:gap-4 lg:gap-5 flex-grow">
+          <div className={`min-h-screen flex flex-col items-center p-2 sm:p-4 transition-colors duration-300 text-gray-900 dark:text-gray-100 ${activeTheme.background}`}>
+            <div className="w-full max-w-7xl flex flex-col gap-3 sm:gap-6 flex-grow">
                 {!isGasEnvironment() && (
-                  <div className="w-full mx-auto mb-1 sm:mb-2 p-2 rounded text-xs sm:text-sm text-yellow-800 bg-yellow-100 border border-yellow-200 text-center">GAS not configured — using local generator for puzzles. Create <span className="font-mono">config/config.local.js</span> with your <span className="font-mono">GAS_URL</span> to enable cloud persistence.</div>
+                  <div className="w-full mx-auto mb-2 p-2 rounded text-xs sm:text-sm text-yellow-800 bg-yellow-100 border border-yellow-200 text-center">GAS not configured — using local generator for puzzles. Create <span className="font-mono">config/config.local.js</span> with your <span className="font-mono">GAS_URL</span> to enable cloud persistence.</div>
                 )}
                 
                 {/* Header */}
-                <div className="flex justify-between items-center px-2 sm:px-3 md:px-4 lg:px-0">
+                <div className="flex justify-between items-center px-2 sm:px-4 lg:px-0">
                   <div className="flex flex-col">
                       <h1 className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight cursor-pointer" onClick={() => { if(soundEnabled) SoundManager.play('uiTap'); setStatus('paused'); setView('menu'); }}>Sudoku <span className="text-blue-600">Logic</span> Lab</h1>
                       {activeQuest && <span className="text-[10px] sm:text-xs font-semibold text-indigo-500 uppercase tracking-widest flex items-center gap-1"><Icons.Map /> Campaign Mode</span>}
@@ -1980,7 +1979,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                         )}
                     </button>
                     <button onClick={() => { if(soundEnabled) SoundManager.play('uiTap'); setShowThemeSelector(true); }} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Themes">
-                        <Icons.Palette />
+                        🎨
                     </button>
                     <button onClick={toggleSound} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
                         {soundEnabled ? <Icons.VolumeUp /> : <Icons.VolumeOff />}
@@ -1997,7 +1996,6 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                     </div>
                 )}
 
-                <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 md:gap-5 lg:gap-6 justify-center items-start">
                 <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 md:gap-7 lg:gap-8 justify-center items-start">
                   
                   {/* Left: Board */}
@@ -2010,7 +2008,6 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                   </div>
 
                   {/* Right: Sidebar */}
-                  <div className="flex flex-col gap-2 sm:gap-3 w-full max-w-md lg:max-w-xs xl:max-w-sm mx-auto lg:mx-0">
                   <div className="flex flex-col gap-3 sm:gap-4 w-full max-w-md lg:w-80 mx-auto lg:mx-0">
 
                       {/* Number Pad (top of sidebar) */}
@@ -2148,7 +2145,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
             )}
             
             {/* Footer - positioned below content */}
-            <footer className="mt-auto pt-6 pb-3 text-[10px] sm:text-xs md:text-sm text-gray-400 text-center max-w-md px-2 w-full">
+            <footer className="mt-auto pt-8 pb-4 text-[10px] sm:text-xs md:text-sm lg:text-base text-gray-400 text-center max-w-md px-2 w-full">
               <p>Sudoku Logic Lab v2.1</p>
               <p className="mt-1">
                 Lovingly created by Edmund
