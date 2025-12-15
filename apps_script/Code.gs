@@ -438,8 +438,9 @@ function updateUserProfile(data) {
   
   const userId = sanitizeInput_(data.userId, 50);
   const displayName = data.displayName ? sanitizeInput_(data.displayName, 30) : null;
-  const incrementGames = data.incrementGames === true;
-  const incrementWins = data.incrementWins === true;
+  // Handle both boolean true and string "true" (GET params come as strings)
+  const incrementGames = data.incrementGames === true || data.incrementGames === 'true';
+  const incrementWins = data.incrementWins === true || data.incrementWins === 'true';
   
   try {
     const sheet = getSpreadsheet_().getSheetByName('Users');
