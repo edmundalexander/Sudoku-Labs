@@ -161,8 +161,14 @@ const CHAT_POLL_INTERVAL = 5000;
 
 // --- AWARDS ZONE (Themes + Sound Packs) ---
 const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSelectTheme, activePackId, unlockedPacks, onSelectPack }) => {
-  const stats = StorageService.getGameStats();
   const [tab, setTab] = useState('themes');
+  const [stats, setStats] = useState(StorageService.getGameStats());
+  
+  // Refresh stats from StorageService when component mounts
+  useEffect(() => {
+    const currentStats = StorageService.getGameStats();
+    setStats(currentStats);
+  }, []);
 
   const isThemeUnlocked = (themeId) => unlockedThemes.includes(themeId);
   const isPackUnlocked = (packId) => unlockedPacks.includes(packId) || SOUND_PACKS[packId]?.unlocked;
@@ -1402,11 +1408,23 @@ const App = () => {
     persistTimerRef.current = setTimeout(flushPendingPersist, 350);
   }, [flushPendingPersist]);
 
-  const openAwards = () => {
+  const openAwards = async () => {
     setPendingActiveThemeId(activeThemeId);
     setPendingActiveSoundPackId(activeSoundPackId);
     setAwardsDirty(false);
     setShowAwardsZone(true);
+    
+    // Sync latest gameStats from backend to ensure database edits are reflected
+    if (isUserAuthenticated() && isGasEnvironment() && appUserSession?.userId) {
+      try {
+        const remote = await runGasFn('getUserState', { userId: appUserSession.userId });
+        if (remote?.success && remote.state?.gameStats) {
+          StorageService.saveGameStats(remote.state.gameStats);
+        }
+      } catch (err) {
+        console.error('Failed to sync game stats:', err);
+      }
+    }
   };
 
   // Hydrate local unlocks and selections from backend, merging with local progress
