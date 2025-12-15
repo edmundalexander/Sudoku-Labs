@@ -4,7 +4,7 @@
  * Pure utility functions for validation, formatting, and common operations.
  * This file uses plain JavaScript (no JSX) and can be loaded before React.
  * 
- * @version 2.2.0
+ * @version 2.3.0
  */
 
 // ============================================================================
