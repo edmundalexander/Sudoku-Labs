@@ -30,11 +30,11 @@ const THEMES = {
     id: 'ocean',
     name: 'Ocean Depths',
     description: 'Dive into tranquil waters',
-    background: 'bg-gradient-to-br from-cyan-100 to-blue-300 dark:from-blue-900 dark:to-cyan-900',
-    boardBg: 'bg-cyan-50/80 dark:bg-blue-900/50',
-    cellBg: 'bg-cyan-50 dark:bg-blue-800/70',
-    fixedCellBg: 'bg-cyan-100 dark:bg-blue-900',
-    selectedCellBg: 'bg-cyan-300 dark:bg-cyan-700',
+    background: 'bg-gradient-to-br from-cyan-100 to-blue-200 dark:from-cyan-950 dark:to-blue-950',
+    boardBg: 'bg-cyan-50/80 dark:bg-cyan-900/50',
+    cellBg: 'bg-cyan-50 dark:bg-cyan-900/70',
+    fixedCellBg: 'bg-cyan-100 dark:bg-cyan-950',
+    selectedCellBg: 'bg-blue-300 dark:bg-blue-800',
     icon: '🌊',
     unlocked: false,
     unlockCriteria: 'Win 5 games'
@@ -43,11 +43,11 @@ const THEMES = {
     id: 'forest',
     name: 'Emerald Forest',
     description: 'Find peace among the trees',
-    background: 'bg-gradient-to-br from-green-100 to-emerald-300 dark:from-green-900 dark:to-emerald-900',
-    boardBg: 'bg-green-50/80 dark:bg-green-900/50',
-    cellBg: 'bg-green-50 dark:bg-green-800/70',
-    fixedCellBg: 'bg-green-100 dark:bg-green-900',
-    selectedCellBg: 'bg-green-300 dark:bg-green-700',
+    background: 'bg-gradient-to-br from-emerald-100 to-green-300 dark:from-emerald-950 dark:to-green-900',
+    boardBg: 'bg-emerald-50/80 dark:bg-emerald-900/50',
+    cellBg: 'bg-emerald-50 dark:bg-emerald-900/70',
+    fixedCellBg: 'bg-emerald-100 dark:bg-emerald-950',
+    selectedCellBg: 'bg-green-300 dark:bg-green-800',
     icon: '🌲',
     unlocked: false,
     unlockCriteria: 'Win 10 games'
@@ -923,41 +923,43 @@ const Icons = {
   Login: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" /></svg>,
   Logout: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" /></svg>,
   Palette: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M4.098 19.902a3.75 3.75 0 005.304 0l6.401-6.402M6.75 21A3.75 3.75 0 013 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 003.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008z" /></svg>,
+  Awards: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5h7.5a.75.75 0 01.75.75v1.5a3 3 0 01-3 3H10.5a3 3 0 01-3-3V5.25a.75.75 0 01.75-.75zm0 0H6a2.25 2.25 0 00-2.25 2.25V7.5A2.25 2.25 0 006 9.75h.75m1.5-5.25V3.75A1.5 1.5 0 0110.5 2.25h3a1.5 1.5 0 011.5 1.5V4.5m1.5 5.25H18a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0018 4.5h-2.25m-10.5 5.25v2.25a6 6 0 006 6v0a6 6 0 006-6V9.75" /></svg>,
   Music: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 9.75V4.5l10.5-2.25v5.25M9 9.75L19.5 7.5M9 9.75v7.875A2.625 2.625 0 014.5 20.25 2.625 2.625 0 012 17.625 2.625 2.625 0 014.5 15c.986 0 1.84.533 2.304 1.32M19.5 7.5v9.375A2.625 2.625 0 0115 19.5a2.625 2.625 0 01-2.5-2.625A2.625 2.625 0 0115 14.25c.986 0 1.84.533 2.304 1.32" /></svg>
 };
 
 const CHAT_POLL_INTERVAL = 5000;
 
-// --- THEME SELECTOR COMPONENT ---
-const ThemeSelector = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSelectTheme }) => {
+// --- AWARDS ZONE (Themes + Sound Packs) ---
+const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSelectTheme, activePackId, unlockedPacks, onSelectPack }) => {
   const stats = getGameStats();
+  const [tab, setTab] = useState('themes');
 
-  const isThemeUnlocked = (themeId) => {
-    return unlockedThemes.includes(themeId);
-  };
+  const isThemeUnlocked = (themeId) => unlockedThemes.includes(themeId);
+  const isPackUnlocked = (packId) => unlockedPacks.includes(packId) || SOUND_PACKS[packId]?.unlocked;
 
   const getThemeProgress = (themeId) => {
-    const theme = THEMES[themeId];
-    if (!theme || theme.unlocked || isThemeUnlocked(themeId)) return null;
-
-    // Return progress towards unlocking this theme
+    if (!THEMES[themeId] || THEMES[themeId].unlocked || isThemeUnlocked(themeId)) return null;
     switch (themeId) {
-      case 'ocean':
-        return `${Math.min(stats.totalWins, 5)}/5 wins`;
-      case 'forest':
-        return `${Math.min(stats.totalWins, 10)}/10 wins`;
-      case 'sunset':
-        return stats.hardWins >= 1 ? 'Unlocked!' : `${stats.hardWins}/1 Hard win`;
-      case 'midnight':
-        return stats.perfectWins >= 1 ? 'Unlocked!' : `${stats.perfectWins}/1 perfect win`;
-      case 'sakura':
-        return `${Math.min(stats.easyWins, 3)}/3 Easy wins`;
-      case 'volcano':
-        return `${Math.min(stats.mediumWins, 3)}/3 Medium wins`;
-      case 'arctic':
-        return stats.fastWins >= 1 ? 'Unlocked!' : `${stats.fastWins}/1 fast win`;
-      default:
-        return null;
+      case 'ocean': return `${Math.min(stats.totalWins, 5)}/5 wins`;
+      case 'forest': return `${Math.min(stats.totalWins, 10)}/10 wins`;
+      case 'sunset': return stats.hardWins >= 1 ? 'Unlocked!' : `${stats.hardWins}/1 Hard win`;
+      case 'midnight': return stats.perfectWins >= 1 ? 'Unlocked!' : `${stats.perfectWins}/1 perfect win`;
+      case 'sakura': return `${Math.min(stats.easyWins, 3)}/3 Easy wins`;
+      case 'volcano': return `${Math.min(stats.mediumWins, 3)}/3 Medium wins`;
+      case 'arctic': return stats.fastWins >= 1 ? 'Unlocked!' : `${stats.fastWins}/1 fast win`;
+      default: return null;
+    }
+  };
+
+  const getPackProgress = (packId) => {
+    switch (packId) {
+      case 'funfair': return `${Math.min(stats.totalWins, 3)}/3 wins`;
+      case 'retro': return `${Math.min(stats.easyWins, 3)}/3 Easy wins`;
+      case 'space': return stats.hardWins >= 1 ? 'Unlocked!' : `${stats.hardWins}/1 Hard win`;
+      case 'nature': return `${Math.min(stats.mediumWins, 3)}/3 Medium wins`;
+      case 'crystal': return stats.perfectWins >= 1 ? 'Unlocked!' : `${stats.perfectWins}/1 perfect win`;
+      case 'minimal': return stats.fastWins >= 1 ? 'Unlocked!' : `${stats.fastWins}/1 under 3 min`;
+      default: return null;
     }
   };
 
@@ -968,110 +970,113 @@ const ThemeSelector = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, o
     saveActiveTheme(themeId);
   };
 
-  return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-4 sm:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-pop relative">
-        <button
-          onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); onClose(); }}
-          className="absolute top-3 sm:top-4 right-3 sm:right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-        >
-          <Icons.X />
-        </button>
+  const handlePackSelect = (packId) => {
+    if (!isPackUnlocked(packId)) return;
+    if (soundEnabled) SoundManager.play('uiTap');
+    onSelectPack(packId);
+    saveActiveSoundPack(packId);
+  };
 
-        <h2 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3 text-gray-900 dark:text-gray-100 flex items-center gap-2"><Icons.Palette /> Themes</h2>
-        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-          Unlock themes by completing challenges. Customize your Sudoku experience!
-        </p>
+  const renderThemes = () => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+      {Object.values(THEMES).map((theme) => {
+        const unlocked = isThemeUnlocked(theme.id);
+        const isActive = theme.id === activeThemeId;
+        const progress = getThemeProgress(theme.id);
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-          {Object.values(THEMES).map((theme) => {
-            const unlocked = isThemeUnlocked(theme.id);
-            const isActive = theme.id === activeThemeId;
-            const progress = getThemeProgress(theme.id);
-
-            return (
-              <div
-                key={theme.id}
-                onClick={() => handleThemeSelect(theme.id)}
-                className={`p-3 sm:p-4 rounded-lg border-2 transition-all ${isActive
-                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
-                    : unlocked
-                      ? 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 cursor-pointer'
-                      : 'border-gray-200 dark:border-gray-700 opacity-60'
-                  }`}
-              >
-                <div className="flex items-start gap-3">
-                  <div className={`text-3xl sm:text-4xl ${unlocked ? '' : 'grayscale opacity-50'}`}>
-                    {theme.icon}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-sm sm:text-base text-gray-900 dark:text-gray-100">
-                        {theme.name}
-                      </h3>
-                      {isActive && (
-                        <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full">Active</span>
-                      )}
-                      {!unlocked && (
-                        <span className="text-xs text-gray-500">🔒</span>
-                      )}
-                    </div>
-                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
-                      {theme.description}
-                    </p>
-                    {!unlocked && theme.unlockCriteria && (
-                      <div className="mt-2 text-xs">
-                        <p className="text-gray-500 dark:text-gray-400">
-                          <span className="font-semibold">Unlock:</span> {theme.unlockCriteria}
-                        </p>
-                        {progress && (
-                          <p className="text-blue-600 dark:text-blue-400 font-medium mt-1">
-                            Progress: {progress}
-                          </p>
-                        )}
-                      </div>
+        return (
+          <div
+            key={theme.id}
+            onClick={() => handleThemeSelect(theme.id)}
+            className={`p-3 sm:p-4 rounded-lg border-2 transition-all ${isActive
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
+                : unlocked
+                  ? 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 cursor-pointer'
+                  : 'border-gray-200 dark:border-gray-700 opacity-60'
+              }`}
+          >
+            <div className="flex items-start gap-3">
+              <div className={`text-3xl sm:text-4xl ${unlocked ? '' : 'grayscale opacity-50'}`}>
+                {theme.icon}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-sm sm:text-base text-gray-900 dark:text-gray-100">
+                    {theme.name}
+                  </h3>
+                  {isActive && (
+                    <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full">Active</span>
+                  )}
+                  {!unlocked && <span className="text-xs text-gray-500">🔒</span>}
+                </div>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">{theme.description}</p>
+                {!unlocked && theme.unlockCriteria && (
+                  <div className="mt-2 text-xs">
+                    <p className="text-gray-500 dark:text-gray-400"><span className="font-semibold">Unlock:</span> {theme.unlockCriteria}</p>
+                    {progress && (
+                      <p className="text-blue-600 dark:text-blue-400 font-medium mt-1">Progress: {progress}</p>
                     )}
                   </div>
-                </div>
-                <div className={`mt-3 h-12 rounded ${theme.background} border border-gray-300 dark:border-gray-600`}></div>
+                )}
               </div>
-            );
-          })}
-        </div>
-      </div>
+            </div>
+            <div className={`mt-3 h-12 rounded ${theme.background} border border-gray-300 dark:border-gray-600`}></div>
+          </div>
+        );
+      })}
     </div>
   );
-};
 
-// --- SOUND PACK SELECTOR COMPONENT ---
-const SoundPackSelector = ({ soundEnabled, onClose, activePackId, unlockedPacks, onSelectPack }) => {
-  const stats = getGameStats();
+  const renderPacks = () => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+      {Object.values(SOUND_PACKS).map((pack) => {
+        const unlocked = isPackUnlocked(pack.id);
+        const isActive = pack.id === activePackId;
+        const progress = getPackProgress(pack.id);
 
-  const isUnlocked = (id) => unlockedPacks.includes(id);
-
-  const getProgress = (id) => {
-    const s = stats;
-    switch (id) {
-      case 'funfair': return `${Math.min(s.totalWins, 3)}/3 wins`;
-      case 'retro': return `${Math.min(s.easyWins, 3)}/3 Easy wins`;
-      case 'space': return s.hardWins >= 1 ? 'Unlocked!' : `${s.hardWins}/1 Hard win`;
-      case 'nature': return `${Math.min(s.mediumWins, 3)}/3 Medium wins`;
-      case 'crystal': return s.perfectWins >= 1 ? 'Unlocked!' : `${s.perfectWins}/1 perfect win`;
-      case 'minimal': return s.fastWins >= 1 ? 'Unlocked!' : `${s.fastWins}/1 under 3 min`;
-      default: return null;
-    }
-  };
-
-  const handleSelect = (id) => {
-    if (!isUnlocked(id)) return;
-    if (soundEnabled) SoundManager.play('uiTap');
-    onSelectPack(id);
-    saveActiveSoundPack(id);
-  };
+        return (
+          <div
+            key={pack.id}
+            onClick={() => handlePackSelect(pack.id)}
+            className={`p-3 sm:p-4 rounded-lg border-2 transition-all ${isActive
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
+                : unlocked
+                  ? 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 cursor-pointer'
+                  : 'border-gray-200 dark:border-gray-700 opacity-60'
+              }`}
+          >
+            <div className="flex items-start gap-3">
+              <div className={`text-3xl sm:text-4xl ${unlocked ? '' : 'grayscale opacity-50'}`}>
+                {pack.icon}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-sm sm:text-base text-gray-900 dark:text-gray-100">{pack.name}</h3>
+                  {isActive && (
+                    <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full">Active</span>
+                  )}
+                  {!unlocked && <span className="text-xs text-gray-500">🔒</span>}
+                </div>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">{pack.description}</p>
+                {!unlocked && pack.unlockCriteria && (
+                  <div className="mt-2 text-xs">
+                    <p className="text-gray-500 dark:text-gray-400"><span className="font-semibold">Unlock:</span> {pack.unlockCriteria}</p>
+                    {progress && (
+                      <p className="text-blue-600 dark:text-blue-400 font-medium mt-1">Progress: {progress}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-4 sm:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-pop relative">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-4 sm:p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto animate-pop relative">
         <button
           onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); onClose(); }}
           className="absolute top-3 sm:top-4 right-3 sm:right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -1079,65 +1084,24 @@ const SoundPackSelector = ({ soundEnabled, onClose, activePackId, unlockedPacks,
           <Icons.X />
         </button>
 
-        <h2 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3 text-gray-900 dark:text-gray-100 flex items-center gap-2"><Icons.Music /> Sound Packs</h2>
-        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-          Unlock audio themes by completing challenges. Switch packs to change the game’s feel.
-        </p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-          {Object.values(SOUND_PACKS).map((pack) => {
-            const unlocked = isUnlocked(pack.id) || pack.unlocked;
-            const isActive = pack.id === activePackId;
-            const progress = getProgress(pack.id);
-
-            return (
-              <div
-                key={pack.id}
-                onClick={() => handleSelect(pack.id)}
-                className={`p-3 sm:p-4 rounded-lg border-2 transition-all ${isActive
-                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
-                    : unlocked
-                      ? 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 cursor-pointer'
-                      : 'border-gray-200 dark:border-gray-700 opacity-60'
-                  }`}
-              >
-                <div className="flex items-start gap-3">
-                  <div className={`text-3xl sm:text-4xl ${unlocked ? '' : 'grayscale opacity-50'}`}>
-                    {pack.icon}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-sm sm:text-base text-gray-900 dark:text-gray-100">
-                        {pack.name}
-                      </h3>
-                      {isActive && (
-                        <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full">Active</span>
-                      )}
-                      {!unlocked && (
-                        <span className="text-xs text-gray-500">🔒</span>
-                      )}
-                    </div>
-                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
-                      {pack.description}
-                    </p>
-                    {!unlocked && pack.unlockCriteria && (
-                      <div className="mt-2 text-xs">
-                        <p className="text-gray-500 dark:text-gray-400">
-                          <span className="font-semibold">Unlock:</span> {pack.unlockCriteria}
-                        </p>
-                        {progress && (
-                          <p className="text-blue-600 dark:text-blue-400 font-medium mt-1">
-                            Progress: {progress}
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+        <div className="flex items-center gap-2 mb-2 sm:mb-3">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2"><Icons.Awards /> Awards</h2>
+          <span className="text-[10px] sm:text-xs text-gray-500">Themes and Sound Packs</span>
         </div>
+        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">Track your unlocks and switch your look and sound from one place.</p>
+
+        <div className="flex gap-2 mb-4">
+          <button
+            onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); setTab('themes'); }}
+            className={`px-3 py-2 rounded-lg text-sm font-semibold border ${tab === 'themes' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'}`}
+          >Themes</button>
+          <button
+            onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); setTab('sounds'); }}
+            className={`px-3 py-2 rounded-lg text-sm font-semibold border ${tab === 'sounds' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'}`}
+          >Sound Packs</button>
+        </div>
+
+        {tab === 'themes' ? renderThemes() : renderPacks()}
       </div>
     </div>
   );
@@ -1657,7 +1621,7 @@ const CampaignMap = ({ progress, onPlayLevel, soundEnabled, onBack }) => {
   )
 };
 
-const OpeningScreen = ({ onStart, onResume, onCampaign, hasSavedGame, darkMode, toggleDarkMode, loading, soundEnabled, toggleSound, onShowUserPanel, onShowThemes, onShowSoundPacks, userSession }) => (
+const OpeningScreen = ({ onStart, onResume, onCampaign, hasSavedGame, darkMode, toggleDarkMode, loading, soundEnabled, toggleSound, onShowUserPanel, onShowAwards, userSession }) => (
   <div className="min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 text-gray-900 dark:text-gray-100 animate-fade-in relative z-10">
     <div className="absolute top-2 right-2 sm:top-4 sm:right-4 flex gap-1 sm:gap-2">
       <button onClick={onShowUserPanel} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors relative">
@@ -1666,11 +1630,8 @@ const OpeningScreen = ({ onStart, onResume, onCampaign, hasSavedGame, darkMode, 
           <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full"></span>
         )}
       </button>
-      <button onClick={onShowThemes} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Themes">
-        <Icons.Palette />
-      </button>
-      <button onClick={onShowSoundPacks} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Sound Packs">
-        <Icons.Music />
+      <button onClick={onShowAwards} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Awards">
+        <Icons.Awards />
       </button>
       <button onClick={toggleSound} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
         {soundEnabled ? <Icons.VolumeUp /> : <Icons.VolumeOff />}
@@ -1847,13 +1808,12 @@ const App = () => {
   const [activeThemeId, setActiveThemeId] = useState(getActiveTheme());
   const [unlockedThemes, setUnlockedThemes] = useState(getUnlockedThemes());
   const [newlyUnlockedThemes, setNewlyUnlockedThemes] = useState([]);
-  const [showThemeSelector, setShowThemeSelector] = useState(false);
 
   // Sound Pack State
   const [activeSoundPackId, setActiveSoundPackId] = useState(getActiveSoundPack());
   const [unlockedSoundPacks, setUnlockedSoundPacks] = useState(getUnlockedSoundPacks());
   const [newlyUnlockedSoundPacks, setNewlyUnlockedSoundPacks] = useState([]);
-  const [showSoundPackSelector, setShowSoundPackSelector] = useState(false);
+  const [showAwardsZone, setShowAwardsZone] = useState(false);
 
   const timerRef = useRef(null);
   const chatEndRef = useRef(null);
@@ -2263,32 +2223,20 @@ const App = () => {
           darkMode={darkMode} toggleDarkMode={toggleDarkMode}
           loading={loading} soundEnabled={soundEnabled} toggleSound={toggleSound}
           onShowUserPanel={() => setShowUserPanel(true)}
-          onShowThemes={() => { if (soundEnabled) SoundManager.play('uiTap'); setShowThemeSelector(true); }}
-          onShowSoundPacks={() => { if (soundEnabled) SoundManager.play('uiTap'); setShowSoundPackSelector(true); }}
+          onShowAwards={() => { if (soundEnabled) SoundManager.play('uiTap'); setShowAwardsZone(true); }}
           userSession={appUserSession}
         />
         {showUserPanel && <UserPanel soundEnabled={soundEnabled} onClose={handleUserPanelClose} />}
-        {showThemeSelector && (
-          <ThemeSelector
+        {showAwardsZone && (
+          <AwardsZone
             soundEnabled={soundEnabled}
-            onClose={() => setShowThemeSelector(false)}
+            onClose={() => setShowAwardsZone(false)}
             activeThemeId={activeThemeId}
             unlockedThemes={unlockedThemes}
-            onSelectTheme={(themeId) => {
-              setActiveThemeId(themeId);
-            }}
-          />
-        )}
-        {showSoundPackSelector && (
-          <SoundPackSelector
-            soundEnabled={soundEnabled}
-            onClose={() => setShowSoundPackSelector(false)}
+            onSelectTheme={(themeId) => { setActiveThemeId(themeId); }}
             activePackId={activeSoundPackId}
             unlockedPacks={unlockedSoundPacks}
-            onSelectPack={(packId) => {
-              setActiveSoundPackId(packId);
-              SoundManager.setPack(packId);
-            }}
+            onSelectPack={(packId) => { setActiveSoundPackId(packId); SoundManager.setPack(packId); }}
           />
         )}
       </>
@@ -2315,27 +2263,16 @@ const App = () => {
           newlyUnlockedThemes={newlyUnlockedThemes}
           newlyUnlockedSoundPacks={newlyUnlockedSoundPacks}
         />
-        {showThemeSelector && (
-          <ThemeSelector
+        {showAwardsZone && (
+          <AwardsZone
             soundEnabled={soundEnabled}
-            onClose={() => setShowThemeSelector(false)}
+            onClose={() => setShowAwardsZone(false)}
             activeThemeId={activeThemeId}
             unlockedThemes={unlockedThemes}
-            onSelectTheme={(themeId) => {
-              setActiveThemeId(themeId);
-            }}
-          />
-        )}
-        {showSoundPackSelector && (
-          <SoundPackSelector
-            soundEnabled={soundEnabled}
-            onClose={() => setShowSoundPackSelector(false)}
+            onSelectTheme={(themeId) => { setActiveThemeId(themeId); }}
             activePackId={activeSoundPackId}
             unlockedPacks={unlockedSoundPacks}
-            onSelectPack={(packId) => {
-              setActiveSoundPackId(packId);
-              SoundManager.setPack(packId);
-            }}
+            onSelectPack={(packId) => { setActiveSoundPackId(packId); SoundManager.setPack(packId); }}
           />
         )}
       </>
@@ -2365,11 +2302,8 @@ const App = () => {
                 <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full"></span>
               )}
             </button>
-            <button onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); setShowThemeSelector(true); }} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Themes">
-              <Icons.Palette />
-            </button>
-            <button onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); setShowSoundPackSelector(true); }} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Sound Packs">
-              <Icons.Music />
+            <button onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); setShowAwardsZone(true); }} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Awards">
+              <Icons.Awards />
             </button>
             <button onClick={toggleSound} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
               {soundEnabled ? <Icons.VolumeUp /> : <Icons.VolumeOff />}
@@ -2522,27 +2456,16 @@ const App = () => {
       </div>
       {renderModal()}
       {showUserPanel && <UserPanel soundEnabled={soundEnabled} onClose={handleUserPanelClose} />}
-      {showThemeSelector && (
-        <ThemeSelector
+      {showAwardsZone && (
+        <AwardsZone
           soundEnabled={soundEnabled}
-          onClose={() => setShowThemeSelector(false)}
+          onClose={() => setShowAwardsZone(false)}
           activeThemeId={activeThemeId}
           unlockedThemes={unlockedThemes}
-          onSelectTheme={(themeId) => {
-            setActiveThemeId(themeId);
-          }}
-        />
-      )}
-      {showSoundPackSelector && (
-        <SoundPackSelector
-          soundEnabled={soundEnabled}
-          onClose={() => setShowSoundPackSelector(false)}
+          onSelectTheme={(themeId) => { setActiveThemeId(themeId); }}
           activePackId={activeSoundPackId}
           unlockedPacks={unlockedSoundPacks}
-          onSelectPack={(packId) => {
-            setActiveSoundPackId(packId);
-            SoundManager.setPack(packId);
-          }}
+          onSelectPack={(packId) => { setActiveSoundPackId(packId); SoundManager.setPack(packId); }}
         />
       )}
 
