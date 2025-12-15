@@ -1,15 +1,26 @@
 // ============================================================================
 // Sudoku-Labs: Google Apps Script Backend API
 // ============================================================================
-// This script is a REST API backend for the Sudoku game frontend.
-// Frontend is hosted on GitHub Pages and calls this API via HTTP fetch.
+// 
+// REST API backend for the Sudoku Logic Lab game.
+// Frontend is hosted on GitHub Pages; this script provides data persistence
+// and game generation via Google Sheets.
 // 
 // DEPLOYMENT REQUIREMENTS:
 // 1. Deploy as "Web App"
 // 2. Execute as: Your email address (the account that owns the Sheet)
 // 3. Who has access: "Anyone" (CRITICAL - must be set to "Anyone")
 // 4. After deploying, copy the deployment URL
-// 5. Update frontend GAS_URL to match this deployment URL
+// 5. Update frontend config/config.local.js GAS_URL to match deployment URL
+// 
+// SHEETS STRUCTURE:
+// - Leaderboard: userId, difficulty, time, date
+// - Chat: id, sender, text, timestamp, status
+// - Logs: type, message, userAgent, timestamp, count
+// - Users: username, userId, passwordHash, email, avatarId, bio, createdAt
+// - UserState: userId, stateJson, lastUpdated
+// 
+// @version 2.2.0
 // ============================================================================
 
 const SHEET_ID = '1QU6QNWy6w6CNivq-PvmVJNcM1tUFWgQFzpN01Mo7QFs';
