@@ -704,7 +704,8 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         Avatar: () => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-white drop-shadow-lg"><circle cx="12" cy="12" r="10" className="text-blue-500"/><path fill="white" d="M12 4a4 4 0 100 8 4 4 0 000-8zM6 18a6 6 0 0112 0H6z" /></svg>,
         User: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>,
         Login: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" /></svg>,
-        Logout: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" /></svg>
+        Logout: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" /></svg>,
+        Palette: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M4.098 19.902a3.75 3.75 0 005.304 0l6.401-6.402M6.75 21A3.75 3.75 0 013 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 003.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008z" /></svg>
       };
 
       const CHAT_POLL_INTERVAL = 5000;
@@ -759,7 +760,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                 <Icons.X />
               </button>
               
-              <h2 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3 text-gray-900 dark:text-gray-100">🎨 Themes</h2>
+              <h2 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3 text-gray-900 dark:text-gray-100 flex items-center gap-2"><Icons.Palette /> Themes</h2>
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
                 Unlock themes by completing challenges. Customize your Sudoku experience!
               </p>
@@ -1350,7 +1351,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                   )}
               </button>
               <button onClick={onShowThemes} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Themes">
-                  🎨
+                  <Icons.Palette />
               </button>
               <button onClick={toggleSound} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
                   {soundEnabled ? <Icons.VolumeUp /> : <Icons.VolumeOff />}
@@ -1438,7 +1439,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
 
                 {newlyUnlockedThemes && newlyUnlockedThemes.length > 0 && (
                     <div className="my-3 sm:my-4 p-2.5 sm:p-3 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 rounded-lg border-2 border-purple-300 dark:border-purple-700 animate-pulse-glow">
-                        <p className="text-sm sm:text-base font-bold text-purple-700 dark:text-purple-300 mb-2">🎨 New Theme{newlyUnlockedThemes.length > 1 ? 's' : ''} Unlocked!</p>
+                        <p className="text-sm sm:text-base font-bold text-purple-700 dark:text-purple-300 mb-2 flex items-center justify-center gap-1.5"><Icons.Palette /> New Theme{newlyUnlockedThemes.length > 1 ? 's' : ''} Unlocked!</p>
                         <div className="flex flex-wrap gap-2 justify-center">
                             {newlyUnlockedThemes.map(themeId => (
                                 <div key={themeId} className="flex items-center gap-1 bg-white dark:bg-gray-800 px-2 py-1 rounded-lg border border-purple-200 dark:border-purple-800">
@@ -1979,7 +1980,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                         )}
                     </button>
                     <button onClick={() => { if(soundEnabled) SoundManager.play('uiTap'); setShowThemeSelector(true); }} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Themes">
-                        🎨
+                        <Icons.Palette />
                     </button>
                     <button onClick={toggleSound} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
                         {soundEnabled ? <Icons.VolumeUp /> : <Icons.VolumeOff />}
