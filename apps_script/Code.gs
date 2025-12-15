@@ -204,7 +204,8 @@ function getChatData() {
       id: sanitizeOutput_(row[0]),
       sender: sanitizeOutput_(row[1]),
       text: sanitizeOutput_(row[2]),
-      timestamp: row[3] ? new Date(row[3]).getTime() : Date.now()
+      timestamp: row[3] ? new Date(row[3]).getTime() : Date.now(),
+      status: sanitizeOutput_(row[4] || '')
     }));
   } catch (err) {
     Logger.log('getChatData error: ' + err);
@@ -225,13 +226,14 @@ function postChatData(msg) {
   const safeSender = sanitizeInput_(msg.sender || 'User', 20);
   const safeText = sanitizeInput_(msg.text, 140);
   const safeId = sanitizeInput_(msg.id || '', 50);
+  const safeStatus = sanitizeInput_(msg.status || '', 50);
   
   const timestamp = new Date().toISOString();
   
   try {
     const sheet = getSpreadsheet_().getSheetByName('Chat');
     if (sheet) {
-      sheet.appendRow([safeId, safeSender, safeText, timestamp]);
+      sheet.appendRow([safeId, safeSender, safeText, timestamp, safeStatus]);
     }
   } catch (err) {
     Logger.log('postChatData error: ' + err);
@@ -619,7 +621,7 @@ function setupSheets_() {
       if (name === 'Leaderboard') {
         sheet.appendRow(['Name', 'Time (seconds)', 'Difficulty', 'Date']);
       } else if (name === 'Chat') {
-        sheet.appendRow(['ID', 'Sender', 'Text', 'Timestamp']);
+        sheet.appendRow(['ID', 'Sender', 'Text', 'Timestamp', 'Status']);
       } else if (name === 'Logs') {
         sheet.appendRow(['Timestamp', 'Type', 'Message', 'UserAgent', 'Count']);
       } else if (name === 'Users') {

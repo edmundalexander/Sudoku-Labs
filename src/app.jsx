@@ -234,7 +234,8 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         USER_SESSION: 'sudoku_v2_user_session',
         UNLOCKED_THEMES: 'sudoku_v2_unlocked_themes',
         ACTIVE_THEME: 'sudoku_v2_active_theme',
-        GAME_STATS: 'sudoku_v2_game_stats'
+        GAME_STATS: 'sudoku_v2_game_stats',
+        USER_STATUS: 'sudoku_v2_user_status'
       };
 
       // GAS Backend API URL - Configure this with your deployment URL
@@ -427,6 +428,30 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
       const saveCampaignProgress = (prog) => {
         localStorage.setItem(KEYS.CAMPAIGN_PROGRESS, JSON.stringify(prog));
       }
+
+      // --- USER STATUS HELPERS ---
+      const getUserStatus = () => {
+        try {
+          const stored = localStorage.getItem(KEYS.USER_STATUS);
+          return stored || '';
+        } catch(e) { return ''; }
+      };
+
+      const saveUserStatus = (status) => {
+        localStorage.setItem(KEYS.USER_STATUS, status);
+      };
+
+      // --- EMOJI PICKER DATA ---
+      const EMOJI_CATEGORIES = {
+        smileys: ['😀', '😃', '😄', '😁', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕'],
+        gestures: ['👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💪', '🦵', '🦶', '👂', '🦻', '👃', '🧠', '🦷', '🦴', '👀', '👁️', '👅', '👄'],
+        animals: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🐧', '🐦', '🐤', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🐛', '🦋', '🐌', '🐞', '🐜', '🦟', '🦗', '🕷️', '🦂', '🐢', '🐍', '🦎', '🦖', '🦕', '🐙', '🦑', '🦐', '🦞', '🦀', '🐡', '🐠', '🐟', '🐬', '🐳', '🐋', '🦈', '🐊', '🐅', '🐆', '🦓', '🦍', '🦧', '🐘', '🦛', '🦏', '🐪', '🐫', '🦒', '🦘', '🐃', '🐂', '🐄', '🐎', '🐖', '🐏', '🐑', '🦙', '🐐', '🦌', '🐕', '🐩', '🦮', '🐈', '🐓', '🦃', '🦚', '🦜', '🦢', '🦩', '🕊️', '🐇', '🦝', '🦨', '🦡', '🦦', '🦥', '🐁', '🐀', '🐿️'],
+        food: ['🍇', '🍈', '🍉', '🍊', '🍋', '🍌', '🍍', '🥭', '🍎', '🍏', '🍐', '🍑', '🍒', '🍓', '🥝', '🍅', '🥥', '🥑', '🍆', '🥔', '🥕', '🌽', '🌶️', '🥒', '🥬', '🥦', '🧄', '🧅', '🍄', '🥜', '🌰', '🍞', '🥐', '🥖', '🥨', '🥯', '🥞', '🧇', '🧀', '🍖', '🍗', '🥩', '🥓', '🍔', '🍟', '🍕', '🌭', '🥪', '🌮', '🌯', '🥙', '🧆', '🥚', '🍳', '🥘', '🍲', '🥣', '🥗', '🍿', '🧈', '🧂', '🥫', '🍱', '🍘', '🍙', '🍚', '🍛', '🍜', '🍝', '🍠', '🍢', '🍣', '🍤', '🍥', '🥮', '🍡', '🥟', '🥠', '🥡', '🦀', '🦞', '🦐', '🦑', '🦪', '🍦', '🍧', '🍨', '🍩', '🍪', '🎂', '🍰', '🧁', '🥧', '🍫', '🍬', '🍭', '🍮', '🍯', '🍼', '🥛', '☕', '🍵', '🍶', '🍾', '🍷', '🍸', '🍹', '🍺', '🍻', '🥂', '🥃', '🥤', '🧃', '🧉', '🧊'],
+        activities: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🪀', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🥅', '⛳', '🪁', '🏹', '🎣', '🤿', '🥊', '🥋', '🎽', '🛹', '🛼', '🛷', '⛸️', '🥌', '🎿', '⛷️', '🏂', '🪂', '🏋️', '🤼', '🤸', '🤺', '⛹️', '🤾', '🏌️', '🏇', '🧘', '🏊', '🤽', '🚣', '🧗', '🚴', '🚵', '🎪', '🎭', '🎨', '🎬', '🎤', '🎧', '🎼', '🎹', '🥁', '🎷', '🎺', '🎸', '🪕', '🎻', '🎲', '♟️', '🎯', '🎳', '🎮', '🎰', '🧩'],
+        travel: ['🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🚚', '🚛', '🚜', '🛴', '🚲', '🛵', '🏍️', '🛺', '🚨', '🚔', '🚍', '🚘', '🚖', '🚡', '🚠', '🚟', '🚃', '🚋', '🚞', '🚝', '🚄', '🚅', '🚈', '🚂', '🚆', '🚇', '🚊', '🚉', '✈️', '🛫', '🛬', '🛩️', '💺', '🚁', '🛰️', '🚀', '🛸', '🚢', '⛵', '🛶', '⛴️', '🛳️', '⚓', '🪝', '⛽', '🚧', '🚦', '🚥', '🗺️', '🗿', '🗽', '🗼', '🏰', '🏯', '🏟️', '🎡', '🎢', '🎠', '⛱️', '🏖️', '🏝️', '🏜️', '🌋', '⛰️', '🏔️', '🗻', '🏕️', '⛺', '🏠', '🏡', '🏘️', '🏚️', '🏗️', '🏭', '🏢', '🏬', '🏣', '🏤', '🏥', '🏦', '🏨', '🏪', '🏫', '🏩', '💒', '🏛️', '⛪', '🕌', '🕍', '🛕'],
+        objects: ['⌚', '📱', '📲', '💻', '⌨️', '🖥️', '🖨️', '🖱️', '🖲️', '🕹️', '🗜️', '💾', '💿', '📀', '📼', '📷', '📸', '📹', '🎥', '📽️', '🎞️', '📞', '☎️', '📟', '📠', '📺', '📻', '🎙️', '🎚️', '🎛️', '🧭', '⏱️', '⏲️', '⏰', '🕰️', '⌛', '⏳', '📡', '🔋', '🔌', '💡', '🔦', '🕯️', '🪔', '🧯', '🛢️', '💸', '💵', '💴', '💶', '💷', '💰', '💳', '💎', '⚖️', '🧰', '🔧', '🔨', '⚒️', '🛠️', '⛏️', '🔩', '⚙️', '🧱', '⛓️', '🧲', '🔫', '💣', '🧨', '🪓', '🔪', '🗡️', '⚔️', '🛡️', '🚬', '⚰️', '⚱️', '🏺', '🔮', '📿', '🧿', '💈', '⚗️', '🔭', '🔬', '🕳️', '🩹', '🩺', '💊', '💉', '🩸', '🧬', '🦠', '🧫', '🧪', '🌡️', '🧹', '🧺', '🧻', '🚽', '🚰', '🚿', '🛁', '🛀', '🧼', '🪒', '🧽', '🧴', '🛎️', '🔑', '🗝️', '🚪', '🪑', '🛋️', '🛏️', '🛌', '🧸', '🖼️', '🛍️', '🛒', '🎁', '🎈', '🎏', '🎀', '🎊', '🎉', '🎎', '🏮', '🎐', '🧧', '✉️', '📩', '📨', '📧', '💌', '📥', '📤', '📦', '🏷️', '📪', '📫', '📬', '📭', '📮', '📯', '📜', '📃', '📄', '📑', '🧾', '📊', '📈', '📉', '🗒️', '🗓️', '📆', '📅', '🗑️', '📇', '🗃️', '🗳️', '🗄️', '📋', '📁', '📂', '🗂️', '🗞️', '📰', '📓', '📔', '📒', '📕', '📗', '📘', '📙', '📚', '📖', '🔖', '🧷', '🔗', '📎', '🖇️', '📐', '📏', '🧮', '📌', '📍', '✂️', '🖊️', '🖋️', '✒️', '🖌️', '🖍️', '📝', '✏️', '🔍', '🔎', '🔏', '🔐', '🔒', '🔓'],
+        symbols: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓', '🆔', '⚛️', '🉑', '☢️', '☣️', '📴', '📳', '🈶', '🈚', '🈸', '🈺', '🈷️', '✴️', '🆚', '💮', '🉐', '㊙️', '㊗️', '🈴', '🈵', '🈹', '🈲', '🅰️', '🅱️', '🆎', '🆑', '🅾️', '🆘', '❌', '⭕', '🛑', '⛔', '📛', '🚫', '💯', '💢', '♨️', '🚷', '🚯', '🚳', '🚱', '🔞', '📵', '🚭', '❗', '❕', '❓', '❔', '‼️', '⁉️', '🔅', '🔆', '〽️', '⚠️', '🚸', '🔱', '⚜️', '🔰', '♻️', '✅', '🈯', '💹', '❇️', '✳️', '❎', '🌐', '💠', 'Ⓜ️', '🌀', '💤', '🏧', '🚾', '♿', '🅿️', '🈳', '🈂️', '🛂', '🛃', '🛄', '🛅', '🚹', '🚺', '🚼', '🚻', '🚮', '🎦', '📶', '🈁', '🔣', 'ℹ️', '🔤', '🔡', '🔠', '🆖', '🆗', '🆙', '🆒', '🆕', '🆓', '0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟', '🔢', '#️⃣', '*️⃣', '⏏️', '▶️', '⏸️', '⏯️', '⏹️', '⏺️', '⏭️', '⏮️', '⏩', '⏪', '⏫', '⏬', '◀️', '🔼', '🔽', '➡️', '⬅️', '⬆️', '⬇️', '↗️', '↘️', '↙️', '↖️', '↕️', '↔️', '↪️', '↩️', '⤴️', '⤵️', '🔀', '🔁', '🔂', '🔄', '🔃', '🎵', '🎶', '➕', '➖', '➗', '✖️', '♾️', '💲', '💱', '™️', '©️', '®️', '〰️', '➰', '➿', '🔚', '🔙', '🔛', '🔝', '🔜', '✔️', '☑️', '🔘', '🔴', '🟠', '🟡', '🟢', '🔵', '🟣', '⚫', '⚪', '🟤', '🔺', '🔻', '🔸', '🔹', '🔶', '🔷', '🔳', '🔲', '▪️', '▫️', '◾', '◽', '◼️', '◻️', '🟥', '🟧', '🟨', '🟩', '🟦', '🟪', '⬛', '⬜', '🟫', '🔈', '🔇', '🔉', '🔊', '🔔', '🔕', '📣', '📢', '👁️‍🗨️', '💬', '💭', '🗯️', '♠️', '♣️', '♥️', '♦️', '🃏', '🎴', '🀄', '🕐', '🕑', '🕒', '🕓', '🕔', '🕕', '🕖', '🕗', '🕘', '🕙', '🕚', '🕛', '🕜', '🕝', '🕞', '🕟', '🕠', '🕡', '🕢', '🕣', '🕤', '🕥', '🕦', '🕧']
+      };
 
       // --- THEME SYSTEM HELPERS ---
       const getGameStats = () => {
@@ -1498,6 +1523,8 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         const [chatInput, setChatInput] = useState('');
         const [chatMessages, setChatMessages] = useState([]);
         const [chatNotification, setChatNotification] = useState(null);
+        const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+        const [userStatus, setUserStatus] = useState('');
         const [leaderboard, setLeaderboard] = useState([]);
         const [loading, setLoading] = useState(false);
         
@@ -1538,6 +1565,10 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
           }
 
           if (savedSound === 'false') setSoundEnabled(false);
+
+          // Load user status
+          const savedStatus = getUserStatus();
+          if (savedStatus) setUserStatus(savedStatus);
 
           const saved = loadGame();
           if (saved && saved.status === 'playing') {
@@ -1755,13 +1786,25 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
             const txt = text.trim(); if (!txt) return;
             if (soundEnabled) SoundManager.play('uiTap');
             setChatInput('');
+            setShowEmojiPicker(false);
             const currentUserId = getCurrentUserId();
-            const msg = { id: Date.now().toString(), sender: currentUserId, text: txt, timestamp: Date.now() };
+            const msg = { id: Date.now().toString(), sender: currentUserId, text: txt, timestamp: Date.now(), status: userStatus };
             setChatMessages(prev => [...prev, msg]); 
             isSendingRef.current = true;
             const updated = await postChatMessage(msg);
             if (updated && Array.isArray(updated)) setChatMessages(updated);
             isSendingRef.current = false;
+        };
+
+        const handleEmojiSelect = (emoji) => {
+            setChatInput(prev => prev + emoji);
+            if (soundEnabled) SoundManager.play('uiTap');
+        };
+
+        const handleStatusChange = (status) => {
+            setUserStatus(status);
+            saveUserStatus(status);
+            if (soundEnabled) SoundManager.play('uiTap');
         };
 
         const handleUserPanelClose = (updatedUser) => {
@@ -2104,22 +2147,63 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                )}
                {isChatOpen && (
                  <div className="bg-white dark:bg-gray-800 w-72 sm:w-80 h-80 sm:h-96 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 flex flex-col animate-pop overflow-hidden mb-2">
-                    <div className="p-2.5 sm:p-3 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-700/30">
-                       <span className="font-bold text-xs sm:text-sm text-gray-700 dark:text-gray-200">Live Chat</span>
-                       <div className="flex items-center gap-2"><span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span></span></div>
+                    <div className="p-2.5 sm:p-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/30">
+                       <div className="flex justify-between items-center mb-2">
+                          <span className="font-bold text-xs sm:text-sm text-gray-700 dark:text-gray-200">Live Chat</span>
+                          <div className="flex items-center gap-2"><span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span></span></div>
+                       </div>
+                       <input 
+                          className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded px-2 py-1 text-[10px] placeholder:text-gray-400 focus:ring-1 focus:ring-blue-500 outline-none"
+                          placeholder="Set your status..."
+                          maxLength={50}
+                          value={userStatus}
+                          onChange={(e) => handleStatusChange(e.target.value)}
+                       />
                     </div>
                     <div className="flex-1 overflow-y-auto p-2.5 sm:p-3 space-y-2.5 sm:space-y-3 bg-gray-50/50 dark:bg-gray-900/50 scrollbar-thin">
                        {chatMessages.length === 0 && <p className="text-center text-xs text-gray-400 mt-4">No messages yet. Say hi!</p>}
                        {chatMessages.map(msg => (
                           <div key={msg.id} className={`flex flex-col ${msg.sender === userId ? 'items-end' : 'items-start'}`}>
-                             <span className="text-[8px] sm:text-[9px] text-gray-400 mb-0.5 px-1">{msg.sender === userId ? 'You' : msg.sender}</span>
+                             <div className="flex items-center gap-1 mb-0.5 px-1">
+                                <span className="text-[8px] sm:text-[9px] text-gray-400">{msg.sender === userId ? 'You' : msg.sender}</span>
+                                {msg.status && <span className="text-[7px] sm:text-[8px] text-gray-400 italic">· {msg.status}</span>}
+                             </div>
                              <div className={`px-2.5 sm:px-3 py-1.5 text-xs max-w-[85%] break-words ${msg.sender === userId ? 'bg-blue-600 text-white rounded-2xl rounded-tr-sm' : 'bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-2xl rounded-tl-sm shadow-sm'}`}>{msg.text}</div>
                           </div>
                        ))}
                        <div ref={chatEndRef} />
                     </div>
+                    {showEmojiPicker && (
+                       <div className="border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 max-h-40 overflow-y-auto">
+                          <div className="p-2">
+                             {Object.entries(EMOJI_CATEGORIES).map(([category, emojis]) => (
+                                <div key={category} className="mb-2">
+                                   <div className="text-[9px] font-semibold text-gray-500 dark:text-gray-400 uppercase mb-1 px-1">{category}</div>
+                                   <div className="grid grid-cols-8 gap-1">
+                                      {emojis.slice(0, 24).map((emoji, idx) => (
+                                         <button
+                                            key={idx}
+                                            onClick={() => handleEmojiSelect(emoji)}
+                                            className="text-lg hover:bg-gray-100 dark:hover:bg-gray-700 rounded p-1 transition-colors"
+                                         >
+                                            {emoji}
+                                         </button>
+                                      ))}
+                                   </div>
+                                </div>
+                             ))}
+                          </div>
+                       </div>
+                    )}
                     <div className="p-1.5 sm:p-2 border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
                        <div className="flex gap-1.5 sm:gap-2">
+                          <button 
+                             className="p-1.5 sm:p-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors flex-shrink-0"
+                             onClick={() => setShowEmojiPicker(prev => !prev)}
+                             title="Add emoji"
+                          >
+                             <span className="text-sm">😀</span>
+                          </button>
                           <input className="flex-1 bg-gray-100 dark:bg-gray-900 border-0 rounded-lg px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none transition-shadow" placeholder="Type a message..." maxLength={140} value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={(e) => { if(e.key === 'Enter') handleChatSend(chatInput); }} />
                           <button className="p-1.5 sm:p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex-shrink-0" onClick={() => handleChatSend(chatInput)}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M3.105 2.289a.75.75 0 00-.826.95l1.414 4.925A1.5 1.5 0 005.135 9.25h6.115a.75.75 0 010 1.5H5.135a1.5 1.5 0 00-1.442 1.086l-1.414 4.926a.75.75 0 00.826.95 28.896 28.896 0 0015.293-7.154.75.75 0 000-1.115A28.897 28.897 0 003.105 2.289z" /></svg></button>
                        </div>
