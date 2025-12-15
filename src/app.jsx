@@ -244,10 +244,22 @@ const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSe
                 </div>
                 <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">{theme.description}</p>
                 {!unlocked && theme.unlockCriteria && (
-                  <div className="mt-2 text-xs">
+                  <div className="mt-2 text-xs space-y-1.5">
                     <p className="text-gray-500 dark:text-gray-400"><span className="font-semibold">Unlock:</span> {theme.unlockCriteria}</p>
                     {progress && (
-                      <p className="text-blue-600 dark:text-blue-400 font-medium mt-1">Progress: {progress}</p>
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-blue-600 dark:text-blue-400 font-medium">Progress: {progress}</span>
+                        </div>
+                        <div className="w-full bg-gray-300 dark:bg-gray-700 rounded-full h-1.5">
+                          <div 
+                            className="bg-gradient-to-r from-blue-500 to-purple-500 h-1.5 rounded-full transition-all duration-300"
+                            style={{
+                              width: `${Math.min(parseFloat(progress) / parseInt(progress.split('/')[1]) * 100, 100)}%`
+                            }}
+                          ></div>
+                        </div>
+                      </div>
                     )}
                   </div>
                 )}
@@ -292,10 +304,22 @@ const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSe
                 </div>
                 <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">{pack.description}</p>
                 {!unlocked && pack.unlockCriteria && (
-                  <div className="mt-2 text-xs">
+                  <div className="mt-2 text-xs space-y-1.5">
                     <p className="text-gray-500 dark:text-gray-400"><span className="font-semibold">Unlock:</span> {pack.unlockCriteria}</p>
                     {progress && (
-                      <p className="text-blue-600 dark:text-blue-400 font-medium mt-1">Progress: {progress}</p>
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-blue-600 dark:text-blue-400 font-medium">Progress: {progress}</span>
+                        </div>
+                        <div className="w-full bg-gray-300 dark:bg-gray-700 rounded-full h-1.5">
+                          <div 
+                            className="bg-gradient-to-r from-blue-500 to-purple-500 h-1.5 rounded-full transition-all duration-300"
+                            style={{
+                              width: `${Math.min(parseFloat(progress) / parseInt(progress.split('/')[1]) * 100, 100)}%`
+                            }}
+                          ></div>
+                        </div>
+                      </div>
                     )}
                   </div>
                 )}
@@ -979,27 +1003,28 @@ const CampaignMap = ({ progress, onPlayLevel, soundEnabled, onBack, onOpenAwards
                   )}
                 </div>
 
-                {/* Level title badge */}
+                {/* Level info container - prevent overlapping */}
                 {!isLocked && (
-                  <div className="absolute -bottom-10 sm:-bottom-12 text-center px-2 py-1 bg-gray-900/90 backdrop-blur-md rounded-lg border border-purple-500/30 shadow-xl min-w-max">
-                    <p className="text-[10px] sm:text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
-                      {level.title}
-                    </p>
-                  </div>
-                )}
-
-                {/* Star rating */}
-                {!isLocked && (
-                  <div className="absolute -bottom-20 sm:-bottom-24 flex gap-0.5 sm:gap-1 bg-gray-900/90 px-2 sm:px-3 py-1 rounded-full border border-yellow-500/30 backdrop-blur-md shadow-lg">
-                    {[1, 2, 3].map(s => (
-                      <div 
-                        key={s} 
-                        className={`${s <= p.stars ? "text-yellow-400 drop-shadow-lg" : "text-gray-600"} scale-75 sm:scale-90 transition-all duration-300 ${s <= p.stars ? 'animate-bounce-in' : ''}`}
-                        style={{ animationDelay: `${s * 0.1}s` }}
-                      >
-                        <Icons.Star filled={true} />
-                      </div>
-                    ))}
+                  <div className="absolute left-1/2 transform -translate-x-1/2 w-32 text-center" style={{ top: `${topPos + 60}px` }}>
+                    {/* Title badge */}
+                    <div className="px-2 py-1 bg-gray-900/95 backdrop-blur-md rounded-lg border border-purple-500/40 shadow-xl mb-1.5">
+                      <p className="text-[9px] sm:text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 truncate">
+                        {level.title}
+                      </p>
+                    </div>
+                    
+                    {/* Star rating */}
+                    <div className="flex gap-0.5 sm:gap-1 justify-center bg-gray-900/95 px-2 sm:px-3 py-1 rounded-full border border-yellow-500/40 backdrop-blur-md shadow-lg">
+                      {[1, 2, 3].map(s => (
+                        <div 
+                          key={s} 
+                          className={`${s <= p.stars ? "text-yellow-400 drop-shadow-lg" : "text-gray-600"} scale-75 sm:scale-90 transition-all duration-300 ${s <= p.stars ? 'animate-bounce-in' : ''}`}
+                          style={{ animationDelay: `${s * 0.1}s` }}
+                        >
+                          <Icons.Star filled={true} />
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>

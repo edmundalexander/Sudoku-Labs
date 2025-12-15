@@ -732,7 +732,7 @@ function setupSheets_() {
     Leaderboard: ['Name', 'Time (seconds)', 'Difficulty', 'Date'],
     Chat: ['ID', 'Sender', 'Text', 'Timestamp', 'Status'],
     Logs: ['Timestamp', 'Type', 'Message', 'UserAgent', 'Count'],
-    Users: ['UserID', 'Username', 'PasswordHash', 'CreatedAt', 'DisplayName', 'TotalGames', 'TotalWins', 'Unlocks', 'ActiveTheme', 'ActiveSoundPack', 'GameStats']
+    Users: ['UserID', 'Username', 'PasswordHash', 'CreatedAt', 'DisplayName', 'TotalGames', 'TotalWins', 'EasyWins', 'MediumWins', 'HardWins', 'PerfectWins', 'FastWins', 'UnlockedThemes', 'ActiveTheme', 'UnlockedSoundPacks', 'ActiveSoundPack', 'GameStats']
   };
 
   Object.entries(definitions).forEach(([name, headers]) => {
@@ -751,7 +751,7 @@ function ensureUsersSheetHeaders_() {
   const sheet = getSpreadsheet_().getSheetByName('Users');
   if (!sheet) return;
 
-  const required = ['UserID', 'Username', 'PasswordHash', 'CreatedAt', 'DisplayName', 'TotalGames', 'TotalWins', 'Unlocks', 'ActiveTheme', 'ActiveSoundPack', 'GameStats'];
+  const required = ['UserID', 'Username', 'PasswordHash', 'CreatedAt', 'DisplayName', 'TotalGames', 'TotalWins', 'EasyWins', 'MediumWins', 'HardWins', 'PerfectWins', 'FastWins', 'UnlockedThemes', 'ActiveTheme', 'UnlockedSoundPacks', 'ActiveSoundPack', 'GameStats'];
   ensureSheetHeaders_(sheet, required);
 }
 
