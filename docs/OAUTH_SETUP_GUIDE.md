@@ -47,6 +47,7 @@ You'll see output like this:
     "refresh_token": "1//0gJK5d...",
     "scope": "https://www.googleapis.com/auth/script.projects ...",
     "token_type": "Bearer",
+    "id_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjY...",
     "expiry_date": 1639234567890
   },
   "oauth2ClientSettings": {
@@ -68,6 +69,7 @@ export CLASP_SCRIPT_ID="your-script-id-here"
 export GAS_SHEET_ID="your-sheet-id-here"
 export CLASP_ACCESS_TOKEN="ya29.a0AfH6SMBx..."
 export CLASP_REFRESH_TOKEN="1//0gJK5d..."
+export CLASP_ID_TOKEN="eyJhbGciOiJSUzI1NiIsImtpZCI6IjY..."
 export CLASP_CLIENT_ID="123456789-abcdefghijk.apps.googleusercontent.com"
 export CLASP_CLIENT_SECRET="GOCSPX-aBcDeFgHiJkLmNoPqRsTuVwXyZ"
 ```
@@ -78,6 +80,7 @@ $env:CLASP_SCRIPT_ID="your-script-id-here"
 $env:GAS_SHEET_ID="your-sheet-id-here"
 $env:CLASP_ACCESS_TOKEN="ya29.a0AfH6SMBx..."
 $env:CLASP_REFRESH_TOKEN="1//0gJK5d..."
+$env:CLASP_ID_TOKEN="eyJhbGciOiJSUzI1NiIsImtpZCI6IjY..."
 $env:CLASP_CLIENT_ID="123456789-abcdefghijk.apps.googleusercontent.com"
 $env:CLASP_CLIENT_SECRET="GOCSPX-aBcDeFgHiJkLmNoPqRsTuVwXyZ"
 ```
@@ -92,6 +95,7 @@ $env:CLASP_CLIENT_SECRET="GOCSPX-aBcDeFgHiJkLmNoPqRsTuVwXyZ"
    - Name: `GAS_SHEET_ID`, Value: your sheet ID
    - Name: `CLASP_ACCESS_TOKEN`, Value: from `.clasprc.json`
    - Name: `CLASP_REFRESH_TOKEN`, Value: from `.clasprc.json`
+   - Name: `CLASP_ID_TOKEN`, Value: from `.clasprc.json`
    - Name: `CLASP_CLIENT_ID`, Value: from `.clasprc.json`
    - Name: `CLASP_CLIENT_SECRET`, Value: from `.clasprc.json`
 

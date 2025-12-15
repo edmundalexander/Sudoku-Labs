@@ -36,6 +36,7 @@ CLASP_SCRIPT_ID       # GAS project script ID (required)
 GAS_SHEET_ID          # Google Sheets database ID (optional)
 CLASP_ACCESS_TOKEN    # OAuth access token (required)
 CLASP_REFRESH_TOKEN   # OAuth refresh token (required)
+CLASP_ID_TOKEN        # OAuth ID token (required)
 CLASP_CLIENT_ID       # OAuth client ID (required)
 CLASP_CLIENT_SECRET   # OAuth client secret (required)
 ```
@@ -101,6 +102,7 @@ CLASP_CLIENT_SECRET   # OAuth client secret (required)
    export GAS_SHEET_ID="your-sheet-id"
    export CLASP_ACCESS_TOKEN="token"
    export CLASP_REFRESH_TOKEN="refresh"
+   export CLASP_ID_TOKEN="id-token"
    export CLASP_CLIENT_ID="client-id"
    export CLASP_CLIENT_SECRET="secret"
    ```
@@ -233,6 +235,7 @@ CLASP_SCRIPT_ID="abc123" \
 GAS_SHEET_ID="xyz789" \
 CLASP_ACCESS_TOKEN="token" \
 CLASP_REFRESH_TOKEN="refresh" \
+CLASP_ID_TOKEN="id-token" \
 CLASP_CLIENT_ID="client-id" \
 CLASP_CLIENT_SECRET="secret" \
 node scripts/deploy-gas.js

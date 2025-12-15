@@ -79,6 +79,7 @@ main() {
         "CLASP_SCRIPT_ID"
         "CLASP_ACCESS_TOKEN"
         "CLASP_REFRESH_TOKEN"
+        "CLASP_ID_TOKEN"
         "CLASP_CLIENT_ID"
         "CLASP_CLIENT_SECRET"
     )
@@ -122,6 +123,7 @@ EOF
     "refresh_token": "$CLASP_REFRESH_TOKEN",
     "scope": "https://www.googleapis.com/auth/script.projects https://www.googleapis.com/auth/script.webapp.deploy https://www.googleapis.com/auth/drive.file",
     "token_type": "Bearer",
+    "id_token": "$CLASP_ID_TOKEN",
     "expiry_date": $(( $(date +%s) * 1000 + 3600000 ))
   },
   "oauth2ClientSettings": {
