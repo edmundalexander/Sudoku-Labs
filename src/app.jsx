@@ -538,7 +538,15 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
       }
 
       const generateGuestId = () => {
-        return 'User' + Math.floor(Math.random() * 10000);
+        // Use cryptographically secure randomness
+        if (window.crypto && window.crypto.getRandomValues) {
+          const array = new Uint32Array(1);
+          window.crypto.getRandomValues(array);
+          return 'User' + (array[0] % 10000);
+        } else {
+          // Fallback (not cryptographically secure, should rarely happen)
+          return 'User' + Math.floor(Math.random() * 10000);
+        }
       };
 
       // User session management
