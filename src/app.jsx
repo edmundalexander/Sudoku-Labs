@@ -12,6 +12,113 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         { id: 8, title: "Star Lord", difficulty: "Hard", desc: "Hard puzzle, 0 mistakes, under 15 min.", criteria: (s) => s.status === 'won' && s.mistakes === 0 && s.time < 900, biome: 'space' }
       ];
 
+      // --- THEME SYSTEM ---
+      const THEMES = {
+        default: {
+          id: 'default',
+          name: 'Classic',
+          description: 'The original Sudoku experience',
+          background: 'bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800',
+          boardBg: 'bg-white dark:bg-gray-800',
+          cellBg: 'bg-white dark:bg-gray-800',
+          fixedCellBg: 'bg-gray-50 dark:bg-gray-800',
+          selectedCellBg: 'bg-blue-200 dark:bg-blue-900',
+          icon: '📋',
+          unlocked: true
+        },
+        ocean: {
+          id: 'ocean',
+          name: 'Ocean Depths',
+          description: 'Dive into tranquil waters',
+          background: 'bg-gradient-to-br from-cyan-100 to-blue-300 dark:from-blue-900 dark:to-cyan-900',
+          boardBg: 'bg-cyan-50/80 dark:bg-blue-900/50',
+          cellBg: 'bg-cyan-50 dark:bg-blue-800/70',
+          fixedCellBg: 'bg-cyan-100 dark:bg-blue-900',
+          selectedCellBg: 'bg-cyan-300 dark:bg-cyan-700',
+          icon: '🌊',
+          unlocked: false,
+          unlockCriteria: 'Win 5 games'
+        },
+        forest: {
+          id: 'forest',
+          name: 'Emerald Forest',
+          description: 'Find peace among the trees',
+          background: 'bg-gradient-to-br from-green-100 to-emerald-300 dark:from-green-900 dark:to-emerald-900',
+          boardBg: 'bg-green-50/80 dark:bg-green-900/50',
+          cellBg: 'bg-green-50 dark:bg-green-800/70',
+          fixedCellBg: 'bg-green-100 dark:bg-green-900',
+          selectedCellBg: 'bg-green-300 dark:bg-green-700',
+          icon: '🌲',
+          unlocked: false,
+          unlockCriteria: 'Win 10 games'
+        },
+        sunset: {
+          id: 'sunset',
+          name: 'Golden Sunset',
+          description: 'Bask in warm twilight hues',
+          background: 'bg-gradient-to-br from-orange-100 to-pink-300 dark:from-orange-900 dark:to-pink-900',
+          boardBg: 'bg-orange-50/80 dark:bg-orange-900/50',
+          cellBg: 'bg-orange-50 dark:bg-orange-800/70',
+          fixedCellBg: 'bg-orange-100 dark:bg-orange-900',
+          selectedCellBg: 'bg-orange-300 dark:bg-orange-700',
+          icon: '🌅',
+          unlocked: false,
+          unlockCriteria: 'Complete a Hard puzzle'
+        },
+        midnight: {
+          id: 'midnight',
+          name: 'Midnight Sky',
+          description: 'Puzzle under the stars',
+          background: 'bg-gradient-to-br from-indigo-900 to-purple-900 dark:from-black dark:to-indigo-950',
+          boardBg: 'bg-indigo-900/50 dark:bg-black/50',
+          cellBg: 'bg-indigo-800/70 dark:bg-gray-900/70',
+          fixedCellBg: 'bg-indigo-900 dark:bg-black',
+          selectedCellBg: 'bg-purple-700 dark:bg-purple-900',
+          icon: '🌙',
+          unlocked: false,
+          unlockCriteria: 'Win a puzzle with 0 mistakes'
+        },
+        sakura: {
+          id: 'sakura',
+          name: 'Sakura Bloom',
+          description: 'Cherry blossoms in spring',
+          background: 'bg-gradient-to-br from-pink-100 to-rose-200 dark:from-pink-900 dark:to-rose-900',
+          boardBg: 'bg-pink-50/80 dark:bg-pink-900/50',
+          cellBg: 'bg-pink-50 dark:bg-pink-800/70',
+          fixedCellBg: 'bg-pink-100 dark:bg-pink-900',
+          selectedCellBg: 'bg-pink-300 dark:bg-pink-700',
+          icon: '🌸',
+          unlocked: false,
+          unlockCriteria: 'Win 3 Easy puzzles'
+        },
+        volcano: {
+          id: 'volcano',
+          name: 'Volcanic Heat',
+          description: 'Feel the magma flow',
+          background: 'bg-gradient-to-br from-red-100 to-orange-400 dark:from-red-900 dark:to-orange-900',
+          boardBg: 'bg-red-50/80 dark:bg-red-900/50',
+          cellBg: 'bg-red-50 dark:bg-red-800/70',
+          fixedCellBg: 'bg-red-100 dark:bg-red-900',
+          selectedCellBg: 'bg-red-300 dark:bg-red-700',
+          icon: '🌋',
+          unlocked: false,
+          unlockCriteria: 'Win 3 Medium puzzles'
+        },
+        arctic: {
+          id: 'arctic',
+          name: 'Arctic Ice',
+          description: 'Cool crystalline clarity',
+          background: 'bg-gradient-to-br from-blue-50 to-cyan-200 dark:from-blue-950 dark:to-cyan-950',
+          boardBg: 'bg-blue-50/80 dark:bg-blue-950/50',
+          cellBg: 'bg-blue-50 dark:bg-blue-900/70',
+          fixedCellBg: 'bg-blue-100 dark:bg-blue-950',
+          selectedCellBg: 'bg-blue-200 dark:bg-blue-800',
+          icon: '❄️',
+          unlocked: false,
+          unlockCriteria: 'Win a puzzle in under 3 minutes'
+        }
+      };
+
       // --- SOUND MANAGER ---
       const SoundManager = {
         ctx: null,
@@ -124,7 +231,10 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         USER_ID: 'sudoku_v2_uid',
         SOUND_ENABLED: 'sudoku_v2_sound',
         CAMPAIGN_PROGRESS: 'sudoku_v2_campaign',
-        USER_SESSION: 'sudoku_v2_user_session'
+        USER_SESSION: 'sudoku_v2_user_session',
+        UNLOCKED_THEMES: 'sudoku_v2_unlocked_themes',
+        ACTIVE_THEME: 'sudoku_v2_active_theme',
+        GAME_STATS: 'sudoku_v2_game_stats'
       };
 
       // GAS Backend API URL - Configure this with your deployment URL
@@ -318,6 +428,106 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         localStorage.setItem(KEYS.CAMPAIGN_PROGRESS, JSON.stringify(prog));
       }
 
+      // --- THEME SYSTEM HELPERS ---
+      const getGameStats = () => {
+        try {
+          const stored = localStorage.getItem(KEYS.GAME_STATS);
+          return stored ? JSON.parse(stored) : {
+            totalWins: 0,
+            easyWins: 0,
+            mediumWins: 0,
+            hardWins: 0,
+            perfectWins: 0, // 0 mistakes
+            fastWins: 0 // under 3 minutes
+          };
+        } catch(e) {
+          return { totalWins: 0, easyWins: 0, mediumWins: 0, hardWins: 0, perfectWins: 0, fastWins: 0 };
+        }
+      };
+
+      const saveGameStats = (stats) => {
+        try {
+          localStorage.setItem(KEYS.GAME_STATS, JSON.stringify(stats));
+        } catch(e) {}
+      };
+
+      const getUnlockedThemes = () => {
+        try {
+          const stored = localStorage.getItem(KEYS.UNLOCKED_THEMES);
+          return stored ? JSON.parse(stored) : ['default'];
+        } catch(e) {
+          return ['default'];
+        }
+      };
+
+      const saveUnlockedThemes = (themes) => {
+        try {
+          localStorage.setItem(KEYS.UNLOCKED_THEMES, JSON.stringify(themes));
+        } catch(e) {}
+      };
+
+      const getActiveTheme = () => {
+        try {
+          const stored = localStorage.getItem(KEYS.ACTIVE_THEME);
+          return stored || 'default';
+        } catch(e) {
+          return 'default';
+        }
+      };
+
+      const saveActiveTheme = (themeId) => {
+        try {
+          localStorage.setItem(KEYS.ACTIVE_THEME, themeId);
+        } catch(e) {}
+      };
+
+      const checkThemeUnlocks = (stats) => {
+        const newlyUnlocked = [];
+        const currentUnlocked = getUnlockedThemes();
+        
+        // Ocean: Win 5 games
+        if (stats.totalWins >= 5 && !currentUnlocked.includes('ocean')) {
+          newlyUnlocked.push('ocean');
+        }
+        
+        // Forest: Win 10 games
+        if (stats.totalWins >= 10 && !currentUnlocked.includes('forest')) {
+          newlyUnlocked.push('forest');
+        }
+        
+        // Sunset: Complete a Hard puzzle
+        if (stats.hardWins >= 1 && !currentUnlocked.includes('sunset')) {
+          newlyUnlocked.push('sunset');
+        }
+        
+        // Midnight: Win with 0 mistakes
+        if (stats.perfectWins >= 1 && !currentUnlocked.includes('midnight')) {
+          newlyUnlocked.push('midnight');
+        }
+        
+        // Sakura: Win 3 Easy puzzles
+        if (stats.easyWins >= 3 && !currentUnlocked.includes('sakura')) {
+          newlyUnlocked.push('sakura');
+        }
+        
+        // Volcano: Win 3 Medium puzzles
+        if (stats.mediumWins >= 3 && !currentUnlocked.includes('volcano')) {
+          newlyUnlocked.push('volcano');
+        }
+        
+        // Arctic: Win in under 3 minutes
+        if (stats.fastWins >= 1 && !currentUnlocked.includes('arctic')) {
+          newlyUnlocked.push('arctic');
+        }
+        
+        if (newlyUnlocked.length > 0) {
+          const updatedUnlocked = [...currentUnlocked, ...newlyUnlocked];
+          saveUnlockedThemes(updatedUnlocked);
+        }
+        
+        return newlyUnlocked;
+      };
+
       const getUserId = () => {
           let uid = localStorage.getItem(KEYS.USER_ID);
           if (!uid) {
@@ -488,6 +698,122 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
       };
 
       const CHAT_POLL_INTERVAL = 5000;
+
+      // --- THEME SELECTOR COMPONENT ---
+      const ThemeSelector = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSelectTheme }) => {
+        const stats = getGameStats();
+        
+        const isThemeUnlocked = (themeId) => {
+          return unlockedThemes.includes(themeId);
+        };
+        
+        const getThemeProgress = (themeId) => {
+          const theme = THEMES[themeId];
+          if (!theme || theme.unlocked || isThemeUnlocked(themeId)) return null;
+          
+          // Return progress towards unlocking this theme
+          switch(themeId) {
+            case 'ocean':
+              return `${Math.min(stats.totalWins, 5)}/5 wins`;
+            case 'forest':
+              return `${Math.min(stats.totalWins, 10)}/10 wins`;
+            case 'sunset':
+              return stats.hardWins >= 1 ? 'Unlocked!' : `${stats.hardWins}/1 Hard win`;
+            case 'midnight':
+              return stats.perfectWins >= 1 ? 'Unlocked!' : `${stats.perfectWins}/1 perfect win`;
+            case 'sakura':
+              return `${Math.min(stats.easyWins, 3)}/3 Easy wins`;
+            case 'volcano':
+              return `${Math.min(stats.mediumWins, 3)}/3 Medium wins`;
+            case 'arctic':
+              return stats.fastWins >= 1 ? 'Unlocked!' : `${stats.fastWins}/1 fast win`;
+            default:
+              return null;
+          }
+        };
+        
+        const handleThemeSelect = (themeId) => {
+          if (!isThemeUnlocked(themeId)) return;
+          if (soundEnabled) SoundManager.play('uiTap');
+          onSelectTheme(themeId);
+          saveActiveTheme(themeId);
+        };
+        
+        return (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm animate-fade-in">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-4 sm:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-pop relative">
+              <button 
+                onClick={() => { if(soundEnabled) SoundManager.play('uiTap'); onClose(); }} 
+                className="absolute top-3 sm:top-4 right-3 sm:right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <Icons.X />
+              </button>
+              
+              <h2 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3 text-gray-900 dark:text-gray-100">🎨 Themes</h2>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
+                Unlock themes by completing challenges. Customize your Sudoku experience!
+              </p>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                {Object.values(THEMES).map((theme) => {
+                  const unlocked = isThemeUnlocked(theme.id);
+                  const isActive = theme.id === activeThemeId;
+                  const progress = getThemeProgress(theme.id);
+                  
+                  return (
+                    <div
+                      key={theme.id}
+                      onClick={() => handleThemeSelect(theme.id)}
+                      className={`p-3 sm:p-4 rounded-lg border-2 transition-all ${
+                        isActive 
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30' 
+                          : unlocked 
+                            ? 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 cursor-pointer' 
+                            : 'border-gray-200 dark:border-gray-700 opacity-60'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`text-3xl sm:text-4xl ${unlocked ? '' : 'grayscale opacity-50'}`}>
+                          {theme.icon}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-bold text-sm sm:text-base text-gray-900 dark:text-gray-100">
+                              {theme.name}
+                            </h3>
+                            {isActive && (
+                              <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full">Active</span>
+                            )}
+                            {!unlocked && (
+                              <span className="text-xs text-gray-500">🔒</span>
+                            )}
+                          </div>
+                          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            {theme.description}
+                          </p>
+                          {!unlocked && theme.unlockCriteria && (
+                            <div className="mt-2 text-xs">
+                              <p className="text-gray-500 dark:text-gray-400">
+                                <span className="font-semibold">Unlock:</span> {theme.unlockCriteria}
+                              </p>
+                              {progress && (
+                                <p className="text-blue-600 dark:text-blue-400 font-medium mt-1">
+                                  Progress: {progress}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className={`mt-3 h-12 rounded ${theme.background} border border-gray-300 dark:border-gray-600`}></div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        );
+      };
 
       // --- USER PANEL COMPONENT ---
       const UserPanel = ({ soundEnabled, onClose }) => {
@@ -1004,7 +1330,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
          )
       };
 
-      const OpeningScreen = ({ onStart, onResume, onCampaign, hasSavedGame, darkMode, toggleDarkMode, loading, soundEnabled, toggleSound, onShowUserPanel, userSession }) => (
+      const OpeningScreen = ({ onStart, onResume, onCampaign, hasSavedGame, darkMode, toggleDarkMode, loading, soundEnabled, toggleSound, onShowUserPanel, onShowThemes, userSession }) => (
         <div className="min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 text-gray-900 dark:text-gray-100 animate-fade-in relative z-10">
            <div className="absolute top-2 right-2 sm:top-4 sm:right-4 flex gap-1 sm:gap-2">
               <button onClick={onShowUserPanel} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors relative">
@@ -1012,6 +1338,9 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                   {userSession && (
                     <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full"></span>
                   )}
+              </button>
+              <button onClick={onShowThemes} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Themes">
+                  🎨
               </button>
               <button onClick={toggleSound} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
                   {soundEnabled ? <Icons.VolumeUp /> : <Icons.VolumeOff />}
@@ -1066,7 +1395,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         </div>
       );
 
-      const ClosingScreen = ({ status, time, difficulty, mistakes, onRestart, onMenu, loading, soundEnabled, activeQuest, questCompleted }) => {
+      const ClosingScreen = ({ status, time, difficulty, mistakes, onRestart, onMenu, loading, soundEnabled, activeQuest, questCompleted, newlyUnlockedThemes }) => {
         const isWin = status === 'won';
         
         useEffect(() => {
@@ -1094,6 +1423,20 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                             ? <div className="mt-2 text-green-600 font-bold flex items-center justify-center gap-1 text-xs sm:text-sm"><Icons.Star filled={true}/> Objective Met!</div>
                             : <div className="mt-2 text-red-500 text-[10px] sm:text-xs">Objective Failed</div>
                         }
+                    </div>
+                )}
+
+                {newlyUnlockedThemes && newlyUnlockedThemes.length > 0 && (
+                    <div className="my-3 sm:my-4 p-2.5 sm:p-3 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 rounded-lg border-2 border-purple-300 dark:border-purple-700 animate-pulse-glow">
+                        <p className="text-sm sm:text-base font-bold text-purple-700 dark:text-purple-300 mb-2">🎨 New Theme{newlyUnlockedThemes.length > 1 ? 's' : ''} Unlocked!</p>
+                        <div className="flex flex-wrap gap-2 justify-center">
+                            {newlyUnlockedThemes.map(themeId => (
+                                <div key={themeId} className="flex items-center gap-1 bg-white dark:bg-gray-800 px-2 py-1 rounded-lg border border-purple-200 dark:border-purple-800">
+                                    <span className="text-lg">{THEMES[themeId].icon}</span>
+                                    <span className="text-xs sm:text-sm font-medium">{THEMES[themeId].name}</span>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 )}
 
@@ -1155,6 +1498,12 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         // User Authentication State
         const [showUserPanel, setShowUserPanel] = useState(false);
         const [appUserSession, setAppUserSession] = useState(getUserSession());
+        
+        // Theme State
+        const [activeThemeId, setActiveThemeId] = useState(getActiveTheme());
+        const [unlockedThemes, setUnlockedThemes] = useState(getUnlockedThemes());
+        const [newlyUnlockedThemes, setNewlyUnlockedThemes] = useState([]);
+        const [showThemeSelector, setShowThemeSelector] = useState(false);
         
         const timerRef = useRef(null);
         const chatEndRef = useRef(null);
@@ -1320,6 +1669,23 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         const handleWin = async (finalBoard, finalMistakes, finalTime) => {
             const currentUserId = getCurrentUserId();
             saveScore({ name: currentUserId, time: finalTime, difficulty, date: new Date().toLocaleDateString() });
+            
+            // Update game stats for theme unlocking
+            const stats = getGameStats();
+            stats.totalWins += 1;
+            if (difficulty === 'Easy') stats.easyWins += 1;
+            if (difficulty === 'Medium') stats.mediumWins += 1;
+            if (difficulty === 'Hard') stats.hardWins += 1;
+            if (finalMistakes === 0) stats.perfectWins += 1;
+            if (finalTime < 180) stats.fastWins += 1;
+            saveGameStats(stats);
+            
+            // Check for theme unlocks
+            const newThemes = checkThemeUnlocks(stats);
+            if (newThemes.length > 0) {
+              setNewlyUnlockedThemes(newThemes);
+              setUnlockedThemes(getUnlockedThemes()); // Update state with newly unlocked themes
+            }
             
             // Update user stats if authenticated
             // Note: This function is only called when the player wins, so we increment both games and wins
@@ -1527,9 +1893,21 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                     darkMode={darkMode} toggleDarkMode={toggleDarkMode}
                     loading={loading} soundEnabled={soundEnabled} toggleSound={toggleSound}
                     onShowUserPanel={() => setShowUserPanel(true)}
+                    onShowThemes={() => { if(soundEnabled) SoundManager.play('uiTap'); setShowThemeSelector(true); }}
                     userSession={appUserSession}
                 />
                 {showUserPanel && <UserPanel soundEnabled={soundEnabled} onClose={handleUserPanelClose} />}
+                {showThemeSelector && (
+                    <ThemeSelector 
+                        soundEnabled={soundEnabled}
+                        onClose={() => setShowThemeSelector(false)}
+                        activeThemeId={activeThemeId}
+                        unlockedThemes={unlockedThemes}
+                        onSelectTheme={(themeId) => {
+                            setActiveThemeId(themeId);
+                        }}
+                    />
+                )}
                 </>
             );
         }
@@ -1537,6 +1915,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
         // 3. CLOSING SCREEN
         if (status === 'won' || status === 'lost') {
            return (
+             <>
              <ClosingScreen 
                 status={status} time={timer} difficulty={difficulty} mistakes={mistakes} 
                 onRestart={() => startNewGame(difficulty)} 
@@ -1545,16 +1924,31 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                     if(activeQuest) setView('campaign'); 
                     else setView('menu'); 
                     setActiveQuest(null);
+                    setNewlyUnlockedThemes([]);
                 }} 
                 loading={loading} soundEnabled={soundEnabled}
                 activeQuest={activeQuest} questCompleted={questCompleted}
+                newlyUnlockedThemes={newlyUnlockedThemes}
              />
+             {showThemeSelector && (
+                 <ThemeSelector 
+                     soundEnabled={soundEnabled}
+                     onClose={() => setShowThemeSelector(false)}
+                     activeThemeId={activeThemeId}
+                     unlockedThemes={unlockedThemes}
+                     onSelectTheme={(themeId) => {
+                         setActiveThemeId(themeId);
+                     }}
+                 />
+             )}
+             </>
            );
         }
 
         // 4. GAME SCREEN
+        const activeTheme = THEMES[activeThemeId] || THEMES.default;
         return (
-          <div className="min-h-screen flex flex-col items-center p-2 sm:p-4 transition-colors duration-300 text-gray-900 dark:text-gray-100">
+          <div className={`min-h-screen flex flex-col items-center p-2 sm:p-4 transition-colors duration-300 text-gray-900 dark:text-gray-100 ${activeTheme.background}`}>
             <div className="w-full max-w-7xl flex flex-col gap-3 sm:gap-6 flex-grow">
                 {!isGasEnvironment() && (
                   <div className="w-full mx-auto mb-2 p-2 rounded text-xs sm:text-sm text-yellow-800 bg-yellow-100 border border-yellow-200 text-center">GAS not configured — using local generator for puzzles. Create <span className="font-mono">config/config.local.js</span> with your <span className="font-mono">GAS_URL</span> to enable cloud persistence.</div>
@@ -1573,6 +1967,9 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
                         {appUserSession && (
                           <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full"></span>
                         )}
+                    </button>
+                    <button onClick={() => { if(soundEnabled) SoundManager.play('uiTap'); setShowThemeSelector(true); }} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Themes">
+                        🎨
                     </button>
                     <button onClick={toggleSound} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
                         {soundEnabled ? <Icons.VolumeUp /> : <Icons.VolumeOff />}
@@ -1725,6 +2122,17 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
             </div>
             {renderModal()}
             {showUserPanel && <UserPanel soundEnabled={soundEnabled} onClose={handleUserPanelClose} />}
+            {showThemeSelector && (
+                <ThemeSelector 
+                    soundEnabled={soundEnabled}
+                    onClose={() => setShowThemeSelector(false)}
+                    activeThemeId={activeThemeId}
+                    unlockedThemes={unlockedThemes}
+                    onSelectTheme={(themeId) => {
+                        setActiveThemeId(themeId);
+                    }}
+                />
+            )}
             
             {/* Footer - positioned below content */}
             <footer className="mt-auto pt-8 pb-4 text-[10px] sm:text-xs md:text-sm lg:text-base text-gray-400 text-center max-w-md px-2 w-full">
