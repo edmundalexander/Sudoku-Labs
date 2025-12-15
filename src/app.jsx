@@ -931,11 +931,14 @@ const Icons = {
       stroke="currentColor"
       strokeWidth={1.5}
       className="w-5 h-5"
+      role="img"
+      aria-label="Awards"
     >
+      <title>Awards</title>
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
-        d="M6 4.5h12M8.25 4.5 7 2.25m8.75 2.25L17 2.25M7.5 8.25h9m-10.5-3h12v3a5.25 5.25 0 0 1-4.5 5.196V16.5l-2.25 2.25L9 16.5v-2.054A5.25 5.25 0 0 1 6 8.25z"
+        d="M16.5 4.5V3.75A1.5 1.5 0 0 0 15 2.25H9A1.5 1.5 0 0 0 7.5 3.75V4.5m9 0v3A4.5 4.5 0 0 1 12 12a4.5 4.5 0 0 1-4.5-4.5v-3m9 0h1.11A1.39 1.39 0 0 1 19.5 5.89V7.5A1.5 1.5 0 0 1 18 9h-1.5m-9-4.5H6.39A1.39 1.39 0 0 0 5 5.89V7.5A1.5 1.5 0 0 0 6.5 9H8m3 6h2m-4 0h6m-6 0v2.25c0 .621.504 1.125 1.125 1.125h3.75c.621 0 1.125-.504 1.125-1.125V15"
       />
     </svg>
   ),
@@ -1463,7 +1466,7 @@ const UserPanel = ({ soundEnabled, onClose }) => {
   return null;
 };
 
-const CampaignMap = ({ progress, onPlayLevel, soundEnabled, onBack }) => {
+const CampaignMap = ({ progress, onPlayLevel, soundEnabled, onBack, onOpenAwards }) => {
   const [selectedLevel, setSelectedLevel] = useState(null);
   const scrollContainerRef = useRef(null);
 
@@ -1497,7 +1500,15 @@ const CampaignMap = ({ progress, onPlayLevel, soundEnabled, onBack }) => {
       <div className="relative z-20 flex justify-between items-center p-2 sm:p-3 md:p-4 bg-gray-900/50 backdrop-blur-sm border-b border-gray-700">
         <button onClick={onBack} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-800 transition-colors"><Icons.Undo /></button>
         <h1 className="text-base sm:text-lg md:text-xl font-bold tracking-widest uppercase text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">Campaign Saga</h1>
-        <div className="w-6 sm:w-8"></div>
+        <button
+          aria-label="Rewards"
+          title="Rewards"
+          onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); onOpenAwards?.(); }}
+          className="p-1.5 sm:p-2 rounded-full hover:bg-gray-800 transition-colors flex items-center gap-1 text-gray-100"
+        >
+          <Icons.Awards />
+          <span className="hidden sm:inline text-[11px] font-semibold">Rewards</span>
+        </button>
       </div>
 
       <div ref={scrollContainerRef} className="flex-1 w-full overflow-y-auto relative z-10 scrollbar-hide pb-20">
@@ -1639,19 +1650,25 @@ const CampaignMap = ({ progress, onPlayLevel, soundEnabled, onBack }) => {
 const OpeningScreen = ({ onStart, onResume, onCampaign, hasSavedGame, darkMode, toggleDarkMode, loading, soundEnabled, toggleSound, onShowUserPanel, onShowAwards, userSession }) => (
   <div className="min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 text-gray-900 dark:text-gray-100 animate-fade-in relative z-10">
     <div className="absolute top-2 right-2 sm:top-4 sm:right-4 flex gap-1 sm:gap-2">
-      <button onClick={onShowUserPanel} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors relative">
+      <button aria-label="User" onClick={onShowUserPanel} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors relative">
         <Icons.User />
         {userSession && (
           <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full"></span>
         )}
       </button>
-      <button onClick={onShowAwards} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Awards">
+      <button
+        aria-label="Rewards"
+        title="Rewards"
+        onClick={onShowAwards}
+        className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors flex items-center gap-1"
+      >
         <Icons.Awards />
+        <span className="hidden sm:inline text-[11px] font-semibold">Rewards</span>
       </button>
-      <button onClick={toggleSound} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+      <button aria-label="Sound" onClick={toggleSound} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
         {soundEnabled ? <Icons.VolumeUp /> : <Icons.VolumeOff />}
       </button>
-      <button onClick={toggleDarkMode} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+      <button aria-label="Theme" onClick={toggleDarkMode} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
         {darkMode ? <Icons.Sun /> : <Icons.Moon />}
       </button>
     </div>
@@ -1667,6 +1684,10 @@ const OpeningScreen = ({ onStart, onResume, onCampaign, hasSavedGame, darkMode, 
       >
         <Icons.Map /> Campaign Saga
       </button>
+
+      <p className="text-center text-[11px] sm:text-xs text-gray-600 dark:text-gray-400 -mt-1">
+        Earn themes and sound packs via Campaign. Manage them in Rewards.
+      </p>
 
       {hasSavedGame && (
         <button
@@ -2220,8 +2241,21 @@ const App = () => {
           onPlayLevel={(level) => startNewGame(level.difficulty, level)}
           soundEnabled={soundEnabled}
           onBack={() => { if (soundEnabled) SoundManager.play('uiTap'); setView('menu'); }}
+          onOpenAwards={() => { if (soundEnabled) SoundManager.play('uiTap'); setShowAwardsZone(true); }}
         />
         {showUserPanel && <UserPanel soundEnabled={soundEnabled} onClose={handleUserPanelClose} />}
+        {showAwardsZone && (
+          <AwardsZone
+            soundEnabled={soundEnabled}
+            onClose={() => setShowAwardsZone(false)}
+            activeThemeId={activeThemeId}
+            unlockedThemes={unlockedThemes}
+            onSelectTheme={(themeId) => { setActiveThemeId(themeId); }}
+            activePackId={activeSoundPackId}
+            unlockedPacks={unlockedSoundPacks}
+            onSelectPack={(packId) => { setActiveSoundPackId(packId); SoundManager.setPack(packId); }}
+          />
+        )}
       </>
     );
   }
@@ -2317,7 +2351,7 @@ const App = () => {
                 <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full"></span>
               )}
             </button>
-            <button onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); setShowAwardsZone(true); }} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Awards">
+            <button aria-label="Awards" onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); setShowAwardsZone(true); }} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Awards">
               <Icons.Awards />
             </button>
             <button onClick={toggleSound} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
