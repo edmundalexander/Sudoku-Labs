@@ -597,6 +597,41 @@ const UnlockService = {
   }
 };
 
+// ============================================================================
+// CONVENIENCE WRAPPER FUNCTIONS
+// ============================================================================
+
+/**
+ * Get leaderboard (convenience wrapper)
+ * @returns {Promise<Array>} Leaderboard entries
+ */
+const getLeaderboard = () => LeaderboardService.get();
+
+/**
+ * Save score (convenience wrapper)
+ * @param {Object} entry - Score entry
+ */
+const saveScore = (entry) => LeaderboardService.saveScore(entry);
+
+/**
+ * Get chat messages (convenience wrapper)
+ * @returns {Promise<Array>} Chat messages
+ */
+const getChatMessages = () => ChatService.getMessages();
+
+/**
+ * Post chat message (convenience wrapper)
+ * @param {Object} msg - Message to post
+ * @returns {Promise<Array>} Updated chat messages
+ */
+const postChatMessage = (msg) => ChatService.postMessage(msg);
+
+/**
+ * Check if user is authenticated (convenience wrapper)
+ * @returns {boolean} Whether user is authenticated
+ */
+const isUserAuthenticated = () => StorageService.isUserAuthenticated();
+
 // Make services available globally
 window.GAS_URL = GAS_URL;
 window.isGasEnvironment = isGasEnvironment;
@@ -606,3 +641,10 @@ window.StorageService = StorageService;
 window.LeaderboardService = LeaderboardService;
 window.ChatService = ChatService;
 window.UnlockService = UnlockService;
+
+// Convenience wrappers
+window.getLeaderboard = getLeaderboard;
+window.saveScore = saveScore;
+window.getChatMessages = getChatMessages;
+window.postChatMessage = postChatMessage;
+window.isUserAuthenticated = isUserAuthenticated;
