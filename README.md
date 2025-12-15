@@ -453,10 +453,6 @@ This is a personal project, but suggestions and feedback are welcome! Feel free 
 - Fork and experiment
 - Share your improvements
 
-## License
-
-This project is open source and available for personal and educational use.
-
 ## Credits
 
 Created by Edmund Alexander
