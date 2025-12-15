@@ -131,6 +131,27 @@
   <body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
     <div id="root"></div>
 
+    <!-- Cache/version guard: force clear stale storage when app updates -->
+    <script>
+      (function() {
+        const APP_VERSION = '2025-12-15-1'; // bump to invalidate client caches
+        const stored = localStorage.getItem('APP_VERSION');
+        if (stored !== APP_VERSION) {
+          try {
+            localStorage.clear();
+            sessionStorage.clear();
+            if ('caches' in window) {
+              caches.keys().then(keys => keys.forEach(key => caches.delete(key)));
+            }
+          } catch (e) {
+            console.warn('Cache clear skipped:', e);
+          }
+          localStorage.setItem('APP_VERSION', APP_VERSION);
+          location.reload();
+        }
+      })();
+    </script>
+
     <!-- Load configuration from config/config.local.js (local values, not exposed publicly) -->
     <!-- Falls back to inline CONFIG if file not found -->
     <script>
