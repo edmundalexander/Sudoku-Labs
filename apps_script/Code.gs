@@ -50,6 +50,10 @@ function doGet(e) {
       case 'ping':
         return makeJsonResponse({ ok: true, timestamp: new Date().toISOString() });
       
+      case 'deployTestLog':
+        // Test endpoint for AI agents to verify deployment and database write capability
+        return makeJsonResponse(deployTestLog());
+      
       case 'register':
         return makeJsonResponse(registerUser(e.parameter));
       
@@ -644,4 +648,53 @@ function sanitizeInput_(str, maxLength) {
 function sanitizeOutput_(val) {
   if (typeof val === 'string') return val;
   return String(val || '');
+}
+
+// ============================================================================
+// TEST DEPLOYMENT FUNCTION
+// ============================================================================
+// This function is called by AI agents to test deployment capability
+// It writes a test log entry to verify the GAS connection is working
+function deployTestLog() {
+  try {
+    const sheet = getSpreadsheet_().getSheetByName('Logs');
+    if (!sheet) {
+      return { 
+        success: false, 
+        error: 'Logs sheet not found. Run setupSheets_() first.' 
+      };
+    }
+    
+    const timestamp = new Date().toISOString();
+    const testMessage = 'AI Agent Test Deployment - ' + timestamp;
+    const deploymentInfo = 'Deployed by GitHub Copilot AI Agent';
+    
+    // Write test log entry
+    sheet.appendRow([
+      timestamp,
+      'ai-agent-test',
+      testMessage,
+      deploymentInfo,
+      1
+    ]);
+    
+    return {
+      success: true,
+      message: 'Test log deployed successfully',
+      timestamp: timestamp,
+      logEntry: {
+        timestamp: timestamp,
+        type: 'ai-agent-test',
+        message: testMessage,
+        userAgent: deploymentInfo,
+        count: 1
+      }
+    };
+  } catch (err) {
+    Logger.log('deployTestLog error: ' + err);
+    return {
+      success: false,
+      error: 'Failed to deploy test log: ' + err.toString()
+    };
+  }
 }

@@ -56,6 +56,7 @@ Just visit the live game: **[Play Now](https://edmund-alexander.github.io/Sudoku
 - **[Deployment Checklist](docs/DEPLOYMENT_CHECKLIST.md)** - Complete deployment guide
 - **[AI Agent Deployment](docs/AI_AGENT_DEPLOYMENT.md)** - Automated deployment for AI agents
 - **[OAuth Setup Guide](docs/OAUTH_SETUP_GUIDE.md)** - Getting credentials for automated deployment
+- **[GAS Connection Testing](docs/GAS_CONNECTION_TESTING.md)** - Test Google Apps Script backend connection
 - **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
 - **[Wiki](../../wiki)** - Additional guides and resources
 
@@ -92,6 +93,8 @@ Sudoku-Labs/
 ├── src/
 │   └── app.jsx             # React application
 ├── index.html              # Main HTML file
+├── test-gas-connection.sh  # Backend connection test (shell)
+├── test-gas-connection.html # Backend connection test (browser)
 └── diagnostic.sh           # API health check script
 ```
 
@@ -107,8 +110,17 @@ The app runs entirely in the browser with in-browser Babel compilation. Simply o
 - All features enabled
 - Requires Google Apps Script deployment
 
-### API Health Check
+### Testing Backend Connection
 
+**Quick Test:**
+```bash
+# Test GAS connection with shell script
+./test-gas-connection.sh
+
+# Or open test-gas-connection.html in browser for visual testing
+```
+
+**API Health Check:**
 ```bash
 # Set your GAS URL
 export GAS_URL="https://script.google.com/macros/s/YOUR_ID/exec"
@@ -116,6 +128,8 @@ export GAS_URL="https://script.google.com/macros/s/YOUR_ID/exec"
 # Run diagnostics
 ./diagnostic.sh
 ```
+
+See [GAS Connection Testing Guide](docs/GAS_CONNECTION_TESTING.md) for detailed testing instructions.
 
 ## 📝 Configuration
 

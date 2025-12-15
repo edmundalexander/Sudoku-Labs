@@ -7,7 +7,8 @@
     "setup:clasp": "clasp login --no-localhost",
     "push:gas": "clasp push",
     "deploy:gas-version": "clasp deploy",
-    "open:gas": "clasp open"
+    "open:gas": "clasp open",
+    "test:gas": "./test-gas-connection.sh"
   },
   "repository": {
     "type": "git",
