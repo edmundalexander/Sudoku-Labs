@@ -1686,11 +1686,17 @@ const App = () => {
       const session = StorageService.getUserSession();
       if (session && session.userId) {
         try {
-          await runGasFn('updateUserProfile', {
+          // Prepare win metadata for backend tracking
+          const updateData = {
             userId: session.userId,  // Backend requires userId for lookups
             incrementGames: true,
-            incrementWins: true
-          });
+            incrementWins: true,
+            difficulty: difficulty,  // Track which difficulty was won
+            perfectWin: finalMistakes === 0,  // Perfect win if no mistakes
+            fastWin: finalTime < 180  // Fast win if under 3 minutes
+          };
+          
+          await runGasFn('updateUserProfile', updateData);
           // Refresh user profile to get updated stats
           const updatedProfile = await runGasFn('getUserProfile', { userId: session.userId });
           if (updatedProfile && updatedProfile.success) {
