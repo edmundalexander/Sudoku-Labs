@@ -131,24 +131,44 @@
   <body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
     <div id="root"></div>
 
-    <!-- Cache/version guard: force clear stale storage when app updates -->
+    <!-- Cache/version guard: uses deployed ETag (commit) as version so any push forces a fresh load -->
     <script>
       (function() {
-        const APP_VERSION = '2025-12-15-1'; // bump to invalidate client caches
-        const stored = localStorage.getItem('APP_VERSION');
-        if (stored !== APP_VERSION) {
+        const fetchVersion = async () => {
+          try {
+            const res = await fetch(window.location.href, { method: 'HEAD', cache: 'no-cache' });
+            const etag = res.headers.get('etag');
+            if (etag) return etag.replace(/"/g, '');
+          } catch (e) {
+            console.warn('Version HEAD fetch failed:', e);
+          }
+          return 'local-dev'; // fallback for offline/local
+        };
+
+        const clearCaches = async () => {
           try {
             localStorage.clear();
             sessionStorage.clear();
             if ('caches' in window) {
-              caches.keys().then(keys => keys.forEach(key => caches.delete(key)));
+              const keys = await caches.keys();
+              await Promise.all(keys.map((key) => caches.delete(key)));
             }
           } catch (e) {
             console.warn('Cache clear skipped:', e);
           }
-          localStorage.setItem('APP_VERSION', APP_VERSION);
-          location.reload();
-        }
+        };
+
+        (async () => {
+          const appVersion = await fetchVersion();
+          const stored = localStorage.getItem('APP_VERSION');
+          if (stored !== appVersion) {
+            await clearCaches();
+            localStorage.setItem('APP_VERSION', appVersion);
+            location.reload();
+            return;
+          }
+          window.APP_VERSION = appVersion;
+        })();
       })();
     </script>
 
