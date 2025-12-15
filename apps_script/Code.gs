@@ -291,7 +291,7 @@ function registerUser(data) {
 
   ensureUsersSheetHeaders_();
   
-  const username = sanitizeInput_(data.username || '', 20);
+  const username = sanitizeInput_(data.username || '', 20).trim();
   const password = sanitizeInput_(data.password || '', 100);
   
   // Validate inputs
@@ -299,8 +299,21 @@ function registerUser(data) {
     return { success: false, error: 'Username must be at least 3 characters' };
   }
   
+  if (username.length > 20) {
+    return { success: false, error: 'Username must be 20 characters or less' };
+  }
+  
+  // Only allow alphanumeric characters and underscores
+  if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+    return { success: false, error: 'Username can only contain letters, numbers, and underscores' };
+  }
+  
   if (password.length < 6) {
     return { success: false, error: 'Password must be at least 6 characters' };
+  }
+  
+  if (password.length > 100) {
+    return { success: false, error: 'Password must be 100 characters or less' };
   }
   
   try {
