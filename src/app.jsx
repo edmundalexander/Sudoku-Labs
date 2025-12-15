@@ -513,9 +513,6 @@ const generateLocalBoard = (difficulty) => {
 const saveGame = (state) => {
   try { localStorage.setItem(KEYS.GAME_STATE, JSON.stringify(state)); } catch (e) { }
 };
-    const [pendingActiveThemeId, setPendingActiveThemeId] = useState(null);
-    const [pendingActiveSoundPackId, setPendingActiveSoundPackId] = useState(null);
-    const [awardsDirty, setAwardsDirty] = useState(false);
 
 const loadGame = () => {
   try { return JSON.parse(localStorage.getItem(KEYS.GAME_STATE)); } catch (e) { return null; }
@@ -996,7 +993,10 @@ const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSe
 
   const handlePackSelect = (packId) => {
     if (!isPackUnlocked(packId)) return;
-    if (soundEnabled) SoundManager.play('uiTap');
+    if (soundEnabled) {
+      SoundManager.setPack(packId);
+      SoundManager.play('uiTap');
+    }
     onSelectPack(packId);
     saveActiveSoundPack(packId);
   };
@@ -1856,12 +1856,17 @@ const App = () => {
   const [unlockedSoundPacks, setUnlockedSoundPacks] = useState(getUnlockedSoundPacks());
   const [newlyUnlockedSoundPacks, setNewlyUnlockedSoundPacks] = useState([]);
   const [showAwardsZone, setShowAwardsZone] = useState(false);
+  const [pendingActiveThemeId, setPendingActiveThemeId] = useState(null);
+  const [pendingActiveSoundPackId, setPendingActiveSoundPackId] = useState(null);
+  const [awardsDirty, setAwardsDirty] = useState(false);
 
   const timerRef = useRef(null);
   const chatEndRef = useRef(null);
   const isSendingRef = useRef(false);
   const persistTimerRef = useRef(null);
   const pendingPersistRef = useRef(null);
+  const themeTouchedRef = useRef(false);
+  const soundPackTouchedRef = useRef(false);
 
   // Persist merged unlock/theme/sound state to backend for authenticated users
   const persistUserStateToBackend = useCallback(async (partial = {}) => {
@@ -1892,7 +1897,7 @@ const App = () => {
     if (payload) {
       await persistUserStateToBackend(payload);
     }
-  }, [persistUserStateToBackend]);
+  }, [persistUserStateToBackend, activeThemeId, activeSoundPackId]);
 
   const schedulePersist = useCallback((partial) => {
     if (!isUserAuthenticated() || !isGasEnvironment()) return;
@@ -1925,13 +1930,18 @@ const App = () => {
       const mergedThemes = Array.from(new Set([...(getUnlockedThemes()), ...(remote.state.unlockedThemes || [])]));
       const mergedPacks = Array.from(new Set([...(getUnlockedSoundPacks()), ...(remote.state.unlockedSoundPacks || [])]));
 
-      const activeTheme = remote.state.activeTheme || getActiveTheme();
-      const activePack = remote.state.activeSoundPack || getActiveSoundPack();
+      const currentActiveTheme = themeTouchedRef.current ? activeThemeId : getActiveTheme();
+      const currentActivePack = soundPackTouchedRef.current ? activeSoundPackId : getActiveSoundPack();
+      const remoteActiveTheme = remote.state.activeTheme;
+      const remoteActivePack = remote.state.activeSoundPack;
+
+      const activeTheme = themeTouchedRef.current ? currentActiveTheme : (remoteActiveTheme || currentActiveTheme);
+      const activePack = soundPackTouchedRef.current ? currentActivePack : (remoteActivePack || currentActivePack);
 
       saveUnlockedThemes(mergedThemes); setUnlockedThemes(mergedThemes);
       saveUnlockedSoundPacks(mergedPacks); setUnlockedSoundPacks(mergedPacks);
-      saveActiveTheme(activeTheme); setActiveThemeId(activeTheme);
-      saveActiveSoundPack(activePack); setActiveSoundPackId(activePack);
+      if (!themeTouchedRef.current) { saveActiveTheme(activeTheme); setActiveThemeId(activeTheme); }
+      if (!soundPackTouchedRef.current) { saveActiveSoundPack(activePack); setActiveSoundPackId(activePack); }
       saveGameStats(mergedStats);
 
       await persistUserStateToBackend({
@@ -2288,6 +2298,7 @@ const App = () => {
 
   const handleThemeChange = (themeId, { persist = true } = {}) => {
     if (themeId === activeThemeId) return;
+    themeTouchedRef.current = true;
     setActiveThemeId(themeId);
     if (!persist) {
       setPendingActiveThemeId(themeId);
@@ -2300,6 +2311,7 @@ const App = () => {
 
   const handleSoundPackChange = (packId, { persist = true } = {}) => {
     if (packId === activeSoundPackId) return;
+    soundPackTouchedRef.current = true;
     setActiveSoundPackId(packId);
     SoundManager.setPack(packId);
     if (!persist) {
