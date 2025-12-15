@@ -119,9 +119,76 @@ const THEMES = {
   }
 };
 
+// --- SOUND PACKS ---
+const SOUND_PACKS = {
+  classic: {
+    id: 'classic',
+    name: 'Classic',
+    description: 'Original Logic Lab blips',
+    icon: '🎛️',
+    unlocked: true
+  },
+  zen: {
+    id: 'zen',
+    name: 'Zen',
+    description: 'Calm sine tones and long tails',
+    icon: '🧘',
+    unlocked: true
+  },
+  funfair: {
+    id: 'funfair',
+    name: 'Funfair',
+    description: 'Playful bells and ramps',
+    icon: '🎡',
+    unlocked: false,
+    unlockCriteria: 'Win 3 games'
+  },
+  retro: {
+    id: 'retro',
+    name: 'Retro',
+    description: '8-bit inspired pulses',
+    icon: '🕹️',
+    unlocked: false,
+    unlockCriteria: 'Win 3 Easy games'
+  },
+  space: {
+    id: 'space',
+    name: 'Space',
+    description: 'Cosmic arps and sweeps',
+    icon: '🪐',
+    unlocked: false,
+    unlockCriteria: 'Win a Hard game'
+  },
+  nature: {
+    id: 'nature',
+    name: 'Nature',
+    description: 'Soft wood and breeze chimes',
+    icon: '🍃',
+    unlocked: false,
+    unlockCriteria: 'Win 3 Medium games'
+  },
+  crystal: {
+    id: 'crystal',
+    name: 'Crystal',
+    description: 'Clean triangle sparkles',
+    icon: '💎',
+    unlocked: false,
+    unlockCriteria: 'Win with 0 mistakes'
+  },
+  minimal: {
+    id: 'minimal',
+    name: 'Minimal',
+    description: 'Short, dry clicky cues',
+    icon: '◽',
+    unlocked: false,
+    unlockCriteria: 'Win under 3 minutes'
+  }
+};
+
 // --- SOUND MANAGER ---
 const SoundManager = {
   ctx: null,
+  currentPack: 'classic',
   init: () => {
     if (!SoundManager.ctx) {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -131,97 +198,191 @@ const SoundManager = {
       SoundManager.ctx.resume();
     }
   },
+  setPack: (packId) => {
+    SoundManager.currentPack = packId in SOUND_PACKS ? packId : 'classic';
+  },
+  packHandlers: {},
   play: (type) => {
     if (!SoundManager.ctx) SoundManager.init();
     if (!SoundManager.ctx) return;
-
-    const t = SoundManager.ctx.currentTime;
-    const osc = SoundManager.ctx.createOscillator();
-    const gain = SoundManager.ctx.createGain();
-
-    osc.connect(gain);
-    gain.connect(SoundManager.ctx.destination);
-
-    switch (type) {
-      case 'select':
-        osc.type = 'sine'; osc.frequency.setValueAtTime(800, t);
-        gain.gain.setValueAtTime(0.02, t); gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
-        osc.start(t); osc.stop(t + 0.05); break;
-      case 'uiTap':
-        osc.frequency.setValueAtTime(400, t); osc.frequency.exponentialRampToValueAtTime(100, t + 0.1);
-        gain.gain.setValueAtTime(0.05, t); gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
-        osc.start(t); osc.stop(t + 0.1); break;
-      case 'chestOpen':
-        const oC = SoundManager.ctx.createOscillator(); oC.type = 'triangle';
-        oC.frequency.setValueAtTime(300, t); oC.frequency.linearRampToValueAtTime(800, t + 0.3);
-        gain.gain.setValueAtTime(0.1, t); gain.gain.linearRampToValueAtTime(0, t + 0.5);
-        oC.start(t); oC.stop(t + 0.5);
-        setTimeout(() => SoundManager.play('success'), 300);
-        break;
-      case 'toggle':
-        osc.type = 'triangle'; osc.frequency.setValueAtTime(1200, t);
-        gain.gain.setValueAtTime(0.05, t); gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
-        osc.start(t); osc.stop(t + 0.08); break;
-      case 'write':
-        osc.type = 'sine'; osc.frequency.setValueAtTime(600, t);
-        gain.gain.setValueAtTime(0.1, t); gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
-        osc.start(t); osc.stop(t + 0.1); break;
-      case 'erase':
-        osc.type = 'triangle'; osc.frequency.setValueAtTime(300, t); osc.frequency.linearRampToValueAtTime(50, t + 0.15);
-        gain.gain.setValueAtTime(0.08, t); gain.gain.linearRampToValueAtTime(0, t + 0.15);
-        osc.start(t); osc.stop(t + 0.15); break;
-      case 'undo':
-        osc.type = 'sine'; osc.frequency.setValueAtTime(200, t); osc.frequency.exponentialRampToValueAtTime(600, t + 0.15);
-        gain.gain.setValueAtTime(0.05, t); gain.gain.linearRampToValueAtTime(0, t + 0.15);
-        osc.start(t); osc.stop(t + 0.15); break;
-      case 'pencil':
-        osc.type = 'square'; osc.frequency.setValueAtTime(2000, t);
-        gain.gain.setValueAtTime(0.02, t); gain.gain.exponentialRampToValueAtTime(0.001, t + 0.03);
-        osc.start(t); osc.stop(t + 0.03); break;
-      case 'startGame':
-        [261.63, 329.63, 392.00, 523.25].forEach((freq, i) => {
-          const o = SoundManager.ctx.createOscillator(); const g = SoundManager.ctx.createGain();
-          o.connect(g); g.connect(SoundManager.ctx.destination);
-          o.type = 'triangle'; o.frequency.value = freq;
-          g.gain.setValueAtTime(0.02, t + i * 0.05); g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.05 + 0.5);
-          o.start(t + i * 0.05); o.stop(t + i * 0.05 + 0.5);
-        }); break;
-      case 'questStart':
-        // Epic deep boom + shimmer
-        const o1 = SoundManager.ctx.createOscillator(); o1.frequency.setValueAtTime(100, t); o1.frequency.exponentialRampToValueAtTime(40, t + 1);
-        const g1 = SoundManager.ctx.createGain(); g1.gain.setValueAtTime(0.1, t); g1.gain.linearRampToValueAtTime(0, t + 1);
-        o1.connect(g1); g1.connect(SoundManager.ctx.destination); o1.start(t); o1.stop(t + 1);
-        break;
-      case 'error':
-        osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, t); osc.frequency.linearRampToValueAtTime(100, t + 0.3);
-        gain.gain.setValueAtTime(0.1, t); gain.gain.linearRampToValueAtTime(0.001, t + 0.3);
-        osc.start(t); osc.stop(t + 0.3); break;
-      case 'success':
-        [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98].forEach((freq, i) => {
-          const o = SoundManager.ctx.createOscillator(); const g = SoundManager.ctx.createGain();
-          o.connect(g); g.connect(SoundManager.ctx.destination);
-          const st = t + i * 0.08; o.frequency.value = freq;
-          g.gain.setValueAtTime(0.05, st); g.gain.exponentialRampToValueAtTime(0.001, st + 0.6);
-          o.start(st); o.stop(st + 0.6);
-        }); break;
-      case 'chat':
-        osc.type = 'sine'; osc.frequency.setValueAtTime(800, t); osc.frequency.setValueAtTime(1200, t + 0.1);
-        gain.gain.setValueAtTime(0.02, t); gain.gain.linearRampToValueAtTime(0, t + 0.2);
-        osc.start(t); osc.stop(t + 0.2); break;
-      case 'unlock':
-        // Magical wind chime
-        [800, 1200, 1500, 2000].forEach((freq, i) => {
-          const o = SoundManager.ctx.createOscillator(); const g = SoundManager.ctx.createGain();
-          o.connect(g); g.connect(SoundManager.ctx.destination);
-          o.type = 'sine'; o.frequency.value = freq;
-          g.gain.setValueAtTime(0, t + i * 0.1); g.gain.linearRampToValueAtTime(0.05, t + i * 0.1 + 0.05); g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.1 + 1);
-          o.start(t + i * 0.1); o.stop(t + i * 0.1 + 1);
-        });
-        break;
-      default: break;
-    }
+    const handler = SoundManager.packHandlers[SoundManager.currentPack] || SoundManager.packHandlers.classic;
+    handler(type, SoundManager.ctx);
   }
 };
+
+// --- SOUND PACK RENDERERS (procedural WebAudio; no external assets) ---
+const buildClassicHandler = () => (type, ctx) => {
+  const t = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain); gain.connect(ctx.destination);
+  switch (type) {
+    case 'select':
+      osc.type = 'sine'; osc.frequency.setValueAtTime(800, t);
+      gain.gain.setValueAtTime(0.02, t); gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+      osc.start(t); osc.stop(t + 0.05); break;
+    case 'uiTap':
+      osc.frequency.setValueAtTime(400, t); osc.frequency.exponentialRampToValueAtTime(100, t + 0.1);
+      gain.gain.setValueAtTime(0.05, t); gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+      osc.start(t); osc.stop(t + 0.1); break;
+    case 'chestOpen': {
+      const oC = ctx.createOscillator(); const gC = ctx.createGain();
+      oC.type = 'triangle'; oC.frequency.setValueAtTime(300, t); oC.frequency.linearRampToValueAtTime(800, t + 0.3);
+      gC.gain.setValueAtTime(0.1, t); gC.gain.linearRampToValueAtTime(0, t + 0.5);
+      oC.connect(gC); gC.connect(ctx.destination);
+      oC.start(t); oC.stop(t + 0.5);
+      setTimeout(() => SoundManager.play('success'), 300);
+      break; }
+    case 'toggle':
+      osc.type = 'triangle'; osc.frequency.setValueAtTime(1200, t);
+      gain.gain.setValueAtTime(0.05, t); gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+      osc.start(t); osc.stop(t + 0.08); break;
+    case 'write':
+      osc.type = 'sine'; osc.frequency.setValueAtTime(600, t);
+      gain.gain.setValueAtTime(0.1, t); gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+      osc.start(t); osc.stop(t + 0.1); break;
+    case 'erase':
+      osc.type = 'triangle'; osc.frequency.setValueAtTime(300, t); osc.frequency.linearRampToValueAtTime(50, t + 0.15);
+      gain.gain.setValueAtTime(0.08, t); gain.gain.linearRampToValueAtTime(0, t + 0.15);
+      osc.start(t); osc.stop(t + 0.15); break;
+    case 'undo':
+      osc.type = 'sine'; osc.frequency.setValueAtTime(200, t); osc.frequency.exponentialRampToValueAtTime(600, t + 0.15);
+      gain.gain.setValueAtTime(0.05, t); gain.gain.linearRampToValueAtTime(0, t + 0.15);
+      osc.start(t); osc.stop(t + 0.15); break;
+    case 'pencil':
+      osc.type = 'square'; osc.frequency.setValueAtTime(2000, t);
+      gain.gain.setValueAtTime(0.02, t); gain.gain.exponentialRampToValueAtTime(0.001, t + 0.03);
+      osc.start(t); osc.stop(t + 0.03); break;
+    case 'startGame':
+      [261.63, 329.63, 392.00, 523.25].forEach((freq, i) => {
+        const o = ctx.createOscillator(); const g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.type = 'triangle'; o.frequency.value = freq;
+        g.gain.setValueAtTime(0.02, t + i * 0.05); g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.05 + 0.5);
+        o.start(t + i * 0.05); o.stop(t + i * 0.05 + 0.5);
+      }); break;
+    case 'questStart': {
+      const o1 = ctx.createOscillator(); const g1 = ctx.createGain();
+      o1.frequency.setValueAtTime(100, t); o1.frequency.exponentialRampToValueAtTime(40, t + 1);
+      g1.gain.setValueAtTime(0.1, t); g1.gain.linearRampToValueAtTime(0, t + 1);
+      o1.connect(g1); g1.connect(ctx.destination); o1.start(t); o1.stop(t + 1);
+      break; }
+    case 'error':
+      osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, t); osc.frequency.linearRampToValueAtTime(100, t + 0.3);
+      gain.gain.setValueAtTime(0.1, t); gain.gain.linearRampToValueAtTime(0.001, t + 0.3);
+      osc.start(t); osc.stop(t + 0.3); break;
+    case 'success':
+      [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98].forEach((freq, i) => {
+        const o = ctx.createOscillator(); const g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        const st = t + i * 0.08; o.frequency.value = freq;
+        g.gain.setValueAtTime(0.05, st); g.gain.exponentialRampToValueAtTime(0.001, st + 0.6);
+        o.start(st); o.stop(st + 0.6);
+      }); break;
+    case 'chat':
+      osc.type = 'sine'; osc.frequency.setValueAtTime(800, t); osc.frequency.setValueAtTime(1200, t + 0.1);
+      gain.gain.setValueAtTime(0.02, t); gain.gain.linearRampToValueAtTime(0, t + 0.2);
+      osc.start(t); osc.stop(t + 0.2); break;
+    case 'unlock':
+      [800, 1200, 1500, 2000].forEach((freq, i) => {
+        const o = ctx.createOscillator(); const g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.type = 'sine'; o.frequency.value = freq;
+        g.gain.setValueAtTime(0, t + i * 0.1); g.gain.linearRampToValueAtTime(0.05, t + i * 0.1 + 0.05); g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.1 + 1);
+        o.start(t + i * 0.1); o.stop(t + i * 0.1 + 1);
+      });
+      break;
+    default: break;
+  }
+};
+
+const buildVariantHandler = (config) => (type, ctx) => {
+  // Delegates to classic for complex multi-osc patterns, but tweaks waves/frequencies for key cues
+  const base = SoundManager.packHandlers.classic;
+  const t = ctx.currentTime;
+  const playSimple = (wave, freqStart, freqEnd, duration, gainVal = 0.05) => {
+    const o = ctx.createOscillator(); const g = ctx.createGain();
+    o.type = wave; o.frequency.setValueAtTime(freqStart, t);
+    if (freqEnd !== null) o.frequency.exponentialRampToValueAtTime(freqEnd, t + duration);
+    g.gain.setValueAtTime(gainVal, t); g.gain.exponentialRampToValueAtTime(0.001, t + duration);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(t); o.stop(t + duration);
+  };
+
+  const profile = config[type];
+  if (!profile) return base(type, ctx);
+  if (profile.kind === 'simple') {
+    playSimple(profile.wave, profile.freqStart, profile.freqEnd, profile.duration, profile.gain || 0.05);
+    return;
+  }
+  if (profile.kind === 'chime') {
+    profile.notes.forEach((f, i) => {
+      const o = ctx.createOscillator(); const g = ctx.createGain();
+      o.type = profile.wave; o.frequency.value = f;
+      const st = t + i * (profile.spacing || 0.07);
+      o.connect(g); g.connect(ctx.destination);
+      g.gain.setValueAtTime(profile.gain || 0.05, st);
+      g.gain.exponentialRampToValueAtTime(0.001, st + (profile.decay || 0.6));
+      o.start(st); o.stop(st + (profile.decay || 0.6));
+    });
+    return;
+  }
+  return base(type, ctx);
+};
+
+// Build and register handlers
+SoundManager.packHandlers.classic = buildClassicHandler();
+SoundManager.packHandlers.zen = buildVariantHandler({
+  select: { kind: 'simple', wave: 'sine', freqStart: 400, freqEnd: null, duration: 0.12, gain: 0.03 },
+  uiTap: { kind: 'simple', wave: 'sine', freqStart: 320, freqEnd: 200, duration: 0.18, gain: 0.04 },
+  write: { kind: 'simple', wave: 'sine', freqStart: 360, freqEnd: null, duration: 0.2, gain: 0.05 },
+  success: { kind: 'chime', wave: 'sine', notes: [392, 523, 659, 784], decay: 0.8, spacing: 0.1, gain: 0.04 },
+  unlock: { kind: 'chime', wave: 'sine', notes: [523, 659, 784, 988], decay: 1.0, spacing: 0.12, gain: 0.045 }
+});
+SoundManager.packHandlers.funfair = buildVariantHandler({
+  select: { kind: 'simple', wave: 'square', freqStart: 900, freqEnd: null, duration: 0.08, gain: 0.04 },
+  uiTap: { kind: 'simple', wave: 'triangle', freqStart: 600, freqEnd: 300, duration: 0.12, gain: 0.05 },
+  write: { kind: 'simple', wave: 'triangle', freqStart: 720, freqEnd: null, duration: 0.12, gain: 0.05 },
+  success: { kind: 'chime', wave: 'square', notes: [523, 659, 784, 1047], decay: 0.5, spacing: 0.09, gain: 0.05 },
+  unlock: { kind: 'chime', wave: 'triangle', notes: [659, 784, 988, 1319], decay: 0.7, spacing: 0.08, gain: 0.06 }
+});
+SoundManager.packHandlers.retro = buildVariantHandler({
+  select: { kind: 'simple', wave: 'square', freqStart: 1200, freqEnd: null, duration: 0.04, gain: 0.04 },
+  uiTap: { kind: 'simple', wave: 'square', freqStart: 900, freqEnd: 450, duration: 0.06, gain: 0.05 },
+  write: { kind: 'simple', wave: 'square', freqStart: 1047, freqEnd: null, duration: 0.05, gain: 0.05 },
+  erase: { kind: 'simple', wave: 'square', freqStart: 500, freqEnd: 220, duration: 0.06, gain: 0.05 },
+  success: { kind: 'chime', wave: 'square', notes: [784, 988, 1319], decay: 0.35, spacing: 0.07, gain: 0.06 },
+  unlock: { kind: 'chime', wave: 'square', notes: [988, 1319, 1568, 1976], decay: 0.4, spacing: 0.07, gain: 0.06 }
+});
+SoundManager.packHandlers.space = buildVariantHandler({
+  select: { kind: 'simple', wave: 'sawtooth', freqStart: 700, freqEnd: 500, duration: 0.12, gain: 0.035 },
+  uiTap: { kind: 'simple', wave: 'sine', freqStart: 520, freqEnd: 260, duration: 0.16, gain: 0.04 },
+  write: { kind: 'simple', wave: 'triangle', freqStart: 640, freqEnd: 420, duration: 0.14, gain: 0.04 },
+  success: { kind: 'chime', wave: 'sawtooth', notes: [392, 587, 784, 1175], decay: 0.9, spacing: 0.1, gain: 0.04 },
+  unlock: { kind: 'chime', wave: 'sine', notes: [523, 659, 1047, 1319], decay: 1.1, spacing: 0.12, gain: 0.045 }
+});
+SoundManager.packHandlers.nature = buildVariantHandler({
+  select: { kind: 'simple', wave: 'triangle', freqStart: 500, freqEnd: null, duration: 0.12, gain: 0.03 },
+  uiTap: { kind: 'simple', wave: 'sine', freqStart: 420, freqEnd: 240, duration: 0.18, gain: 0.035 },
+  write: { kind: 'simple', wave: 'triangle', freqStart: 560, freqEnd: 360, duration: 0.14, gain: 0.035 },
+  success: { kind: 'chime', wave: 'triangle', notes: [392, 523, 659, 784], decay: 0.7, spacing: 0.08, gain: 0.035 },
+  unlock: { kind: 'chime', wave: 'triangle', notes: [494, 740, 880, 1175], decay: 0.8, spacing: 0.1, gain: 0.04 }
+});
+SoundManager.packHandlers.crystal = buildVariantHandler({
+  select: { kind: 'simple', wave: 'triangle', freqStart: 1100, freqEnd: null, duration: 0.08, gain: 0.04 },
+  uiTap: { kind: 'simple', wave: 'sine', freqStart: 900, freqEnd: 700, duration: 0.1, gain: 0.04 },
+  write: { kind: 'simple', wave: 'triangle', freqStart: 1319, freqEnd: 988, duration: 0.12, gain: 0.045 },
+  success: { kind: 'chime', wave: 'triangle', notes: [880, 1047, 1319, 1760], decay: 0.6, spacing: 0.08, gain: 0.045 },
+  unlock: { kind: 'chime', wave: 'triangle', notes: [1319, 1568, 1760, 2093], decay: 0.7, spacing: 0.09, gain: 0.05 }
+});
+SoundManager.packHandlers.minimal = buildVariantHandler({
+  select: { kind: 'simple', wave: 'square', freqStart: 1500, freqEnd: null, duration: 0.03, gain: 0.03 },
+  uiTap: { kind: 'simple', wave: 'square', freqStart: 1200, freqEnd: 800, duration: 0.05, gain: 0.03 },
+  write: { kind: 'simple', wave: 'square', freqStart: 1000, freqEnd: 700, duration: 0.05, gain: 0.035 },
+  erase: { kind: 'simple', wave: 'square', freqStart: 700, freqEnd: 400, duration: 0.05, gain: 0.035 },
+  success: { kind: 'chime', wave: 'square', notes: [659, 880, 1175], decay: 0.3, spacing: 0.06, gain: 0.04 },
+  unlock: { kind: 'chime', wave: 'square', notes: [880, 1175, 1568, 1976], decay: 0.35, spacing: 0.06, gain: 0.045 }
+});
 
 // --- STORAGE SERVICE ---
 const KEYS = {
@@ -234,6 +395,8 @@ const KEYS = {
   USER_SESSION: 'sudoku_v2_user_session',
   UNLOCKED_THEMES: 'sudoku_v2_unlocked_themes',
   ACTIVE_THEME: 'sudoku_v2_active_theme',
+  UNLOCKED_SOUND_PACKS: 'sudoku_v2_unlocked_sound_packs',
+  ACTIVE_SOUND_PACK: 'sudoku_v2_active_sound_pack',
   GAME_STATS: 'sudoku_v2_game_stats'
 };
 
@@ -528,6 +691,60 @@ const checkThemeUnlocks = (stats) => {
   return newlyUnlocked;
 };
 
+// --- SOUND PACK HELPERS ---
+const getUnlockedSoundPacks = () => {
+  try {
+    const stored = localStorage.getItem(KEYS.UNLOCKED_SOUND_PACKS);
+    return stored ? JSON.parse(stored) : ['classic', 'zen'];
+  } catch (e) {
+    return ['classic', 'zen'];
+  }
+};
+
+const saveUnlockedSoundPacks = (packs) => {
+  try {
+    localStorage.setItem(KEYS.UNLOCKED_SOUND_PACKS, JSON.stringify(packs));
+  } catch (e) { }
+};
+
+const getActiveSoundPack = () => {
+  try {
+    const stored = localStorage.getItem(KEYS.ACTIVE_SOUND_PACK);
+    return stored || 'classic';
+  } catch (e) {
+    return 'classic';
+  }
+};
+
+const saveActiveSoundPack = (packId) => {
+  try {
+    localStorage.setItem(KEYS.ACTIVE_SOUND_PACK, packId);
+  } catch (e) { }
+};
+
+const checkSoundPackUnlocks = (stats) => {
+  const newlyUnlocked = [];
+  const currentUnlocked = getUnlockedSoundPacks();
+
+  const tryUnlock = (id, condition) => {
+    if (!currentUnlocked.includes(id) && condition) newlyUnlocked.push(id);
+  };
+
+  tryUnlock('funfair', stats.totalWins >= 3);
+  tryUnlock('retro', stats.easyWins >= 3);
+  tryUnlock('space', stats.hardWins >= 1);
+  tryUnlock('nature', stats.mediumWins >= 3);
+  tryUnlock('crystal', stats.perfectWins >= 1);
+  tryUnlock('minimal', stats.fastWins >= 1);
+
+  if (newlyUnlocked.length > 0) {
+    const updated = [...currentUnlocked, ...newlyUnlocked];
+    saveUnlockedSoundPacks(updated);
+  }
+
+  return newlyUnlocked;
+};
+
 const getUserId = () => {
   let uid = localStorage.getItem(KEYS.USER_ID);
   if (!uid) {
@@ -706,6 +923,7 @@ const Icons = {
   Login: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" /></svg>,
   Logout: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" /></svg>,
   Palette: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M4.098 19.902a3.75 3.75 0 005.304 0l6.401-6.402M6.75 21A3.75 3.75 0 013 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 003.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008z" /></svg>
+  Music: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 9.75V4.5l10.5-2.25v5.25M9 9.75L19.5 7.5M9 9.75v7.875A2.625 2.625 0 014.5 20.25 2.625 2.625 0 012 17.625 2.625 2.625 0 014.5 15c.986 0 1.84.533 2.304 1.32M19.5 7.5v9.375A2.625 2.625 0 0115 19.5a2.625 2.625 0 01-2.5-2.625A2.625 2.625 0 0115 14.25c.986 0 1.84.533 2.304 1.32" /></svg>
 };
 
 const CHAT_POLL_INTERVAL = 5000;
@@ -816,6 +1034,106 @@ const ThemeSelector = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, o
                   </div>
                 </div>
                 <div className={`mt-3 h-12 rounded ${theme.background} border border-gray-300 dark:border-gray-600`}></div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- SOUND PACK SELECTOR COMPONENT ---
+const SoundPackSelector = ({ soundEnabled, onClose, activePackId, unlockedPacks, onSelectPack }) => {
+  const stats = getGameStats();
+
+  const isUnlocked = (id) => unlockedPacks.includes(id);
+
+  const getProgress = (id) => {
+    const s = stats;
+    switch (id) {
+      case 'funfair': return `${Math.min(s.totalWins, 3)}/3 wins`;
+      case 'retro': return `${Math.min(s.easyWins, 3)}/3 Easy wins`;
+      case 'space': return s.hardWins >= 1 ? 'Unlocked!' : `${s.hardWins}/1 Hard win`;
+      case 'nature': return `${Math.min(s.mediumWins, 3)}/3 Medium wins`;
+      case 'crystal': return s.perfectWins >= 1 ? 'Unlocked!' : `${s.perfectWins}/1 perfect win`;
+      case 'minimal': return s.fastWins >= 1 ? 'Unlocked!' : `${s.fastWins}/1 under 3 min`;
+      default: return null;
+    }
+  };
+
+  const handleSelect = (id) => {
+    if (!isUnlocked(id)) return;
+    if (soundEnabled) SoundManager.play('uiTap');
+    onSelectPack(id);
+    saveActiveSoundPack(id);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm animate-fade-in">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-4 sm:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-pop relative">
+        <button
+          onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); onClose(); }}
+          className="absolute top-3 sm:top-4 right-3 sm:right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+        >
+          <Icons.X />
+        </button>
+
+        <h2 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3 text-gray-900 dark:text-gray-100 flex items-center gap-2"><Icons.Music /> Sound Packs</h2>
+        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
+          Unlock audio themes by completing challenges. Switch packs to change the game’s feel.
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          {Object.values(SOUND_PACKS).map((pack) => {
+            const unlocked = isUnlocked(pack.id) || pack.unlocked;
+            const isActive = pack.id === activePackId;
+            const progress = getProgress(pack.id);
+
+            return (
+              <div
+                key={pack.id}
+                onClick={() => handleSelect(pack.id)}
+                className={`p-3 sm:p-4 rounded-lg border-2 transition-all ${isActive
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
+                    : unlocked
+                      ? 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 cursor-pointer'
+                      : 'border-gray-200 dark:border-gray-700 opacity-60'
+                  }`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={`text-3xl sm:text-4xl ${unlocked ? '' : 'grayscale opacity-50'}`}>
+                    {pack.icon}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold text-sm sm:text-base text-gray-900 dark:text-gray-100">
+                        {pack.name}
+                      </h3>
+                      {isActive && (
+                        <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full">Active</span>
+                      )}
+                      {!unlocked && (
+                        <span className="text-xs text-gray-500">🔒</span>
+                      )}
+                    </div>
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      {pack.description}
+                    </p>
+                    {!unlocked && pack.unlockCriteria && (
+                      <div className="mt-2 text-xs">
+                        <p className="text-gray-500 dark:text-gray-400">
+                          <span className="font-semibold">Unlock:</span> {pack.unlockCriteria}
+                        </p>
+                        {progress && (
+                          <p className="text-blue-600 dark:text-blue-400 font-medium mt-1">
+                            Progress: {progress}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             );
           })}
@@ -1339,7 +1657,7 @@ const CampaignMap = ({ progress, onPlayLevel, soundEnabled, onBack }) => {
   )
 };
 
-const OpeningScreen = ({ onStart, onResume, onCampaign, hasSavedGame, darkMode, toggleDarkMode, loading, soundEnabled, toggleSound, onShowUserPanel, onShowThemes, userSession }) => (
+const OpeningScreen = ({ onStart, onResume, onCampaign, hasSavedGame, darkMode, toggleDarkMode, loading, soundEnabled, toggleSound, onShowUserPanel, onShowThemes, onShowSoundPacks, userSession }) => (
   <div className="min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 text-gray-900 dark:text-gray-100 animate-fade-in relative z-10">
     <div className="absolute top-2 right-2 sm:top-4 sm:right-4 flex gap-1 sm:gap-2">
       <button onClick={onShowUserPanel} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors relative">
@@ -1350,6 +1668,9 @@ const OpeningScreen = ({ onStart, onResume, onCampaign, hasSavedGame, darkMode, 
       </button>
       <button onClick={onShowThemes} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Themes">
         <Icons.Palette />
+      </button>
+      <button onClick={onShowSoundPacks} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Sound Packs">
+        <Icons.Music />
       </button>
       <button onClick={toggleSound} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
         {soundEnabled ? <Icons.VolumeUp /> : <Icons.VolumeOff />}
@@ -1404,7 +1725,7 @@ const OpeningScreen = ({ onStart, onResume, onCampaign, hasSavedGame, darkMode, 
   </div>
 );
 
-const ClosingScreen = ({ status, time, difficulty, mistakes, onRestart, onMenu, loading, soundEnabled, activeQuest, questCompleted, newlyUnlockedThemes }) => {
+const ClosingScreen = ({ status, time, difficulty, mistakes, onRestart, onMenu, loading, soundEnabled, activeQuest, questCompleted, newlyUnlockedThemes, newlyUnlockedSoundPacks }) => {
   const isWin = status === 'won';
 
   useEffect(() => {
@@ -1443,6 +1764,20 @@ const ClosingScreen = ({ status, time, difficulty, mistakes, onRestart, onMenu, 
                 <div key={themeId} className="flex items-center gap-1 bg-white dark:bg-gray-800 px-2 py-1 rounded-lg border border-purple-200 dark:border-purple-800">
                   <span className="text-lg">{THEMES[themeId].icon}</span>
                   <span className="text-xs sm:text-sm font-medium">{THEMES[themeId].name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {newlyUnlockedSoundPacks && newlyUnlockedSoundPacks.length > 0 && (
+          <div className="my-3 sm:my-4 p-2.5 sm:p-3 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 rounded-lg border-2 border-blue-200 dark:border-blue-700 animate-pulse-glow">
+            <p className="text-sm sm:text-base font-bold text-blue-700 dark:text-blue-300 mb-2 flex items-center justify-center gap-1.5"><Icons.Music /> New Sound Pack{newlyUnlockedSoundPacks.length > 1 ? 's' : ''} Unlocked!</p>
+            <div className="flex flex-wrap gap-2 justify-center">
+              {newlyUnlockedSoundPacks.map(packId => (
+                <div key={packId} className="flex items-center gap-1 bg-white dark:bg-gray-800 px-2 py-1 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <span className="text-lg">{SOUND_PACKS[packId]?.icon}</span>
+                  <span className="text-xs sm:text-sm font-medium">{SOUND_PACKS[packId]?.name}</span>
                 </div>
               ))}
             </div>
@@ -1514,6 +1849,12 @@ const App = () => {
   const [newlyUnlockedThemes, setNewlyUnlockedThemes] = useState([]);
   const [showThemeSelector, setShowThemeSelector] = useState(false);
 
+  // Sound Pack State
+  const [activeSoundPackId, setActiveSoundPackId] = useState(getActiveSoundPack());
+  const [unlockedSoundPacks, setUnlockedSoundPacks] = useState(getUnlockedSoundPacks());
+  const [newlyUnlockedSoundPacks, setNewlyUnlockedSoundPacks] = useState([]);
+  const [showSoundPackSelector, setShowSoundPackSelector] = useState(false);
+
   const timerRef = useRef(null);
   const chatEndRef = useRef(null);
   const isSendingRef = useRef(false);
@@ -1523,6 +1864,18 @@ const App = () => {
     window.addEventListener('error', handleError);
     return () => window.removeEventListener('error', handleError);
   }, []);
+
+  useEffect(() => {
+    SoundManager.setPack(activeSoundPackId);
+  }, [activeSoundPackId]);
+
+  useEffect(() => {
+    if (!unlockedSoundPacks.includes(activeSoundPackId)) {
+      const fallback = unlockedSoundPacks.includes('classic') ? 'classic' : unlockedSoundPacks[0] || 'classic';
+      setActiveSoundPackId(fallback);
+      SoundManager.setPack(fallback);
+    }
+  }, [unlockedSoundPacks, activeSoundPackId]);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -1694,6 +2047,14 @@ const App = () => {
     if (newThemes.length > 0) {
       setNewlyUnlockedThemes(newThemes);
       setUnlockedThemes(getUnlockedThemes()); // Update state with newly unlocked themes
+    }
+
+    // Check for sound pack unlocks
+    const newPacks = checkSoundPackUnlocks(stats);
+    if (newPacks.length > 0) {
+      setNewlyUnlockedSoundPacks(newPacks);
+      setUnlockedSoundPacks(getUnlockedSoundPacks());
+      if (soundEnabled) setTimeout(() => SoundManager.play('unlock'), 250);
     }
 
     // Update user stats if authenticated
@@ -1903,6 +2264,7 @@ const App = () => {
           loading={loading} soundEnabled={soundEnabled} toggleSound={toggleSound}
           onShowUserPanel={() => setShowUserPanel(true)}
           onShowThemes={() => { if (soundEnabled) SoundManager.play('uiTap'); setShowThemeSelector(true); }}
+          onShowSoundPacks={() => { if (soundEnabled) SoundManager.play('uiTap'); setShowSoundPackSelector(true); }}
           userSession={appUserSession}
         />
         {showUserPanel && <UserPanel soundEnabled={soundEnabled} onClose={handleUserPanelClose} />}
@@ -1914,6 +2276,18 @@ const App = () => {
             unlockedThemes={unlockedThemes}
             onSelectTheme={(themeId) => {
               setActiveThemeId(themeId);
+            }}
+          />
+        )}
+        {showSoundPackSelector && (
+          <SoundPackSelector
+            soundEnabled={soundEnabled}
+            onClose={() => setShowSoundPackSelector(false)}
+            activePackId={activeSoundPackId}
+            unlockedPacks={unlockedSoundPacks}
+            onSelectPack={(packId) => {
+              setActiveSoundPackId(packId);
+              SoundManager.setPack(packId);
             }}
           />
         )}
@@ -1934,10 +2308,12 @@ const App = () => {
             else setView('menu');
             setActiveQuest(null);
             setNewlyUnlockedThemes([]);
+            setNewlyUnlockedSoundPacks([]);
           }}
           loading={loading} soundEnabled={soundEnabled}
           activeQuest={activeQuest} questCompleted={questCompleted}
           newlyUnlockedThemes={newlyUnlockedThemes}
+          newlyUnlockedSoundPacks={newlyUnlockedSoundPacks}
         />
         {showThemeSelector && (
           <ThemeSelector
@@ -1947,6 +2323,18 @@ const App = () => {
             unlockedThemes={unlockedThemes}
             onSelectTheme={(themeId) => {
               setActiveThemeId(themeId);
+            }}
+          />
+        )}
+        {showSoundPackSelector && (
+          <SoundPackSelector
+            soundEnabled={soundEnabled}
+            onClose={() => setShowSoundPackSelector(false)}
+            activePackId={activeSoundPackId}
+            unlockedPacks={unlockedSoundPacks}
+            onSelectPack={(packId) => {
+              setActiveSoundPackId(packId);
+              SoundManager.setPack(packId);
             }}
           />
         )}
@@ -1979,6 +2367,9 @@ const App = () => {
             </button>
             <button onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); setShowThemeSelector(true); }} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Themes">
               <Icons.Palette />
+            </button>
+            <button onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); setShowSoundPackSelector(true); }} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Sound Packs">
+              <Icons.Music />
             </button>
             <button onClick={toggleSound} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
               {soundEnabled ? <Icons.VolumeUp /> : <Icons.VolumeOff />}
@@ -2139,6 +2530,18 @@ const App = () => {
           unlockedThemes={unlockedThemes}
           onSelectTheme={(themeId) => {
             setActiveThemeId(themeId);
+          }}
+        />
+      )}
+      {showSoundPackSelector && (
+        <SoundPackSelector
+          soundEnabled={soundEnabled}
+          onClose={() => setShowSoundPackSelector(false)}
+          activePackId={activeSoundPackId}
+          unlockedPacks={unlockedSoundPacks}
+          onSelectPack={(packId) => {
+            setActiveSoundPackId(packId);
+            SoundManager.setPack(packId);
           }}
         />
       )}
