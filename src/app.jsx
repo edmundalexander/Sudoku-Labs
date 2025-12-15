@@ -513,6 +513,9 @@ const generateLocalBoard = (difficulty) => {
 const saveGame = (state) => {
   try { localStorage.setItem(KEYS.GAME_STATE, JSON.stringify(state)); } catch (e) { }
 };
+    const [pendingActiveThemeId, setPendingActiveThemeId] = useState(null);
+    const [pendingActiveSoundPackId, setPendingActiveSoundPackId] = useState(null);
+    const [awardsDirty, setAwardsDirty] = useState(false);
 
 const loadGame = () => {
   try { return JSON.parse(localStorage.getItem(KEYS.GAME_STATE)); } catch (e) { return null; }
@@ -1898,6 +1901,13 @@ const App = () => {
     persistTimerRef.current = setTimeout(flushPendingPersist, 350);
   }, [flushPendingPersist]);
 
+  const openAwards = () => {
+    setPendingActiveThemeId(activeThemeId);
+    setPendingActiveSoundPackId(activeSoundPackId);
+    setAwardsDirty(false);
+    setShowAwardsZone(true);
+  };
+
   // Hydrate local unlocks and selections from backend, merging with local progress
   const hydrateUserState = useCallback(async (user) => {
     if (!user?.userId || !isGasEnvironment()) return;
@@ -1974,14 +1984,12 @@ const App = () => {
     } else {
       setDarkMode(false); document.documentElement.classList.remove('dark');
     }
-
     if (savedSound === 'false') setSoundEnabled(false);
 
     const saved = loadGame();
     if (saved && saved.status === 'playing') {
       setBoard(saved.board); setTimer(saved.timer); setMistakes(saved.mistakes);
-      setDifficulty(saved.difficulty); setStatus('paused'); setHistory(saved.history);
-      setView('game');
+      setDifficulty(saved.difficulty); setStatus('paused'); setHistory(saved.history); setView('game');
     }
   }, []);
 
@@ -1998,14 +2006,14 @@ const App = () => {
     if (status === 'playing' || status === 'paused') {
       saveGame({ board, difficulty, status, timer, mistakes, history, historyIndex: history.length - 1, selectedCell, mode });
     }
-  }, [board, timer, status]);
+  }, [board, timer, status, difficulty, mistakes, history, selectedCell, mode]);
 
   useEffect(() => {
     let interval;
     const fetchChat = async () => {
       if (isSendingRef.current) return;
       const msgs = await getChatMessages();
-      if (!isSendingRef.current && msgs.length > 0) {
+      if (!isSendingRef.current && Array.isArray(msgs) && msgs.length > 0) {
         setChatMessages(prev => {
           if (prev.length > 0 && msgs.length > prev.length) {
             const lastMsg = msgs[msgs.length - 1];
@@ -2278,15 +2286,42 @@ const App = () => {
     setLeaderboard(await getLeaderboard()); setShowModal('leaderboard');
   };
 
-  const handleThemeChange = (themeId) => {
+  const handleThemeChange = (themeId, { persist = true } = {}) => {
+    if (themeId === activeThemeId) return;
     setActiveThemeId(themeId);
+    if (!persist) {
+      setPendingActiveThemeId(themeId);
+      setAwardsDirty(true);
+      return;
+    }
+    saveActiveTheme(themeId);
     schedulePersist({ activeTheme: themeId });
   };
 
-  const handleSoundPackChange = (packId) => {
+  const handleSoundPackChange = (packId, { persist = true } = {}) => {
+    if (packId === activeSoundPackId) return;
     setActiveSoundPackId(packId);
     SoundManager.setPack(packId);
+    if (!persist) {
+      setPendingActiveSoundPackId(packId);
+      setAwardsDirty(true);
+      return;
+    }
+    saveActiveSoundPack(packId);
     schedulePersist({ activeSoundPack: packId });
+  };
+
+  const handleAwardsClose = () => {
+    setShowAwardsZone(false);
+    if (!awardsDirty) return;
+
+    const finalTheme = pendingActiveThemeId || activeThemeId;
+    const finalPack = pendingActiveSoundPackId || activeSoundPackId;
+
+    saveActiveTheme(finalTheme);
+    saveActiveSoundPack(finalPack);
+    schedulePersist({ activeTheme: finalTheme, activeSoundPack: finalPack });
+    setAwardsDirty(false);
   };
 
   const toggleChat = () => {
@@ -2351,19 +2386,19 @@ const App = () => {
           onPlayLevel={(level) => startNewGame(level.difficulty, level)}
           soundEnabled={soundEnabled}
           onBack={() => { if (soundEnabled) SoundManager.play('uiTap'); setView('menu'); }}
-          onOpenAwards={() => { if (soundEnabled) SoundManager.play('uiTap'); setShowAwardsZone(true); }}
+          onOpenAwards={() => { if (soundEnabled) SoundManager.play('uiTap'); openAwards(); }}
         />
         {showUserPanel && <UserPanel soundEnabled={soundEnabled} onClose={handleUserPanelClose} />}
         {showAwardsZone && (
           <AwardsZone
             soundEnabled={soundEnabled}
-            onClose={() => setShowAwardsZone(false)}
+            onClose={handleAwardsClose}
             activeThemeId={activeThemeId}
             unlockedThemes={unlockedThemes}
-            onSelectTheme={handleThemeChange}
+            onSelectTheme={(id) => handleThemeChange(id, { persist: false })}
             activePackId={activeSoundPackId}
             unlockedPacks={unlockedSoundPacks}
-            onSelectPack={handleSoundPackChange}
+            onSelectPack={(id) => handleSoundPackChange(id, { persist: false })}
           />
         )}
       </>
@@ -2382,20 +2417,20 @@ const App = () => {
           darkMode={darkMode} toggleDarkMode={toggleDarkMode}
           loading={loading} soundEnabled={soundEnabled} toggleSound={toggleSound}
           onShowUserPanel={() => setShowUserPanel(true)}
-          onShowAwards={() => { if (soundEnabled) SoundManager.play('uiTap'); setShowAwardsZone(true); }}
+          onShowAwards={() => { if (soundEnabled) SoundManager.play('uiTap'); openAwards(); }}
           userSession={appUserSession}
         />
         {showUserPanel && <UserPanel soundEnabled={soundEnabled} onClose={handleUserPanelClose} />}
         {showAwardsZone && (
           <AwardsZone
             soundEnabled={soundEnabled}
-            onClose={() => setShowAwardsZone(false)}
+            onClose={handleAwardsClose}
             activeThemeId={activeThemeId}
             unlockedThemes={unlockedThemes}
-            onSelectTheme={handleThemeChange}
+            onSelectTheme={(id) => handleThemeChange(id, { persist: false })}
             activePackId={activeSoundPackId}
             unlockedPacks={unlockedSoundPacks}
-            onSelectPack={handleSoundPackChange}
+            onSelectPack={(id) => handleSoundPackChange(id, { persist: false })}
           />
         )}
       </>
@@ -2425,13 +2460,13 @@ const App = () => {
         {showAwardsZone && (
           <AwardsZone
             soundEnabled={soundEnabled}
-            onClose={() => setShowAwardsZone(false)}
+            onClose={handleAwardsClose}
             activeThemeId={activeThemeId}
             unlockedThemes={unlockedThemes}
-            onSelectTheme={handleThemeChange}
+            onSelectTheme={(id) => handleThemeChange(id, { persist: false })}
             activePackId={activeSoundPackId}
             unlockedPacks={unlockedSoundPacks}
-            onSelectPack={handleSoundPackChange}
+            onSelectPack={(id) => handleSoundPackChange(id, { persist: false })}
           />
         )}
       </>
@@ -2461,7 +2496,7 @@ const App = () => {
                 <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full"></span>
               )}
             </button>
-            <button aria-label="Awards" onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); setShowAwardsZone(true); }} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Awards">
+            <button aria-label="Awards" onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); openAwards(); }} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Awards">
               <Icons.Awards />
             </button>
             <button onClick={toggleSound} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
@@ -2618,13 +2653,13 @@ const App = () => {
       {showAwardsZone && (
         <AwardsZone
           soundEnabled={soundEnabled}
-          onClose={() => setShowAwardsZone(false)}
+          onClose={handleAwardsClose}
           activeThemeId={activeThemeId}
           unlockedThemes={unlockedThemes}
-          onSelectTheme={handleThemeChange}
+          onSelectTheme={(id) => handleThemeChange(id, { persist: false })}
           activePackId={activeSoundPackId}
           unlockedPacks={unlockedSoundPacks}
-          onSelectPack={handleSoundPackChange}
+          onSelectPack={(id) => handleSoundPackChange(id, { persist: false })}
         />
       )}
 
