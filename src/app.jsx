@@ -1857,6 +1857,8 @@ const App = () => {
   const timerRef = useRef(null);
   const chatEndRef = useRef(null);
   const isSendingRef = useRef(false);
+  const persistTimerRef = useRef(null);
+  const pendingPersistRef = useRef(null);
 
   // Persist merged unlock/theme/sound state to backend for authenticated users
   const persistUserStateToBackend = useCallback(async (partial = {}) => {
@@ -1878,6 +1880,23 @@ const App = () => {
       console.error('Failed to persist user state:', err);
     }
   }, [activeThemeId, activeSoundPackId]);
+
+  // Debounced persist to avoid UI lag when toggling themes/sound packs rapidly
+  const flushPendingPersist = useCallback(async () => {
+    const payload = pendingPersistRef.current;
+    pendingPersistRef.current = null;
+    persistTimerRef.current = null;
+    if (payload) {
+      await persistUserStateToBackend(payload);
+    }
+  }, [persistUserStateToBackend]);
+
+  const schedulePersist = useCallback((partial) => {
+    if (!isUserAuthenticated() || !isGasEnvironment()) return;
+    pendingPersistRef.current = { ...(pendingPersistRef.current || {}), ...partial };
+    if (persistTimerRef.current) clearTimeout(persistTimerRef.current);
+    persistTimerRef.current = setTimeout(flushPendingPersist, 350);
+  }, [flushPendingPersist]);
 
   // Hydrate local unlocks and selections from backend, merging with local progress
   const hydrateUserState = useCallback(async (user) => {
@@ -1921,6 +1940,10 @@ const App = () => {
     const handleError = (event) => logError(event.message, event.error);
     window.addEventListener('error', handleError);
     return () => window.removeEventListener('error', handleError);
+  }, []);
+
+  useEffect(() => () => {
+    if (persistTimerRef.current) clearTimeout(persistTimerRef.current);
   }, []);
 
   useEffect(() => {
@@ -2257,17 +2280,13 @@ const App = () => {
 
   const handleThemeChange = (themeId) => {
     setActiveThemeId(themeId);
-    if (isUserAuthenticated() && isGasEnvironment()) {
-      persistUserStateToBackend({ activeTheme: themeId });
-    }
+    schedulePersist({ activeTheme: themeId });
   };
 
   const handleSoundPackChange = (packId) => {
     setActiveSoundPackId(packId);
     SoundManager.setPack(packId);
-    if (isUserAuthenticated() && isGasEnvironment()) {
-      persistUserStateToBackend({ activeSoundPack: packId });
-    }
+    schedulePersist({ activeSoundPack: packId });
   };
 
   const toggleChat = () => {
