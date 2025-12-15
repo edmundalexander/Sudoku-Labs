@@ -173,6 +173,14 @@
     </script>
     <script src="config/config.local.js" onerror="console.warn('config.local.js not found, using fallback');"></script>
 
-<script type="text/babel" data-presets="react, typescript" src="src/app.jsx"></script>
+    <!-- Load modular JavaScript files (plain JS, loaded before React components) -->
+    <!-- Order matters: constants → utils → sound → services → app -->
+    <script src="src/constants.js"></script>
+    <script src="src/utils.js"></script>
+    <script src="src/sound.js"></script>
+    <script src="src/services.js"></script>
+
+    <!-- Load React app (JSX, compiled in-browser by Babel) -->
+    <script type="text/babel" data-presets="react, typescript" src="src/app.jsx"></script>
   </body>
 </html>
