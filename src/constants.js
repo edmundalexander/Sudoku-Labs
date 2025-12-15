@@ -4,7 +4,7 @@
  * Global constants for themes, sound packs, campaign levels, and storage keys.
  * This file uses plain JavaScript (no JSX) and can be loaded before React.
  * 
- * @version 2.2.0
+ * @version 2.3.0
  */
 
 // ============================================================================
