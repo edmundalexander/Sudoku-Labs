@@ -117,7 +117,16 @@
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  </head>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/"
+  }
+}
+</script>
+</head>
   <body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
     <div id="root"></div>
 
@@ -131,6 +140,6 @@
     </script>
     <script src="config/config.local.js" onerror="console.warn('config.local.js not found, using fallback');"></script>
 
-<script type="text/babel" data-presets="env,react" src="src/app.jsx"></script>
+<script type="text/babel" data-presets="react, typescript" src="src/app.jsx"></script>
   </body>
 </html>
