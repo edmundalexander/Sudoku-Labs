@@ -367,7 +367,7 @@ const UserPanel = ({ soundEnabled, onClose }) => {
       const result = await runGasFn('loginUser', { username, password });
       if (result && result.success) {
         setLocalUserSession(result.user);
-        setUserSession(result.user);
+        StorageService.setUserSession(result.user);
         if (soundEnabled) SoundManager.play('success');
         onClose(result.user);
       } else {
@@ -428,7 +428,7 @@ const UserPanel = ({ soundEnabled, onClose }) => {
       const result = await runGasFn('registerUser', { username, password });
       if (result && result.success) {
         setLocalUserSession(result.user);
-        setUserSession(result.user);
+        StorageService.setUserSession(result.user);
         if (soundEnabled) SoundManager.play('success');
         onClose(result.user);
       } else {
@@ -1444,7 +1444,7 @@ const App = () => {
           const updatedProfile = await runGasFn('getUserProfile', { userId: session.userId });
           if (updatedProfile && updatedProfile.success) {
             // Update both global storage and component state for consistency
-            setUserSession(updatedProfile.user);
+            StorageService.setUserSession(updatedProfile.user);
             setAppUserSession(updatedProfile.user);
           }
 
@@ -1510,7 +1510,7 @@ const App = () => {
   const handleUserPanelClose = (updatedUser) => {
     if (updatedUser) {
       // Update both global storage and component state for consistency
-      setUserSession(updatedUser);
+      StorageService.setUserSession(updatedUser);
       setAppUserSession(updatedUser);
     }
     setShowUserPanel(false);
