@@ -1922,6 +1922,8 @@ const App = () => {
   const pendingPersistRef = useRef(null);
   const themeTouchedRef = useRef(false);
   const soundPackTouchedRef = useRef(false);
+  const chatTouchStartRef = useRef(null);
+  const chatTouchLastRef = useRef(null);
 
   // Persist merged unlock/theme/sound state to backend for authenticated users
   const persistUserStateToBackend = useCallback(async (partial = {}) => {
@@ -2027,6 +2029,16 @@ const App = () => {
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
   }, [showEmojiPicker]);
+
+  useEffect(() => {
+    const handleGlobalChatClose = (e) => {
+      if (e.key === 'Escape' && isChatOpen) {
+        closeChat();
+      }
+    };
+    window.addEventListener('keydown', handleGlobalChatClose);
+    return () => window.removeEventListener('keydown', handleGlobalChatClose);
+  }, [isChatOpen, closeChat]);
 
   useEffect(() => () => {
     if (persistTimerRef.current) clearTimeout(persistTimerRef.current);
@@ -2407,11 +2419,51 @@ const App = () => {
     setAwardsDirty(false);
   };
 
-  const toggleChat = () => {
+  const closeChat = useCallback((playSound = true) => {
+    if (playSound && soundEnabled) SoundManager.play('uiTap');
+    setChatNotification(null);
+    setShowEmojiPicker(false);
+    setIsChatOpen(false);
+  }, [soundEnabled]);
+
+  const openChat = useCallback(() => {
     if (soundEnabled) SoundManager.play('uiTap');
     setChatNotification(null);
     setShowEmojiPicker(false);
-    setIsChatOpen(prev => !prev);
+    setIsChatOpen(true);
+  }, [soundEnabled]);
+
+  const handleChatTouchStart = (e) => {
+    const touch = e.touches[0];
+    chatTouchStartRef.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
+    chatTouchLastRef.current = chatTouchStartRef.current;
+  };
+
+  const handleChatTouchMove = (e) => {
+    const touch = e.touches[0];
+    chatTouchLastRef.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
+  };
+
+  const handleChatTouchEnd = () => {
+    const start = chatTouchStartRef.current;
+    const last = chatTouchLastRef.current;
+    chatTouchStartRef.current = null;
+    chatTouchLastRef.current = null;
+    if (!start || !last) return;
+    const deltaY = last.y - start.y;
+    const deltaX = last.x - start.x;
+    const elapsed = last.time - start.time;
+    if (deltaY > 70 && Math.abs(deltaX) < 80 && elapsed < 800) {
+      closeChat();
+    }
+  };
+
+  const toggleChat = () => {
+    if (isChatOpen) {
+      closeChat();
+    } else {
+      openChat();
+    }
   };
 
   const renderModal = () => {
@@ -2705,15 +2757,42 @@ const App = () => {
           </div>
         )}
         {isChatOpen && (
-          <div className="bg-white dark:bg-gray-800 w-72 sm:w-80 h-80 sm:h-96 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 flex flex-col animate-pop overflow-hidden mb-2">
-            <div className="p-2.5 sm:p-3 border-b border-gray-100 dark:border-gray-700 flex flex-col gap-2 bg-gray-50 dark:bg-gray-700/30">
-              <div className="flex justify-between items-center">
-                <span className="font-bold text-xs sm:text-sm text-gray-700 dark:text-gray-200">Live Chat</span>
-                <div className="flex items-center gap-2"><span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span></span></div>
+          <div
+            className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-md w-80 sm:w-96 h-96 sm:h-[28rem] rounded-2xl shadow-2xl ring-1 ring-gray-200 dark:ring-gray-700 flex flex-col animate-pop overflow-hidden mb-2"
+            onTouchStart={handleChatTouchStart}
+            onTouchMove={handleChatTouchMove}
+            onTouchEnd={handleChatTouchEnd}
+          >
+            <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700 flex flex-col gap-2 bg-gradient-to-r from-blue-50/90 via-indigo-50/80 to-blue-100/80 dark:from-gray-800 dark:via-gray-800 dark:to-gray-700">
+              <div className="flex justify-center">
+                <div className="w-12 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600" aria-hidden="true"></div>
+              </div>
+              <div className="flex justify-between items-center gap-2">
+                <button
+                  onClick={toggleChat}
+                  className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-blue-100/70 dark:hover:bg-gray-700/70 transition-colors cursor-pointer"
+                  aria-label="Close chat"
+                >
+                  <span className="font-bold text-sm sm:text-base text-gray-800 dark:text-gray-100">Live Chat</span>
+                  <div className="flex items-center gap-2 text-[11px] sm:text-xs text-gray-600 dark:text-gray-300">
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+                    </span>
+                    Online
+                  </div>
+                </button>
+                <button
+                  onClick={toggleChat}
+                  className="p-1.5 rounded-full text-gray-500 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white hover:bg-gray-200/70 dark:hover:bg-gray-700/70 transition-colors"
+                  aria-label="Collapse chat"
+                >
+                  <Icons.X />
+                </button>
               </div>
               <div className="flex items-center gap-2">
                 <input
-                  className="flex-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg px-2 py-1 text-[10px] sm:text-xs focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="flex-1 bg-white/90 dark:bg-gray-900/70 border border-blue-100 dark:border-gray-700 rounded-lg px-3 py-1.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500"
                   placeholder="Set a status (50 chars)"
                   maxLength={50}
                   value={userStatus}
@@ -2721,37 +2800,40 @@ const App = () => {
                 />
               </div>
             </div>
-            <div className="flex-1 overflow-y-auto p-2.5 sm:p-3 space-y-2.5 sm:space-y-3 bg-gray-50/50 dark:bg-gray-900/50 scrollbar-thin">
-              {chatMessages.length === 0 && <p className="text-center text-xs text-gray-400 mt-4">No messages yet. Say hi!</p>}
+            <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4 bg-white/80 dark:bg-gray-900/70 scrollbar-thin">
+              {chatMessages.length === 0 && <p className="text-center text-sm text-gray-400 mt-4">No messages yet. Say hi!</p>}
               {chatMessages.map(msg => (
                 <div key={msg.id} className={`flex flex-col ${msg.sender === userId ? 'items-end' : 'items-start'}`}>
-                  <div className="flex items-center gap-1 text-[8px] sm:text-[9px] text-gray-500 mb-0.5 px-1 max-w-[90%]">
-                    <span className="font-semibold text-gray-600 dark:text-gray-300">{msg.sender === userId ? 'You' : msg.sender}</span>
+                  <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-gray-500 mb-0.5 px-1 max-w-[90%] leading-tight">
+                    <span className="font-semibold text-gray-700 dark:text-gray-200">{msg.sender === userId ? 'You' : msg.sender}</span>
                     {msg.status && <span className="text-gray-400 truncate">· {msg.status}</span>}
                   </div>
-                  <div className={`px-2.5 sm:px-3 py-1.5 text-xs max-w-[85%] break-words ${msg.sender === userId ? 'bg-blue-600 text-white rounded-2xl rounded-tr-sm' : 'bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-2xl rounded-tl-sm shadow-sm'}`}>{msg.text}</div>
+                  <div className={`px-3.5 sm:px-4 py-2 text-sm max-w-[85%] leading-snug break-words shadow-md ${msg.sender === userId
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-3xl rounded-tr-sm ring-1 ring-blue-400/40'
+                      : 'bg-gray-100/90 dark:bg-gray-800/90 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700 rounded-3xl rounded-tl-sm'}
+                  `}>{msg.text}</div>
                 </div>
               ))}
               <div ref={chatEndRef} />
             </div>
-            <div className="p-1.5 sm:p-2 border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
-              <div className="relative flex gap-1.5 sm:gap-2 items-center">
+            <div className="p-2 sm:p-3 border-t border-gray-200 dark:border-gray-700 bg-white/95 dark:bg-gray-800/95">
+              <div className="relative flex gap-2 sm:gap-3 items-center">
                 <button
                   aria-label="Emoji picker"
-                  className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 text-lg"
+                  className="p-2.5 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 text-lg shadow-sm"
                   onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); setShowEmojiPicker((v) => !v); }}
                 >😀</button>
-                <input className="flex-1 bg-gray-100 dark:bg-gray-900 border-0 rounded-lg px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none transition-shadow" placeholder="Type a message..." maxLength={140} value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleChatSend(chatInput); }} />
-                <button className="p-1.5 sm:p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex-shrink-0" onClick={() => handleChatSend(chatInput)}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M3.105 2.289a.75.75 0 00-.826.95l1.414 4.925A1.5 1.5 0 005.135 9.25h6.115a.75.75 0 010 1.5H5.135a1.5 1.5 0 00-1.442 1.086l-1.414 4.926a.75.75 0 00.826.95 28.896 28.896 0 0015.293-7.154.75.75 0 000-1.115A28.897 28.897 0 003.105 2.289z" /></svg></button>
+                <input className="flex-1 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 sm:px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-shadow placeholder:text-gray-500 dark:placeholder:text-gray-500" placeholder="Type a message..." maxLength={140} value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleChatSend(chatInput); }} />
+                <button className="p-2 sm:p-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex-shrink-0 shadow-md" onClick={() => handleChatSend(chatInput)}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M3.105 2.289a.75.75 0 00-.826.95l1.414 4.925A1.5 1.5 0 005.135 9.25h6.115a.75.75 0 010 1.5H5.135a1.5 1.5 0 00-1.442 1.086l-1.414 4.926a.75.75 0 00.826.95 28.896 28.896 0 0015.293-7.154.75.75 0 000-1.115A28.897 28.897 0 003.105 2.289z" /></svg></button>
 
                 {showEmojiPicker && (
-                  <div className="absolute bottom-12 left-0 right-0 bg-white dark:bg-gray-900 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 p-2 z-10">
+                  <div className="absolute bottom-14 left-0 right-0 bg-white dark:bg-gray-900 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 p-2 z-10">
                     <div className="flex gap-1 overflow-x-auto pb-1">
                       {EMOJI_CATEGORIES.map((cat) => (
                         <button
                           key={cat.id}
                           onClick={() => setEmojiCategory(cat.id)}
-                          className={`px-2 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap ${emojiCategory === cat.id ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200'}`}
+                          className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap ${emojiCategory === cat.id ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200'}`}
                         >
                           {cat.label}
                         </button>
