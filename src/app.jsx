@@ -1,4 +1,45 @@
-const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
+const { useState, useEffect, useCallback, useRef, memo, useMemo, Component } = React;
+
+// --- ERROR BOUNDARY ---
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('React Error Boundary caught:', error, errorInfo);
+    // Log to backend if available
+    if (typeof logError === 'function') {
+      logError('React Error Boundary: ' + error.message, error);
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-100 dark:bg-gray-900">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg max-w-md text-center">
+            <div className="text-4xl mb-4">😕</div>
+            <h1 className="text-xl font-bold text-gray-800 dark:text-white mb-2">Something went wrong</h1>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">The game encountered an unexpected error.</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Reload Game
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // --- CAMPAIGN DATA ---
 const CAMPAIGN_LEVELS = [
@@ -609,6 +650,17 @@ const normalizeChatMessage = (msg) => ({
   timestamp: msg.timestamp,
   status: msg.status || ''
 });
+
+// Sanitize text to prevent XSS when rendering user content
+const sanitizeText = (text) => {
+  if (typeof text !== 'string') return '';
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+};
 
 const getChatMessages = async () => {
   if (isGasEnvironment()) {
@@ -1232,13 +1284,30 @@ const UserPanel = ({ soundEnabled, onClose }) => {
       return;
     }
 
-    if (username.length < 3) {
+    const trimmedUsername = username.trim();
+    if (trimmedUsername.length < 3) {
       setError('Username must be at least 3 characters');
+      return;
+    }
+
+    if (trimmedUsername.length > 20) {
+      setError('Username must be 20 characters or less');
+      return;
+    }
+
+    // Only allow alphanumeric characters and underscores
+    if (!/^[a-zA-Z0-9_]+$/.test(trimmedUsername)) {
+      setError('Username can only contain letters, numbers, and underscores');
       return;
     }
 
     if (password.length < 6) {
       setError('Password must be at least 6 characters');
+      return;
+    }
+
+    if (password.length > 100) {
+      setError('Password must be 100 characters or less');
       return;
     }
 
@@ -1788,7 +1857,7 @@ const ClosingScreen = ({ status, time, difficulty, mistakes, onRestart, onMenu, 
       if (soundEnabled) SoundManager.play(activeQuest.isChest ? 'chestOpen' : 'success');
       triggerConfetti();
     }
-  }, [questCompleted, soundEnabled]);
+  }, [questCompleted, soundEnabled, activeQuest]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 text-gray-900 dark:text-gray-100 animate-fade-in relative">
@@ -2178,9 +2247,9 @@ const App = () => {
   };
 
   const handleNumberInput = useCallback((num) => {
-    if (selectedCell === null || status !== 'playing') return;
+    if (selectedCell === null || status !== 'playing' || !board.length) return;
     const currentCell = board[selectedCell];
-    if (currentCell.isFixed) return;
+    if (!currentCell || currentCell.isFixed) return;
 
     const newBoard = JSON.parse(JSON.stringify(board));
     const target = newBoard[selectedCell];
@@ -2883,4 +2952,8 @@ const App = () => {
 };
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
+root.render(
+  <ErrorBoundary>
+    <App />
+  </ErrorBoundary>
+);
