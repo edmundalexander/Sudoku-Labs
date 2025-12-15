@@ -629,6 +629,28 @@ const UserPanel = ({ soundEnabled, onClose, appUserSession }) => {
                 {localUserSession.totalGames > 0 ? Math.round((localUserSession.totalWins / localUserSession.totalGames) * 100) : 0}%
               </span>
             </div>
+            <div className="grid grid-cols-2 gap-2 text-[11px] sm:text-xs">
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">Easy Wins:</span>
+                <span className="font-semibold text-gray-800 dark:text-white">{localUserSession.easyWins || 0}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">Medium Wins:</span>
+                <span className="font-semibold text-gray-800 dark:text-white">{localUserSession.mediumWins || 0}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">Hard Wins:</span>
+                <span className="font-semibold text-gray-800 dark:text-white">{localUserSession.hardWins || 0}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">Perfect Wins:</span>
+                <span className="font-semibold text-gray-800 dark:text-white">{localUserSession.perfectWins || 0}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">Fast Wins (&lt;3m):</span>
+                <span className="font-semibold text-gray-800 dark:text-white">{localUserSession.fastWins || 0}</span>
+              </div>
+            </div>
           </div>
 
           <button
@@ -1122,9 +1144,9 @@ const CampaignMap = ({ progress, onPlayLevel, soundEnabled, onBack, onOpenAwards
 
                 {/* Level info container - prevent overlapping */}
                 {!isLocked && (
-                  <div className="absolute left-1/2 transform -translate-x-1/2 w-32 text-center" style={{ top: `${topPos + 60}px` }}>
+                  <div className="mt-3 w-32 text-center space-y-1">
                     {/* Title badge */}
-                    <div className="px-2 py-1 bg-gray-900/95 backdrop-blur-md rounded-lg border border-purple-500/40 shadow-xl mb-1.5">
+                    <div className="px-2 py-1 bg-gray-900/95 backdrop-blur-md rounded-lg border border-purple-500/40 shadow-xl">
                       <p className="text-[9px] sm:text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 truncate">
                         {level.title}
                       </p>
@@ -1355,11 +1377,12 @@ const ClosingScreen = ({ status, time, difficulty, mistakes, onRestart, onMenu, 
 
         {newlyUnlockedThemes && newlyUnlockedThemes.length > 0 && (
           <div className="my-3 sm:my-4 p-2.5 sm:p-3 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 rounded-lg border-2 border-purple-300 dark:border-purple-700 animate-pulse-glow">
-            <p className="text-sm sm:text-base font-bold text-purple-700 dark:text-purple-300 mb-2 flex items-center justify-center gap-1.5"><Icons.Palette /> New Theme{newlyUnlockedThemes.length > 1 ? 's' : ''} Unlocked!</p>
+            <p className="text-sm sm:text-base font-bold text-purple-700 dark:text-purple-300 mb-1 flex items-center justify-center gap-1.5"><Icons.Palette /> New Theme{newlyUnlockedThemes.length > 1 ? 's' : ''} Unlocked!</p>
+            <p className="text-[11px] sm:text-xs text-center text-purple-600 dark:text-purple-200 mb-2">Jump into Awards to equip your new look.</p>
             <div className="flex flex-wrap gap-2 justify-center">
               {newlyUnlockedThemes.map(themeId => (
-                <div key={themeId} className="flex items-center gap-1 bg-white dark:bg-gray-800 px-2 py-1 rounded-lg border border-purple-200 dark:border-purple-800">
-                  <span className="text-lg">{THEMES[themeId].icon}</span>
+                <div key={themeId} className="flex items-center gap-1 bg-white dark:bg-gray-800 px-2 py-1 rounded-lg border border-purple-200 dark:border-purple-800 animate-bounce-slow">
+                  <span className="text-lg drop-shadow-lg">{THEMES[themeId].icon}</span>
                   <span className="text-xs sm:text-sm font-medium">{THEMES[themeId].name}</span>
                 </div>
               ))}
@@ -1369,11 +1392,12 @@ const ClosingScreen = ({ status, time, difficulty, mistakes, onRestart, onMenu, 
 
         {newlyUnlockedSoundPacks && newlyUnlockedSoundPacks.length > 0 && (
           <div className="my-3 sm:my-4 p-2.5 sm:p-3 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 rounded-lg border-2 border-blue-200 dark:border-blue-700 animate-pulse-glow">
-            <p className="text-sm sm:text-base font-bold text-blue-700 dark:text-blue-300 mb-2 flex items-center justify-center gap-1.5"><Icons.Music /> New Sound Pack{newlyUnlockedSoundPacks.length > 1 ? 's' : ''} Unlocked!</p>
+            <p className="text-sm sm:text-base font-bold text-blue-700 dark:text-blue-300 mb-1 flex items-center justify-center gap-1.5"><Icons.Music /> New Sound Pack{newlyUnlockedSoundPacks.length > 1 ? 's' : ''} Unlocked!</p>
+            <p className="text-[11px] sm:text-xs text-center text-blue-600 dark:text-blue-200 mb-2">Swap packs in Awards to hear the new vibe.</p>
             <div className="flex flex-wrap gap-2 justify-center">
               {newlyUnlockedSoundPacks.map(packId => (
-                <div key={packId} className="flex items-center gap-1 bg-white dark:bg-gray-800 px-2 py-1 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <span className="text-lg">{SOUND_PACKS[packId]?.icon}</span>
+                <div key={packId} className="flex items-center gap-1 bg-white dark:bg-gray-800 px-2 py-1 rounded-lg border border-blue-200 dark:border-blue-800 animate-bounce-slow">
+                  <span className="text-lg drop-shadow-lg">{SOUND_PACKS[packId]?.icon}</span>
                   <span className="text-xs sm:text-sm font-medium">{SOUND_PACKS[packId]?.name}</span>
                 </div>
               ))}
@@ -1806,14 +1830,15 @@ const App = () => {
     StorageService.saveGameStats(stats);
 
     // Check for theme unlocks
-    const newThemes = checkThemeUnlocks(stats);
+    const newThemes = UnlockService.checkThemeUnlocks(stats);
     if (newThemes.length > 0) {
       setNewlyUnlockedThemes(newThemes);
       setUnlockedThemes(StorageService.getUnlockedThemes()); // Update state with newly unlocked themes
+      if (soundEnabled) setTimeout(() => SoundManager.play('unlock'), 250);
     }
 
     // Check for sound pack unlocks
-    const newPacks = checkSoundPackUnlocks(stats);
+    const newPacks = UnlockService.checkSoundPackUnlocks(stats);
     if (newPacks.length > 0) {
       setNewlyUnlockedSoundPacks(newPacks);
       setUnlockedSoundPacks(StorageService.getUnlockedSoundPacks());
