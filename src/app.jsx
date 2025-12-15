@@ -1062,7 +1062,7 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
               </div>
            </div>
            
-           <div className="mt-6 sm:mt-8 text-xs text-gray-400">v2.1 &bull; Logic Lab Series</div>
+           <footer className="mt-6 sm:mt-8 text-xs md:text-sm lg:text-base text-gray-400">v2.1 &bull; Logic Lab Series</footer>
         </div>
       );
 
@@ -1554,8 +1554,8 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
 
         // 4. GAME SCREEN
         return (
-          <div className="min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 transition-colors duration-300 text-gray-900 dark:text-gray-100">
-            <div className="w-full max-w-7xl flex flex-col gap-3 sm:gap-6">
+          <div className="min-h-screen flex flex-col items-center p-2 sm:p-4 transition-colors duration-300 text-gray-900 dark:text-gray-100">
+            <div className="w-full max-w-7xl flex flex-col gap-3 sm:gap-6 flex-grow">
                 {!isGasEnvironment() && (
                   <div className="w-full mx-auto mb-2 p-2 rounded text-xs sm:text-sm text-yellow-800 bg-yellow-100 border border-yellow-200 text-center">GAS not configured — using local generator for puzzles. Create <span className="font-mono">config/config.local.js</span> with your <span className="font-mono">GAS_URL</span> to enable cloud persistence.</div>
                 )}
@@ -1725,14 +1725,16 @@ const { useState, useEffect, useCallback, useRef, memo, useMemo } = React;
             </div>
             {renderModal()}
             {showUserPanel && <UserPanel soundEnabled={soundEnabled} onClose={handleUserPanelClose} />}
-            <div className="mt-4 text-[9px] sm:text-[10px] text-gray-400 text-center max-w-md px-2">
+            
+            {/* Footer - positioned below content */}
+            <footer className="mt-auto pt-8 pb-4 text-[10px] sm:text-xs md:text-sm lg:text-base text-gray-400 text-center max-w-md px-2 w-full">
               <p>Sudoku Logic Lab v2.1</p>
               <p className="mt-1">
                 Lovingly created by Edmund
                 (<a href="https://github.com/edmund-alexander" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">GitHub</a> | <a href="https://www.paypal.com/paypalme/edmundalexanders" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">Buy me a green tea</a>)
               </p>
-              {!isGasEnvironment() && <p>Persistence simulates Google Apps Script using LocalStorage (Dev) / Sheets (Prod).</p>}
-            </div>
+              {!isGasEnvironment() && <p className="mt-1">Persistence simulates Google Apps Script using LocalStorage (Dev) / Sheets (Prod).</p>}
+            </footer>
           </div>
         );
       };
