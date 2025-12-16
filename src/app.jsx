@@ -59,42 +59,92 @@ class ErrorBoundary extends Component {
 }
 
 // ============================================================================
-// THEME-AWARE ICON STYLING HELPER
+// PROCEDURAL THEME-AWARE VISUAL ELEMENT GENERATOR
 // ============================================================================
 
 /**
- * Get themed styling for decorative icons based on visual and audio theme
- * Similar to campaign map's biome-based styling
+ * Generate procedural theme-specific visual elements (gradients, shapes, animations)
+ * Creates abstract art-like floating elements that reflect the theme's "feel"
  */
-const getIconThemeStyle = (visualThemeId, audioThemeId) => {
-  // Map visual themes to icon colors and shadows
-  const visualStyles = {
-    default: { color: '#3b82f6', shadow: 'shadow-blue-500/50', glow: 'bg-blue-400/20' },
-    ocean: { color: '#0891b2', shadow: 'shadow-cyan-500/50', glow: 'bg-cyan-400/20' },
-    forest: { color: '#059669', shadow: 'shadow-green-500/50', glow: 'bg-emerald-400/20' },
-    sunset: { color: '#ea580c', shadow: 'shadow-orange-500/50', glow: 'bg-orange-400/20' },
-    midnight: { color: '#6366f1', shadow: 'shadow-purple-500/50', glow: 'bg-purple-400/20' },
-    sakura: { color: '#db2777', shadow: 'shadow-pink-500/50', glow: 'bg-pink-400/20' },
-    volcano: { color: '#dc2626', shadow: 'shadow-red-500/50', glow: 'bg-red-400/20' },
-    arctic: { color: '#0284c7', shadow: 'shadow-blue-500/50', glow: 'bg-blue-300/20' }
+const getThemeVisualElement = (visualThemeId, audioThemeId, index) => {
+  // Visual theme color palettes and animation styles
+  const themeConfig = {
+    default: {
+      colors: ['#3b82f6', '#60a5fa', '#93c5fd'],
+      bgGradient: 'linear-gradient(135deg, #3b82f6, #60a5fa)',
+      animation: 'float-slow',
+      blur: 'blur(8px)'
+    },
+    ocean: {
+      colors: ['#0891b2', '#06b6d4', '#67e8f9'],
+      bgGradient: 'linear-gradient(135deg, #06b6d4, #67e8f9)',
+      animation: 'float-slow-wave',
+      blur: 'blur(12px)'
+    },
+    forest: {
+      colors: ['#059669', '#10b981', '#34d399'],
+      bgGradient: 'linear-gradient(135deg, #10b981, #6ee7b7)',
+      animation: 'float-slow',
+      blur: 'blur(10px)'
+    },
+    sunset: {
+      colors: ['#ea580c', '#f97316', '#fb923c'],
+      bgGradient: 'linear-gradient(135deg, #f97316, '#fbbf24)',
+      animation: 'float-glow',
+      blur: 'blur(14px)'
+    },
+    midnight: {
+      colors: ['#6366f1', '#818cf8', '#a5b4fc'],
+      bgGradient: 'linear-gradient(135deg, '#6366f1, #a5b4fc)',
+      animation: 'float-pulse',
+      blur: 'blur(16px)'
+    },
+    sakura: {
+      colors: ['#db2777', '#ec4899', '#f472b6'],
+      bgGradient: 'linear-gradient(135deg, #ec4899, #f472b6)',
+      animation: 'float-soft',
+      blur: 'blur(11px)'
+    },
+    volcano: {
+      colors: ['#dc2626', '#f87171', '#fca5a5'],
+      bgGradient: 'linear-gradient(135deg, #dc2626, #f97316)',
+      animation: 'float-intense',
+      blur: 'blur(9px)'
+    },
+    arctic: {
+      colors: ['#0284c7', '#0ea5e9', '#38bdf8'],
+      bgGradient: 'linear-gradient(135deg, #0ea5e9, #7dd3fc)',
+      animation: 'float-crystalline',
+      blur: 'blur(13px)'
+    }
   };
 
-  // Map audio themes to animation/filter effects
-  const audioEffects = {
-    classic: 'opacity-60 hover:opacity-100',
-    zen: 'opacity-50 blur-sm hover:blur-none',
-    funfair: 'opacity-70 brightness-110 hue-rotate-12',
-    retro: 'opacity-60 pixelated',
-    space: 'opacity-55 hue-rotate-180',
-    nature: 'opacity-60 saturate-150',
-    crystal: 'opacity-75 brightness-125 hue-rotate-45',
-    minimal: 'opacity-50 grayscale hover:grayscale-0'
+  // Audio theme shape and opacity modifiers
+  const audioModifiers = {
+    classic: { shape: 'rounded-full', opacity: 0.6, filter: 'none' },
+    zen: { shape: 'rounded-3xl', opacity: 0.5, filter: 'opacity-50' },
+    funfair: { shape: 'rounded-2xl', opacity: 0.7, filter: 'brightness-110 saturate-150' },
+    retro: { shape: 'rounded-lg', opacity: 0.65, filter: 'hue-rotate-12' },
+    space: { shape: 'rounded-full', opacity: 0.55, filter: 'hue-rotate-180 brightness-90' },
+    nature: { shape: 'rounded-3xl', opacity: 0.6, filter: 'saturate-150' },
+    crystal: { shape: 'rounded-2xl', opacity: 0.75, filter: 'brightness-125' },
+    minimal: { shape: 'rounded-sm', opacity: 0.5, filter: 'grayscale-50' }
   };
 
-  const visual = visualStyles[visualThemeId] || visualStyles.default;
-  const audio = audioEffects[audioThemeId] || audioEffects.classic;
+  const visual = themeConfig[visualThemeId] || themeConfig.default;
+  const audio = audioModifiers[audioThemeId] || audioModifiers.classic;
+  const primaryColor = visual.colors[index % visual.colors.length];
 
-  return { visual, audio };
+  return {
+    background: visual.bgGradient,
+    color: primaryColor,
+    opacity: audio.opacity,
+    shape: audio.shape,
+    filter: audio.filter,
+    blur: visual.blur,
+    animation: visual.animation,
+    size: 40 + (index % 3) * 15  // Vary sizes: 40px, 55px, 70px
+  };
 };
 
 // ============================================================================
@@ -534,32 +584,26 @@ const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSe
               {currentAssetSet.description}
             </p>
             
-            {/* Decor preview - Material Icons with theme styling */}
+            {/* Decor preview - Procedural theme-aware shapes */}
             {currentAssetSet.icons && currentAssetSet.icons.length > 0 && (
-              <div className="flex justify-center gap-2 mb-3">
-                {currentAssetSet.icons.slice(0, 3).map((iconName, i) => {
-                  const { visual, audio } = getIconThemeStyle(activeThemeId, activePackId);
+              <div className="flex justify-center gap-4 mb-3">
+                {currentAssetSet.icons.slice(0, 3).map((_, i) => {
+                  const element = getThemeVisualElement(activeThemeId, activePackId, i);
                   return (
                     <div 
-                      key={i} 
-                      className={`w-10 h-10 flex items-center justify-center animate-float relative ${audio}`}
-                      style={{ animationDelay: `${i * 0.2}s`, fontSize: '20px' }}
-                    >
-                      {/* Small glow */}
-                      <div 
-                        className={`absolute inset-0 rounded-full blur-md ${visual.glow}`}
-                        style={{ opacity: 0.6 }}
-                      />
-                      <span 
-                        className="material-icons-outlined relative z-10"
-                        style={{ 
-                          color: visual.color,
-                          textShadow: `0 2px 6px ${visual.color}40`
-                        }}
-                      >
-                        {iconName}
-                      </span>
-                    </div>
+                      key={i}
+                      className={`${element.shape} animate-float`}
+                      style={{
+                        width: `${element.size * 0.7}px`,
+                        height: `${element.size * 0.7}px`,
+                        background: element.background,
+                        opacity: element.opacity,
+                        animationDelay: `${i * 0.2}s`,
+                        filter: `${element.blur}${element.filter ? ' ' + element.filter : ''}`,
+                        boxShadow: `0 4px 12px ${element.color}40`,
+                        transition: 'all 0.3s ease'
+                      }}
+                    />
                   );
                 })}
               </div>
@@ -2620,41 +2664,29 @@ const App = () => {
         />
       )}
       
-      {/* Decorative elements layer - Material Icons with theme styling */}
+      {/* Decorative elements layer - Procedural theme-aware shapes */}
       {activeAssetSet.icons && activeAssetSet.icons.length > 0 && (
         <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-          {activeAssetSet.icons.map((iconName, i) => {
-            const { visual, audio } = getIconThemeStyle(activeThemeId, activeSoundPackId);
+          {activeAssetSet.icons.map((_, i) => {
+            const element = getThemeVisualElement(activeThemeId, activeSoundPackId, i);
             return (
               <div
                 key={i}
-                className={`absolute animate-float-slow flex items-center justify-center transition-all duration-500 ${audio}`}
+                className={`absolute ${element.shape} ${element.animation}`}
                 style={{
                   left: `${15 + (i % 3) * 30}%`,
                   top: `${10 + Math.floor(i / 3) * 40}%`,
-                  width: '60px',
-                  height: '60px',
+                  width: `${element.size}px`,
+                  height: `${element.size}px`,
+                  background: element.background,
+                  opacity: element.opacity,
                   animationDelay: `${i * 1.5}s`,
                   animationDuration: `${8 + i * 2}s`,
+                  filter: `${element.blur}${element.filter ? ' ' + element.filter : ''}`,
+                  boxShadow: `0 8px 24px ${element.color}40, inset 0 0 12px ${element.color}20`,
+                  transition: 'all 0.3s ease'
                 }}
-              >
-                {/* Glow background */}
-                <div 
-                  className={`absolute inset-0 rounded-full blur-xl animate-pulse ${visual.glow}`}
-                  style={{ animationDelay: `${i * 0.3}s` }}
-                />
-                {/* Icon */}
-                <span 
-                  className="material-icons-outlined relative z-10 transition-all duration-500"
-                  style={{ 
-                    color: visual.color,
-                    fontSize: '32px',
-                    textShadow: `0 4px 12px ${visual.color}40, 0 0 8px ${visual.color}60`
-                  }}
-                >
-                  {iconName}
-                </span>
-              </div>
+              />
             );
           })}
         </div>
