@@ -286,10 +286,41 @@ const Cell = memo(({ data, isSelected, onClick, isCompletedBox }) => {
   );
 });
 
-const SudokuBoard = ({ board, selectedId, onCellClick, completedBoxes }) => {
+const SudokuBoard = ({ board, selectedId, onCellClick, completedBoxes, boardTexture }) => {
+  // Generate texture background style
+  const getTextureStyle = () => {
+    if (!boardTexture || boardTexture.pattern === 'none') return {};
+    
+    const texturePatterns = {
+      paper: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.4'/%3E%3C/svg%3E")`,
+      wood: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='20' viewBox='0 0 100 20'%3E%3Cpath d='M0,10 Q25,8 50,10 T100,10' stroke='%23654321' stroke-width='0.5' fill='none' opacity='0.4'/%3E%3C/svg%3E")`,
+      pixel: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Crect width='4' height='4' fill='%23000' opacity='0.03'/%3E%3Crect x='4' y='4' width='4' height='4' fill='%23000' opacity='0.03'/%3E%3C/svg%3E")`,
+      stone: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3E%3Cpath d='M0,0 L15,2 L30,0 L28,15 L30,30 L15,28 L0,30 L2,15 Z' fill='none' stroke='%23888' stroke-width='0.3' opacity='0.3'/%3E%3C/svg%3E")`,
+      ice: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cpath d='M20,0 L20,40 M0,20 L40,20 M5,5 L35,35 M35,5 L5,35' stroke='%2399ccff' stroke-width='0.3' opacity='0.3'/%3E%3C/svg%3E")`,
+      nebula: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Ccircle cx='15' cy='20' r='1' fill='white' opacity='0.5'/%3E%3Ccircle cx='45' cy='15' r='0.5' fill='white' opacity='0.4'/%3E%3Ccircle cx='30' cy='50' r='0.8' fill='white' opacity='0.5'/%3E%3C/svg%3E")`,
+      carnival: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Ccircle cx='5' cy='5' r='1' fill='%23ff6b6b' opacity='0.15'/%3E%3Ccircle cx='15' cy='15' r='1' fill='%234ecdc4' opacity='0.15'/%3E%3C/svg%3E")`,
+      concrete: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Crect width='10' height='10' fill='%23888' opacity='0.02'/%3E%3C/svg%3E")`
+    };
+    
+    return {
+      backgroundImage: texturePatterns[boardTexture.pattern] || 'none',
+      backgroundRepeat: 'repeat'
+    };
+  };
+  
   return (
-    <div className="border-4 border-gray-800 dark:border-gray-400 rounded-sm overflow-hidden shadow-xl inline-block">
-      <div className="grid grid-cols-9">
+    <div className="border-4 border-gray-800 dark:border-gray-400 rounded-sm overflow-hidden shadow-xl inline-block relative">
+      {/* Board texture overlay */}
+      {boardTexture && boardTexture.pattern !== 'none' && (
+        <div 
+          className="absolute inset-0 pointer-events-none z-10"
+          style={{
+            ...getTextureStyle(),
+            opacity: boardTexture.opacity || 0.15
+          }}
+        />
+      )}
+      <div className="grid grid-cols-9 relative z-0">
         {board.map((cell) => {
           const boxIdx = Math.floor(cell.row / 3) * 3 + Math.floor(cell.col / 3);
           const isCompleted = completedBoxes.includes(boxIdx);
@@ -348,7 +379,7 @@ const CHAT_POLL_INTERVAL = 5000;
 
 // --- AWARDS ZONE (Themes + Sound Packs) ---
 const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSelectTheme, activePackId, unlockedPacks, onSelectPack }) => {
-  const [tab, setTab] = useState('themes');
+  const [tab, setTab] = useState('mix');
   const [stats, setStats] = useState(StorageService.getGameStats());
   
   // Refresh stats from StorageService when component mounts
@@ -359,6 +390,11 @@ const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSe
 
   const isThemeUnlocked = (themeId) => unlockedThemes.includes(themeId);
   const isPackUnlocked = (packId) => unlockedPacks.includes(packId) || SOUND_PACKS[packId]?.unlocked;
+
+  // Get current combinatorial theme asset set
+  const currentAssetSet = useMemo(() => {
+    return getThemeAssetSet(activeThemeId, activePackId);
+  }, [activeThemeId, activePackId]);
 
   const getThemeProgress = (themeId) => {
     if (!THEMES[themeId] || THEMES[themeId].unlocked || isThemeUnlocked(themeId)) return null;
@@ -403,13 +439,139 @@ const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSe
     StorageService.saveActiveSoundPack(packId);
   };
 
+  // Render the Mix & Match tab showing current combination
+  const renderMixMatch = () => {
+    const activeVisualTheme = THEMES[activeThemeId] || THEMES.default;
+    const activeAudioTheme = SOUND_PACKS[activePackId] || SOUND_PACKS.classic;
+    
+    return (
+      <div className="space-y-4">
+        {/* Current Combination Preview */}
+        <div className={`p-4 rounded-xl ${activeVisualTheme.background} border-2 border-gray-300 dark:border-gray-600 relative overflow-hidden`}>
+          {/* Texture overlay visualization */}
+          {currentAssetSet.texture.pattern !== 'none' && (
+            <div 
+              className="absolute inset-0 pointer-events-none"
+              style={{ 
+                opacity: currentAssetSet.texture.opacity,
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='1' fill='%23666'/%3E%3C/svg%3E")`
+              }}
+            />
+          )}
+          
+          <div className="relative z-10 text-center">
+            <div className="flex items-center justify-center gap-3 mb-3">
+              <span className="text-4xl">{activeVisualTheme.icon}</span>
+              <span className="text-2xl text-gray-400">+</span>
+              <span className="text-4xl">{activeAudioTheme.icon}</span>
+            </div>
+            
+            <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-1">
+              {currentAssetSet.name}
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+              {currentAssetSet.description}
+            </p>
+            
+            {/* Decor preview */}
+            {currentAssetSet.decor.length > 0 && (
+              <div className="flex justify-center gap-2 mb-3">
+                {currentAssetSet.decor.map((emoji, i) => (
+                  <span key={i} className="text-2xl animate-float" style={{ animationDelay: `${i * 0.2}s` }}>
+                    {emoji}
+                  </span>
+                ))}
+              </div>
+            )}
+            
+            {/* Texture badge */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/50 dark:bg-black/30 rounded-full text-xs font-medium">
+              <span className="text-gray-600 dark:text-gray-300">Board Texture:</span>
+              <span className="text-gray-800 dark:text-white font-semibold">{currentAssetSet.texture.name}</span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Quick Selection Grid */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Visual Theme Quick Select */}
+          <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
+            <h4 className="text-xs font-bold uppercase text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-1">
+              <Icons.Palette /> Visual Theme
+            </h4>
+            <div className="grid grid-cols-4 gap-1.5">
+              {Object.values(THEMES).map(theme => {
+                const unlocked = isThemeUnlocked(theme.id);
+                const isActive = theme.id === activeThemeId;
+                return (
+                  <button
+                    key={theme.id}
+                    onClick={() => handleThemeSelect(theme.id)}
+                    disabled={!unlocked}
+                    className={`p-2 rounded-lg text-xl transition-all ${
+                      isActive 
+                        ? 'bg-blue-500 ring-2 ring-blue-300' 
+                        : unlocked 
+                          ? 'bg-white dark:bg-gray-600 hover:bg-gray-100 dark:hover:bg-gray-500' 
+                          : 'opacity-40 cursor-not-allowed bg-gray-200 dark:bg-gray-800'
+                    }`}
+                    title={unlocked ? theme.name : `🔒 ${theme.unlockCriteria}`}
+                  >
+                    {theme.icon}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          
+          {/* Audio Theme Quick Select */}
+          <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
+            <h4 className="text-xs font-bold uppercase text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-1">
+              <Icons.Music /> Audio Theme
+            </h4>
+            <div className="grid grid-cols-4 gap-1.5">
+              {Object.values(SOUND_PACKS).map(pack => {
+                const unlocked = isPackUnlocked(pack.id);
+                const isActive = pack.id === activePackId;
+                return (
+                  <button
+                    key={pack.id}
+                    onClick={() => handlePackSelect(pack.id)}
+                    disabled={!unlocked}
+                    className={`p-2 rounded-lg text-xl transition-all ${
+                      isActive 
+                        ? 'bg-blue-500 ring-2 ring-blue-300' 
+                        : unlocked 
+                          ? 'bg-white dark:bg-gray-600 hover:bg-gray-100 dark:hover:bg-gray-500' 
+                          : 'opacity-40 cursor-not-allowed bg-gray-200 dark:bg-gray-800'
+                    }`}
+                    title={unlocked ? pack.name : `🔒 ${pack.unlockCriteria}`}
+                  >
+                    {pack.icon}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+        
+        {/* Combination hint */}
+        <p className="text-xs text-center text-gray-500 dark:text-gray-400">
+          Mix any visual theme with any audio theme to create 64 unique combinations!
+        </p>
+      </div>
+    );
+  };
+
   const renderThemes = () => (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
       {Object.values(THEMES).map((theme) => {
         const unlocked = isThemeUnlocked(theme.id);
         const isActive = theme.id === activeThemeId;
         const progress = getThemeProgress(theme.id);
-        const pairedPack = SOUND_PACKS[theme.pairedSoundPack];
+        
+        // Get preview of what combining with current audio would look like
+        const previewAsset = getThemeAssetSet(theme.id, activePackId);
 
         return (
           <div
@@ -459,15 +621,18 @@ const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSe
                 )}
               </div>
             </div>
-            {/* Theme + Sound Pack pairing preview */}
-            <div className={`mt-3 p-2 rounded-lg ${theme.background} border border-gray-300 dark:border-gray-600`}>
-              <div className="flex items-center justify-center gap-2">
-                <span className="text-xl">{theme.icon}</span>
-                <span className="text-gray-500 dark:text-gray-400 text-xs">+</span>
-                <span className="text-xl">{pairedPack?.icon || SOUND_PACKS.classic.icon}</span>
-                <span className="text-xs font-medium text-gray-700 dark:text-gray-200 ml-1">{theme.pairingName}</span>
+            {/* Current combination preview */}
+            {unlocked && (
+              <div className={`mt-3 p-2 rounded-lg ${theme.background} border border-gray-300 dark:border-gray-600`}>
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-xl">{theme.icon}</span>
+                  <span className="text-gray-500 dark:text-gray-400 text-xs">+</span>
+                  <span className="text-xl">{(SOUND_PACKS[activePackId] || SOUND_PACKS.classic).icon}</span>
+                  <span className="text-xs font-medium text-gray-700 dark:text-gray-200 ml-1">=</span>
+                  <span className="text-xs font-semibold text-gray-800 dark:text-gray-100">{previewAsset.name}</span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         );
       })}
@@ -475,21 +640,15 @@ const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSe
   );
 
   const renderPacks = () => {
-    // Build reverse lookup: soundPackId -> theme that pairs with it
-    const packToTheme = {};
-    Object.values(THEMES).forEach(theme => {
-      if (theme.pairedSoundPack) {
-        packToTheme[theme.pairedSoundPack] = theme;
-      }
-    });
-
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         {Object.values(SOUND_PACKS).map((pack) => {
           const unlocked = isPackUnlocked(pack.id);
           const isActive = pack.id === activePackId;
           const progress = getPackProgress(pack.id);
-          const pairedTheme = packToTheme[pack.id];
+          
+          // Get preview of what combining with current visual would look like
+          const previewAsset = getThemeAssetSet(activeThemeId, pack.id);
 
           return (
             <div
@@ -515,14 +674,6 @@ const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSe
                     {!unlocked && <span className="text-xs text-gray-500">🔒</span>}
                   </div>
                   <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">{pack.description}</p>
-                  {/* Show paired visual theme */}
-                  {pairedTheme && (
-                    <p className="text-xs text-purple-600 dark:text-purple-400 mt-1 flex items-center gap-1">
-                      <span>Pairs with</span>
-                      <span className="text-sm">{pairedTheme.icon}</span>
-                      <span className="font-medium">{pairedTheme.name}</span>
-                    </p>
-                  )}
                   {!unlocked && pack.unlockCriteria && (
                     <div className="mt-2 text-xs space-y-1.5">
                       <p className="text-gray-500 dark:text-gray-400"><span className="font-semibold">Unlock:</span> {pack.unlockCriteria}</p>
@@ -545,6 +696,18 @@ const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSe
                   )}
                 </div>
               </div>
+              {/* Current combination preview */}
+              {unlocked && (
+                <div className={`mt-3 p-2 rounded-lg ${(THEMES[activeThemeId] || THEMES.default).background} border border-gray-300 dark:border-gray-600`}>
+                  <div className="flex items-center justify-center gap-2">
+                    <span className="text-xl">{(THEMES[activeThemeId] || THEMES.default).icon}</span>
+                    <span className="text-gray-500 dark:text-gray-400 text-xs">+</span>
+                    <span className="text-xl">{pack.icon}</span>
+                    <span className="text-xs font-medium text-gray-700 dark:text-gray-200 ml-1">=</span>
+                    <span className="text-xs font-semibold text-gray-800 dark:text-gray-100">{previewAsset.name}</span>
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}
@@ -563,23 +726,31 @@ const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSe
         </button>
 
         <div className="flex items-center gap-2 mb-2 sm:mb-3">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2"><Icons.Awards /> Awards</h2>
-          <span className="text-[10px] sm:text-xs text-gray-500">Visual Themes and Sound Packs</span>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2"><Icons.Awards /> Theme Lab</h2>
+          <span className="text-[10px] sm:text-xs text-gray-500">Mix & Match</span>
         </div>
-        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">Track your unlocks and switch your look and sound from one place.</p>
+        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
+          Combine any visual theme with any audio theme to create your perfect experience.
+        </p>
 
-        <div className="flex gap-2 mb-4">
+        <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
+          <button
+            onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); setTab('mix'); }}
+            className={`px-3 py-2 rounded-lg text-sm font-semibold border whitespace-nowrap ${tab === 'mix' ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white border-blue-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'}`}
+          >🎨 Mix & Match</button>
           <button
             onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); setTab('themes'); }}
-            className={`px-3 py-2 rounded-lg text-sm font-semibold border ${tab === 'themes' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'}`}
-          >Visual Themes</button>
+            className={`px-3 py-2 rounded-lg text-sm font-semibold border whitespace-nowrap ${tab === 'themes' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'}`}
+          >👁️ Visual Themes</button>
           <button
             onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); setTab('sounds'); }}
-            className={`px-3 py-2 rounded-lg text-sm font-semibold border ${tab === 'sounds' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'}`}
-          >Sound Packs</button>
+            className={`px-3 py-2 rounded-lg text-sm font-semibold border whitespace-nowrap ${tab === 'sounds' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'}`}
+          >🔊 Audio Themes</button>
         </div>
 
-        {tab === 'themes' ? renderThemes() : renderPacks()}
+        {tab === 'mix' && renderMixMatch()}
+        {tab === 'themes' && renderThemes()}
+        {tab === 'sounds' && renderPacks()}
       </div>
     </div>
   );
@@ -2467,10 +2638,55 @@ const App = () => {
   }
 
   // 4. GAME SCREEN
-  const activeTheme = THEMES[activeThemeId] || THEMES.default;
+  const activeAssetSet = useMemo(() => getThemeAssetSet(activeThemeId, activeSoundPackId), [activeThemeId, activeSoundPackId]);
   return (
-    <div className={`min-h-screen flex flex-col items-center p-2 sm:p-4 transition-colors duration-300 text-gray-900 dark:text-gray-100 ${activeTheme.background}`}>
-      <div className="w-full max-w-7xl flex flex-col gap-3 sm:gap-6 flex-grow">
+    <div className={`min-h-screen flex flex-col items-center p-2 sm:p-4 transition-colors duration-300 text-gray-900 dark:text-gray-100 ${activeAssetSet.background} relative overflow-hidden`}>
+      {/* Texture overlay layer */}
+      {activeAssetSet.texture.pattern !== 'none' && (
+        <div 
+          className="absolute inset-0 pointer-events-none z-0"
+          style={{ 
+            opacity: activeAssetSet.texture.opacity,
+            backgroundImage: activeAssetSet.texture.pattern === 'paper' 
+              ? `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.4'/%3E%3C/svg%3E")`
+              : activeAssetSet.texture.pattern === 'wood'
+                ? `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cdefs%3E%3Cpattern id='wood' patternUnits='userSpaceOnUse' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23b5651d' opacity='0.1'/%3E%3Cpath d='M0,20 Q50,15 100,20 T200,20' stroke='%23654321' stroke-width='0.5' fill='none' opacity='0.3'/%3E%3Cpath d='M0,60 Q50,55 100,60 T200,60' stroke='%23654321' stroke-width='0.5' fill='none' opacity='0.3'/%3E%3Cpath d='M0,100 Q50,95 100,100 T200,100' stroke='%23654321' stroke-width='0.5' fill='none' opacity='0.3'/%3E%3Cpath d='M0,140 Q50,135 100,140 T200,140' stroke='%23654321' stroke-width='0.5' fill='none' opacity='0.3'/%3E%3Cpath d='M0,180 Q50,175 100,180 T200,180' stroke='%23654321' stroke-width='0.5' fill='none' opacity='0.3'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='200' height='200' fill='url(%23wood)'/%3E%3C/svg%3E")`
+                : activeAssetSet.texture.pattern === 'pixel'
+                  ? `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Crect width='8' height='8' fill='%23000' opacity='0.05'/%3E%3Crect x='8' y='8' width='8' height='8' fill='%23000' opacity='0.05'/%3E%3C/svg%3E")`
+                  : activeAssetSet.texture.pattern === 'stone'
+                    ? `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cpath d='M0,0 L30,5 L60,0 L55,30 L60,60 L30,55 L0,60 L5,30 Z' fill='none' stroke='%23666' stroke-width='0.5' opacity='0.2'/%3E%3C/svg%3E")`
+                    : activeAssetSet.texture.pattern === 'ice'
+                      ? `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cpath d='M40,0 L40,80 M0,40 L80,40 M10,10 L70,70 M70,10 L10,70' stroke='%2399ccff' stroke-width='0.5' opacity='0.3'/%3E%3C/svg%3E")`
+                      : activeAssetSet.texture.pattern === 'nebula'
+                        ? `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cdefs%3E%3CradialGradient id='star'%3E%3Cstop offset='0%25' stop-color='white' stop-opacity='0.8'/%3E%3Cstop offset='100%25' stop-color='white' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='20' cy='30' r='1' fill='url(%23star)'/%3E%3Ccircle cx='70' cy='20' r='0.5' fill='url(%23star)'/%3E%3Ccircle cx='50' cy='80' r='0.8' fill='url(%23star)'/%3E%3Ccircle cx='85' cy='60' r='0.6' fill='url(%23star)'/%3E%3C/svg%3E")`
+                        : activeAssetSet.texture.pattern === 'carnival'
+                          ? `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Ccircle cx='10' cy='10' r='2' fill='%23ff6b6b' opacity='0.2'/%3E%3Ccircle cx='30' cy='30' r='2' fill='%234ecdc4' opacity='0.2'/%3E%3Ccircle cx='30' cy='10' r='1.5' fill='%23ffe66d' opacity='0.2'/%3E%3Ccircle cx='10' cy='30' r='1.5' fill='%23c9b1ff' opacity='0.2'/%3E%3C/svg%3E")`
+                          : `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Crect width='20' height='20' fill='%23888' opacity='0.03'/%3E%3C/svg%3E")`
+          }}
+        />
+      )}
+      
+      {/* Decorative elements layer */}
+      {activeAssetSet.decor.length > 0 && (
+        <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+          {activeAssetSet.decor.map((emoji, i) => (
+            <span
+              key={i}
+              className="absolute text-2xl sm:text-3xl opacity-20 animate-float-slow"
+              style={{
+                left: `${15 + i * 30}%`,
+                top: `${10 + (i % 2) * 70}%`,
+                animationDelay: `${i * 1.5}s`,
+                animationDuration: `${8 + i * 2}s`
+              }}
+            >
+              {emoji}
+            </span>
+          ))}
+        </div>
+      )}
+      
+      <div className="w-full max-w-7xl flex flex-col gap-3 sm:gap-6 flex-grow relative z-10">
         {!isGasEnvironment() && (
           <div className="w-full mx-auto mb-2 p-2 rounded text-xs sm:text-sm text-yellow-800 bg-yellow-100 border border-yellow-200 text-center">GAS not configured — using local generator for puzzles. Create <span className="font-mono">config/config.local.js</span> with your <span className="font-mono">GAS_URL</span> to enable cloud persistence.</div>
         )}
@@ -2515,6 +2731,7 @@ const App = () => {
               board={board} selectedId={selectedCell}
               onCellClick={(id) => { if (soundEnabled) SoundManager.play('select'); setSelectedCell(id); }}
               completedBoxes={completedBoxes}
+              boardTexture={activeAssetSet.texture}
             />
           </div>
 
