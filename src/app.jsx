@@ -495,22 +495,23 @@ const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSe
               {currentAssetSet.description}
             </p>
             
-            {/* Decor preview - SVG based */}
-            {currentAssetSet.svgDecor && currentAssetSet.svgDecor.length > 0 && (
+            {/* Decor preview - Material Icons based */}
+            {currentAssetSet.icons && currentAssetSet.icons.length > 0 && (
               <div className="flex justify-center gap-2 mb-3">
-                {currentAssetSet.svgDecor.slice(0, 3).map((svgString, i) => (
+                {currentAssetSet.icons.slice(0, 3).map((iconName, i) => (
                   <div 
                     key={i} 
-                    className="w-10 h-10 animate-float"
-                    style={{ animationDelay: `${i * 0.2}s` }}
-                    dangerouslySetInnerHTML={{ __html: svgString }}
-                  />
+                    className="w-10 h-10 flex items-center justify-center animate-float text-blue-600 dark:text-blue-400"
+                    style={{ animationDelay: `${i * 0.2}s`, fontSize: '24px' }}
+                  >
+                    <span className="material-icons-outlined">{iconName}</span>
+                  </div>
                 ))}
               </div>
             )}
             
             {/* Fallback emoji decor preview */}
-            {(!currentAssetSet.svgDecor || currentAssetSet.svgDecor.length === 0) && currentAssetSet.decor.length > 0 && (
+            {(!currentAssetSet.icons || currentAssetSet.icons.length === 0) && currentAssetSet.decor.length > 0 && (
               <div className="flex justify-center gap-2 mb-3">
                 {currentAssetSet.decor.map((emoji, i) => (
                   <span key={i} className="text-2xl animate-float" style={{ animationDelay: `${i * 0.2}s` }}>
@@ -2564,13 +2565,13 @@ const App = () => {
         />
       )}
       
-      {/* Decorative elements layer - SVG based */}
-      {activeAssetSet.svgDecor && activeAssetSet.svgDecor.length > 0 && (
+      {/* Decorative elements layer - Material Icons based */}
+      {activeAssetSet.icons && activeAssetSet.icons.length > 0 && (
         <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-          {activeAssetSet.svgDecor.map((svgString, i) => (
+          {activeAssetSet.icons.map((iconName, i) => (
             <div
               key={i}
-              className="absolute animate-float-slow"
+              className="absolute animate-float-slow flex items-center justify-center"
               style={{
                 left: `${15 + (i % 3) * 30}%`,
                 top: `${10 + Math.floor(i / 3) * 40}%`,
@@ -2578,16 +2579,18 @@ const App = () => {
                 height: '60px',
                 animationDelay: `${i * 1.5}s`,
                 animationDuration: `${8 + i * 2}s`,
-                opacity: 0.7
+                opacity: 0.5,
+                fontSize: '32px'
               }}
-              dangerouslySetInnerHTML={{ __html: svgString }}
-            />
+            >
+              <span className="material-icons-outlined">{iconName}</span>
+            </div>
           ))}
         </div>
       )}
       
-      {/* Fallback emoji decorations (if no SVG decor available) */}
-      {(!activeAssetSet.svgDecor || activeAssetSet.svgDecor.length === 0) && activeAssetSet.decor.length > 0 && (
+      {/* Fallback emoji decorations (if no Material Icons available) */}
+      {(!activeAssetSet.icons || activeAssetSet.icons.length === 0) && activeAssetSet.decor.length > 0 && (
         <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
           {activeAssetSet.decor.map((emoji, i) => (
             <span

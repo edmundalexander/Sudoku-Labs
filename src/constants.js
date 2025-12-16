@@ -448,93 +448,37 @@ const SVG_PATTERNS = Object.freeze({
 });
 
 // ============================================================================
-// SVG DECORATIONS - Theme-aware custom drawn elements
+// MATERIAL ICONS - Theme-aware icon decorations
 // ============================================================================
 
 /**
- * SVG decorator generators for each theme combination
- * Returns an array of SVG strings to render as floating decorations
+ * Material Icons for each theme combination
+ * Icon names from Google Material Icons Outlined font
  */
-const SVG_DECORATIONS = Object.freeze({
-  // Watercolor/Zen themes - brush strokes and flowing elements
-  watercolor: [
-    // Brush stroke 1
-    `<svg xmlns='http://www.w3.org/2000/svg' width='40' height='30' viewBox='0 0 40 30'><path d='M5,15 Q15,8 35,12 T50,15' stroke='%234f46e5' stroke-width='2' fill='none' opacity='0.4' stroke-linecap='round'/></svg>`,
-    // Brush stroke 2
-    `<svg xmlns='http://www.w3.org/2000/svg' width='35' height='25' viewBox='0 0 35 25'><ellipse cx='17' cy='12' rx='12' ry='8' fill='%232563eb' opacity='0.25'/></svg>`,
-    // Flowing wash
-    `<svg xmlns='http://www.w3.org/2000/svg' width='50' height='20' viewBox='0 0 50 20'><path d='M0,10 Q12,5 25,10 T50,10' stroke='%237c3aed' stroke-width='1.5' fill='none' opacity='0.3'/></svg>`
-  ],
+const MATERIAL_ICONS = Object.freeze({
+  // Watercolor/Zen themes - peaceful, flowing
+  watercolor: ['waves', 'brush', 'palette', 'water_droplet'],
   
-  // Ocean/Aquatic - bubbles and water droplets
-  aquatic: [
-    // Bubble
-    `<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><circle cx='12' cy='12' r='10' fill='none' stroke='%230ea5e9' stroke-width='1.5' opacity='0.5'/><circle cx='14' cy='10' r='2' fill='%23bfdbfe' opacity='0.6'/></svg>`,
-    // Water droplet
-    `<svg xmlns='http://www.w3.org/2000/svg' width='16' height='20' viewBox='0 0 16 20'><path d='M8,2 Q12,8 12,14 Q12,18 8,20 Q4,18 4,14 Q4,8 8,2' fill='%230284c7' opacity='0.4'/></svg>`,
-    // Spiral wave
-    `<svg xmlns='http://www.w3.org/2000/svg' width='35' height='15' viewBox='0 0 35 15'><path d='M2,8 Q8,3 14,8 T26,8 T38,8' stroke='%2306b6d4' stroke-width='1' fill='none' opacity='0.4'/></svg>`
-  ],
+  // Ocean/Aquatic - water elements
+  aquatic: ['bubble_chart', 'water', 'waves', 'water_droplet', 'bubble_chart'],
   
-  // Forest/Nature - leaves and organic shapes
-  organic: [
-    // Leaf 1
-    `<svg xmlns='http://www.w3.org/2000/svg' width='20' height='28' viewBox='0 0 20 28'><path d='M10,2 Q15,10 14,18 Q10,24 10,28 Q6,24 6,18 Q5,10 10,2' fill='%2310b981' opacity='0.45' stroke='%23059669' stroke-width='0.5'/></svg>`,
-    // Leaf 2
-    `<svg xmlns='http://www.w3.org/2000/svg' width='18' height='26' viewBox='0 0 18 26'><path d='M9,1 Q14,8 13,16 Q9,22 9,26 Q5,22 5,16 Q4,8 9,1' fill='%2334d399' opacity='0.4' stroke='%2310b981' stroke-width='0.5'/></svg>`,
-    // Organic blob
-    `<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><circle cx='12' cy='12' r='8' fill='%236ee7b7' opacity='0.35'/><circle cx='10' cy='10' r='3' fill='%2310b981' opacity='0.3'/></svg>`
-  ],
+  // Forest/Nature - organic, living
+  organic: ['eco', 'leaf', 'nature', 'oak', 'park', 'forest'],
   
-  // Pixel/Retro - 8-bit style elements
-  pixel: [
-    // Pixel square 1
-    `<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><rect x='4' y='4' width='8' height='8' fill='%23f97316' opacity='0.5'/><rect x='6' y='6' width='4' height='4' fill='%23fbbf24' opacity='0.6'/></svg>`,
-    // Pixel square 2
-    `<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><rect x='2' y='2' width='8' height='8' fill='%23ec4899' opacity='0.5'/></svg>`,
-    // Pixel petals (for 8-bit blossom)
-    `<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><rect x='8' y='2' width='4' height='4' fill='%23f472b6' opacity='0.6'/><rect x='2' y='8' width='4' height='4' fill='%23f472b6' opacity='0.6'/><rect x='14' y='8' width='4' height='4' fill='%23f472b6' opacity='0.6'/><rect x='8' y='14' width='4' height='4' fill='%23f472b6' opacity='0.6'/></svg>`
-  ],
+  // Pixel/Retro - geometric, sharp
+  pixel: ['apps', 'grid_3x3', 'grid_4x4', 'dashboard', 'pentagon'],
   
-  // Cosmic/Space - stars and celestial
-  cosmic: [
-    // Star glow
-    `<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><circle cx='10' cy='10' r='6' fill='%2360a5fa' opacity='0.3'/><circle cx='10' cy='10' r='2' fill='%2393c5fd' opacity='0.7'/></svg>`,
-    // Twinkle
-    `<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><circle cx='8' cy='8' r='4' fill='%2397f3ff' opacity='0.4'/></svg>`,
-    // Cosmic dust
-    `<svg xmlns='http://www.w3.org/2000/svg' width='28' height='10' viewBox='0 0 28 10'><circle cx='4' cy='5' r='1.5' fill='%236366f1' opacity='0.3'/><circle cx='10' cy='3' r='1' fill='%2360a5fa' opacity='0.4'/><circle cx='16' cy='6' r='1.2' fill='%238b5cf6' opacity='0.35'/><circle cx='24' cy='4' r='1' fill='%2360a5fa' opacity='0.3'/></svg>`
-  ],
+  // Cosmic/Space - celestial, vast
+  cosmic: ['star', 'stars', 'starstruck', 'rocket', 'explore', 'public'],
   
-  // Sakura/Blossom - petals and flowers
-  blossom: [
-    // Petal 1
-    `<svg xmlns='http://www.w3.org/2000/svg' width='16' height='18' viewBox='0 0 16 18'><path d='M8,1 Q11,6 10,14 Q8,16 6,14 Q5,6 8,1' fill='%23ec4899' opacity='0.45'/></svg>`,
-    // Petal 2
-    `<svg xmlns='http://www.w3.org/2000/svg' width='18' height='16' viewBox='0 0 18 16'><path d='M9,1 Q14,5 14,12 Q12,15 9,15 Q6,15 4,12 Q4,5 9,1' fill='%23f472b6' opacity='0.4'/></svg>`,
-    // Flower center
-    `<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'><circle cx='7' cy='7' r='5' fill='%23fbcfe8' opacity='0.5'/><circle cx='7' cy='7' r='2' fill='%23ec4899' opacity='0.6'/></svg>`
-  ],
+  // Sakura/Blossom - floral, delicate
+  blossom: ['local_florist', 'favorite', 'favorite_border', 'spa', 'toy_brick'],
   
-  // Volcano/Heat - flames and intensity
-  flame: [
-    // Flame shape
-    `<svg xmlns='http://www.w3.org/2000/svg' width='14' height='24' viewBox='0 0 14 24'><path d='M7,2 Q10,8 9,15 Q7,21 7,24 Q5,21 4,15 Q3,8 7,2' fill='%23ef4444' opacity='0.45'/><path d='M7,5 Q9,10 8,16 Q7,20 7,23 Q5,20 5,16 Q4,10 7,5' fill='%23f97316' opacity='0.35'/></svg>`,
-    // Glow spark
-    `<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 18 18'><circle cx='9' cy='9' r='7' fill='%23fbbf24' opacity='0.3'/><circle cx='9' cy='9' r='3' fill='%23f97316' opacity='0.5'/></svg>`,
-    // Heat wave
-    `<svg xmlns='http://www.w3.org/2000/svg' width='32' height='10' viewBox='0 0 32 10'><path d='M2,7 Q8,2 14,7 T26,7 T40,7' stroke='%23ea580c' stroke-width='1.5' fill='none' opacity='0.4'/></svg>`
-  ],
+  // Volcano/Heat - intense, powerful
+  flame: ['local_fire_department', 'whatshot', 'power', 'bolt', 'energy_savings_leaf'],
   
-  // Arctic/Crystal - crystalline patterns
-  crystal: [
-    // Ice crystal 1
-    `<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><path d='M10,2 L12,8 L10,10 L8,8 Z' fill='%2399ccff' opacity='0.5'/><path d='M18,10 L12,12 L10,10 L12,8 Z' fill='%237dd3fc' opacity='0.45'/><path d='M10,18 L8,12 L10,10 L12,12 Z' fill='%2399ccff' opacity='0.5'/><path d='M2,10 L8,8 L10,10 L8,12 Z' fill='%237dd3fc' opacity='0.45'/></svg>`,
-    // Ice diamond
-    `<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><path d='M8,1 L13,8 L8,15 L3,8 Z' fill='none' stroke='%2399ccff' stroke-width='1.2' opacity='0.5'/></svg>`,
-    // Snowflake
-    `<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 18 18'><circle cx='9' cy='9' r='6' fill='%23bfdbfe' opacity='0.3'/><path d='M9,3 L9,15 M3,9 L15,9 M5,5 L13,13 M13,5 L5,13' stroke='%230ea5e9' stroke-width='1' opacity='0.4'/></svg>`
-  ]
+  // Arctic/Crystal - cool, geometric
+  crystal: ['diamond', 'ac_unit', 'auto_awesome', 'snow_shoeing', 'cloud']
 });
 
 // Audio theme modifiers (how audio themes influence the visual rendering)
@@ -1000,26 +944,26 @@ const getThemeAssetSet = (visualId, audioId) => {
   const svgBgKey = `${visualId}_bg`;
   const svgBg = SVG_PATTERNS[svgBgKey] || '';
   
-  // Map audio themes to SVG decoration styles
-  const audioDecorMap = {
-    zen: SVG_DECORATIONS.watercolor,
-    funfair: SVG_DECORATIONS.pixel,
-    retro: SVG_DECORATIONS.pixel,
-    space: SVG_DECORATIONS.cosmic,
-    nature: SVG_DECORATIONS.organic,
-    crystal: SVG_DECORATIONS.crystal,
+  // Map audio themes to Material Icon sets
+  const audioIconMap = {
+    zen: MATERIAL_ICONS.watercolor,
+    funfair: MATERIAL_ICONS.pixel,
+    retro: MATERIAL_ICONS.pixel,
+    space: MATERIAL_ICONS.cosmic,
+    nature: MATERIAL_ICONS.organic,
+    crystal: MATERIAL_ICONS.crystal,
     minimal: [] // No decorations for minimal
   };
   
-  // Get SVG decorations based on audio theme, with aquatic/blossom fallbacks for visual themes
-  let svgDecor = audioDecorMap[audioId] || [];
-  if (!svgDecor.length) {
+  // Get Material Icons based on audio theme, with visual theme fallbacks
+  let icons = audioIconMap[audioId] || [];
+  if (!icons.length) {
     if (audioId === 'classic') {
       // Default uses visual theme hints
-      if (visualId === 'ocean') svgDecor = SVG_DECORATIONS.aquatic;
-      else if (visualId === 'sakura') svgDecor = SVG_DECORATIONS.blossom;
-      else if (visualId === 'volcano') svgDecor = SVG_DECORATIONS.flame;
-      else if (visualId === 'arctic') svgDecor = SVG_DECORATIONS.crystal;
+      if (visualId === 'ocean') icons = MATERIAL_ICONS.aquatic;
+      else if (visualId === 'sakura') icons = MATERIAL_ICONS.blossom;
+      else if (visualId === 'volcano') icons = MATERIAL_ICONS.flame;
+      else if (visualId === 'arctic') icons = MATERIAL_ICONS.crystal;
     }
   }
   
@@ -1039,8 +983,8 @@ const getThemeAssetSet = (visualId, audioId) => {
     // SVG background pattern (theme-specific)
     svgBackground: svgBg,
     
-    // SVG decorative elements (theme-specific)
-    svgDecor: svgDecor,
+    // Material Icon names (theme-specific)
+    icons: icons,
     
     // Texture overlay
     texture: {
@@ -1108,6 +1052,6 @@ window.BOARD_TEXTURES = BOARD_TEXTURES;
 window.DECOR_SETS = DECOR_SETS;
 window.THEME_COMBINATIONS = THEME_COMBINATIONS;
 window.SVG_PATTERNS = SVG_PATTERNS;
-window.SVG_DECORATIONS = SVG_DECORATIONS;
+window.MATERIAL_ICONS = MATERIAL_ICONS;
 window.getComboKey = getComboKey;
 window.getThemeAssetSet = getThemeAssetSet;
