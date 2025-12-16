@@ -2,7 +2,7 @@
 """
 Generate themed background images for Sudoku-Labs using Google Gemini Imagen via REST API.
 - Iterates over assets/themes/<visual>/<audio>/
-- Builds a prompt from the combo (visual + audio) with tailored style hints
+- Builds a prompt from the combo description with tailored style hints
 - Saves output to background.png (or background.jpg) inside each folder
 - Graceful fallback: if GEMINI_API_KEY is missing or API fails, writes a procedural SVG placeholder (background.svg)
 
@@ -20,6 +20,7 @@ import sys
 import argparse
 import base64
 import io
+import json
 from pathlib import Path
 
 # Optional: try to import required libraries
@@ -44,6 +45,16 @@ AUDIOS = [
     "classic","zen","funfair","retro","space","nature","crystal","minimal"
 ]
 
+# Load theme combo descriptions
+def load_theme_combos():
+    combo_file = Path(__file__).parent / "theme_combos.json"
+    if combo_file.exists():
+        with open(combo_file) as f:
+            return json.load(f)
+    return {}
+
+THEME_COMBOS = load_theme_combos()
+
 STYLE_HINTS = {
     "ocean": "Underwater ambience with soft cyan-blue gradients, gentle waves, light caustics",
     "forest": "Organic greens, leaf textures, dappled light, soft bokeh",
@@ -67,15 +78,22 @@ AUDIO_HINTS = {
 }
 
 def build_prompt(visual: str, audio: str) -> str:
-    visual_hint = STYLE_HINTS.get(visual, STYLE_HINTS["default"])
-    audio_hint = AUDIO_HINTS.get(audio, AUDIO_HINTS["classic"])
+    combo_key = f"{visual}_{audio}"
+    combo = THEME_COMBOS.get(combo_key, {})
+    
+    # Use the combo's description as the primary creative direction
+    description = combo.get('description', f'{visual} + {audio}')
+    name = combo.get('name', f'{visual.title()} {audio.title()}')
+    
+    # Build a detailed prompt using the combo description
     return (
-        f"Generate a seamless, abstract background for a Sudoku UI. "
-        f"Theme: {visual} + {audio}. "
-        f"Visual style: {visual_hint}. "
-        f"Audio feel: {audio_hint}. "
-        f"Constraints: seamless, non-distracting, soft gradients and shapes, high readability, 1920x1080, PNG. "
-        f"Avoid text, faces, and high detail."
+        f"Generate a seamless, abstract background for a Sudoku puzzle game UI. "
+        f"Theme name: {name}. "
+        f"Creative direction: {description}. "
+        f"Style: Abstract gradients and soft shapes that evoke this mood. "
+        f"Requirements: Seamless, non-distracting, high readability for black text overlay, "
+        f"16:9 aspect ratio (1920x1080), PNG format. "
+        f"Avoid: Text, faces, logos, high detail, busy patterns."
     )
 
 def write_placeholder_svg(out_path: Path, visual: str):
