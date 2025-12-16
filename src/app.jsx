@@ -2656,7 +2656,7 @@ const App = () => {
 
   // 4. GAME SCREEN
   return (
-    <div className={`min-h-screen flex flex-col items-center p-2 sm:p-4 transition-colors duration-300 text-gray-900 dark:text-gray-100 ${activeAssetSet.background} relative overflow-hidden`}>
+    <div className={`min-h-screen flex flex-col items-center p-2 sm:p-4 transition-colors duration-300 text-gray-900 dark:text-gray-100 ${activeAssetSet.background} relative overflow-x-hidden`}>
       {/* SVG Background Pattern Layer (theme-specific) */}
       {activeAssetSet.svgBackground && (
         <div 
@@ -3022,9 +3022,18 @@ const App = () => {
         />
       )}
 
-      {/* Footer - positioned with reduced spacing */}
-      <footer className="mt-6 sm:mt-8 pt-4 pb-4 text-[10px] sm:text-xs md:text-sm text-gray-400 text-center px-2 w-full">
-        Sudoku Logic Lab v2.3 • Created by Edmund (<a href="https://github.com/edmund-alexander" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">GitHub</a> | <a href="https://www.paypal.com/paypalme/edmundalexanders" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">Buy me a green tea</a>)
+      {/* Footer - legible over all themes */}
+      <footer className="mt-6 sm:mt-8 pt-4 pb-5 text-[10px] sm:text-xs md:text-sm text-center px-3 w-full">
+        <div className="mx-auto max-w-5xl rounded-2xl border border-white/30 dark:border-gray-700/60 bg-white/80 dark:bg-gray-900/75 backdrop-blur shadow-md text-gray-700 dark:text-gray-200 px-3 py-3 flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-3">
+          <span className="font-semibold">Sudoku Logic Lab v2.3</span>
+          <span className="hidden sm:inline text-gray-400">•</span>
+          <span>Created by Edmund</span>
+          <span className="hidden sm:inline text-gray-400">•</span>
+          <span className="flex gap-2">
+            <a href="https://github.com/edmund-alexander" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-300 hover:underline">GitHub</a>
+            <a href="https://www.paypal.com/paypalme/edmundalexanders" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-300 hover:underline">Buy me a green tea</a>
+          </span>
+        </div>
       </footer>
     </div>
   );
