@@ -968,86 +968,103 @@ const THEME_COMBINATIONS = Object.freeze({
  * @returns {string} SVG markup for the pixel art character
  */
 const generatePixelCharacter = (visualId, audioId) => {
-  // Color palettes per visual theme (primary, secondary, accent)
-  const colorPalettes = {
-    default: { skin: '#E8D5C4', primary: '#4F46E5', secondary: '#818CF8', accent: '#C7D2FE' },
-    ocean: { skin: '#D4F1F9', primary: '#0369A1', secondary: '#06B6D4', accent: '#5DADE2' },
-    forest: { skin: '#C7F0D8', primary: '#059669', secondary: '#10B981', accent: '#86EFAC' },
-    sunset: { skin: '#FED7AA', primary: '#EA580C', secondary: '#FB923C', accent: '#FDBA74' },
-    midnight: { skin: '#E2E8F0', primary: '#4C1D95', secondary: '#7C3AED', accent: '#A78BFA' },
-    sakura: { skin: '#F5D5E3', primary: '#EC4899', secondary: '#F472B6', accent: '#FBB6CE' },
-    volcano: { skin: '#FADBD8', primary: '#9F2C0C', secondary: '#DC2626', accent: '#FECACA' },
-    arctic: { skin: '#E0F2FE', primary: '#0C4A6E', secondary: '#0EA5E9', accent: '#BAE6FD' }
+  // Theme-specific character outlines - simple shapes like the background motifs
+  const characters = {
+    default: {
+      name: 'Sage',
+      color: '#6366F1',
+      svg: `<circle cx="40" cy="28" r="8" fill="#6366F1" stroke="#fff" stroke-width="1.5"/>
+            <path d="M 32 38 L 32 52 L 48 52 L 48 38 Q 40 35 32 38" fill="#6366F1" stroke="#fff" stroke-width="1.5"/>
+            <line x1="32" y1="42" x2="24" y2="45" stroke="#6366F1" stroke-width="2"/>
+            <line x1="48" y1="42" x2="56" y2="45" stroke="#6366F1" stroke-width="2"/>`
+    },
+    ocean: {
+      name: 'Tidal Guardian',
+      color: '#0891b2',
+      svg: `<ellipse cx="40" cy="26" rx="7" ry="9" fill="#0891b2" stroke="#fff" stroke-width="1.5"/>
+            <path d="M 33 38 Q 30 42 33 50 L 47 50 Q 50 42 47 38 Z" fill="#0891b2" stroke="#fff" stroke-width="1.5"/>
+            <path d="M 25 45 L 32 48" stroke="#0891b2" stroke-width="2" stroke-linecap="round"/>
+            <path d="M 55 45 L 48 48" stroke="#0891b2" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="36" cy="23" r="2" fill="#00d9ff"/>`
+    },
+    forest: {
+      name: 'Forest Keeper',
+      color: '#059669',
+      svg: `<polygon points="40,15 46,28 34,28" fill="#059669" stroke="#fff" stroke-width="1.5"/>
+            <circle cx="40" cy="32" r="8" fill="#059669" stroke="#fff" stroke-width="1.5"/>
+            <path d="M 32 42 L 32 54 L 48 54 L 48 42 Z" fill="#059669" stroke="#fff" stroke-width="1.5"/>
+            <line x1="28" y1="48" x2="20" y2="50" stroke="#059669" stroke-width="2"/>
+            <line x1="52" y1="48" x2="60" y2="50" stroke="#059669" stroke-width="2"/>
+            <circle cx="38" cy="30" r="1.5" fill="#22C55E"/>
+            <circle cx="42" cy="30" r="1.5" fill="#22C55E"/>`
+    },
+    sunset: {
+      name: 'Horizon Wanderer',
+      color: '#ea580c',
+      svg: `<circle cx="40" cy="26" r="8" fill="#ea580c" stroke="#fff" stroke-width="1.5"/>
+            <path d="M 35 36 Q 32 40 35 50 L 45 50 Q 48 40 45 36 Z" fill="#ea580c" stroke="#fff" stroke-width="1.5"/>
+            <line x1="35" y1="40" x2="20" y2="42" stroke="#ea580c" stroke-width="2" stroke-linecap="round"/>
+            <line x1="45" y1="40" x2="60" y2="42" stroke="#ea580c" stroke-width="2" stroke-linecap="round"/>
+            <path d="M 38 22 L 40 18 L 42 22" fill="#fb923c" stroke="#fff" stroke-width="1"/>
+            <circle cx="38" cy="24" r="1" fill="#fbbf24"/>`
+    },
+    midnight: {
+      name: 'Night Wanderer',
+      color: '#7c3aed',
+      svg: `<circle cx="40" cy="26" r="8" fill="#7c3aed" stroke="#a78bfa" stroke-width="1.5"/>
+            <path d="M 33 38 L 33 52 L 47 52 L 47 38 Q 40 35 33 38" fill="#7c3aed" stroke="#a78bfa" stroke-width="1.5"/>
+            <circle cx="37" cy="24" r="1.5" fill="#a78bfa"/>
+            <circle cx="43" cy="24" r="1.5" fill="#a78bfa"/>
+            <line x1="30" y1="44" x2="18" y2="46" stroke="#7c3aed" stroke-width="2"/>
+            <line x1="50" y1="44" x2="62" y2="46" stroke="#7c3aed" stroke-width="2"/>
+            <circle cx="40" cy="58" r="2" fill="#a78bfa" opacity="0.6"/>`
+    },
+    sakura: {
+      name: 'Blossom Spirit',
+      color: '#ec4899',
+      svg: `<circle cx="40" cy="26" r="8" fill="#ec4899" stroke="#fff" stroke-width="1.5"/>
+            <path d="M 35 38 Q 32 44 35 52 L 45 52 Q 48 44 45 38 Z" fill="#fbbf24" stroke="#fff" stroke-width="1.5" opacity="0.8"/>
+            <path d="M 35 38 L 32 40 M 45 38 L 48 40" stroke="#ec4899" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="40" cy="35" r="1.5" fill="#f472b6"/>
+            <circle cx="35" cy="42" r="1" fill="#f472b6"/>
+            <circle cx="45" cy="42" r="1" fill="#f472b6"/>`
+    },
+    volcano: {
+      name: 'Magma Warden',
+      color: '#dc2626',
+      svg: `<polygon points="40,16 50,30 30,30" fill="#dc2626" stroke="#fff" stroke-width="1.5"/>
+            <circle cx="40" cy="32" r="7" fill="#dc2626" stroke="#fff" stroke-width="1.5"/>
+            <path d="M 36 40 L 35 54 L 45 54 L 44 40 Z" fill="#9F2C0C" stroke="#fff" stroke-width="1.5"/>
+            <path d="M 35 45 Q 32 47 35 50" stroke="#fca5a5" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M 45 45 Q 48 47 45 50" stroke="#fca5a5" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="40" cy="30" r="1" fill="#fca5a5"/>`
+    },
+    arctic: {
+      name: 'Frost Guardian',
+      color: '#0ea5e9',
+      svg: `<polygon points="40,18 47,30 33,30" fill="#0ea5e9" stroke="#fff" stroke-width="1.5"/>
+            <circle cx="40" cy="35" r="7" fill="#0ea5e9" stroke="#fff" stroke-width="1.5"/>
+            <path d="M 34 44 L 34 54 L 46 54 L 46 44 Q 40 42 34 44" fill="#06b6d4" stroke="#fff" stroke-width="1.5"/>
+            <line x1="40" y1="50" x2="40" y2="56" stroke="#bae6fd" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="35" y1="52" x2="32" y2="58" stroke="#bae6fd" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="45" y1="52" x2="48" y2="58" stroke="#bae6fd" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="38" cy="32" r="1" fill="#bae6fd"/>
+            <circle cx="42" cy="32" r="1" fill="#bae6fd"/>`
+    }
   };
+
+  const char = characters[visualId] || characters.default;
   
-  // Pose variations based on audio theme (changes body/head tilt, arm positions)
-  const poseMap = {
-    classic: { headTilt: 0, armLeft: -2, armRight: 0, smiling: false },
-    zen: { headTilt: -1, armLeft: 0, armRight: 0, smiling: true, hat: 'circle' },
-    funfair: { headTilt: 2, armLeft: -3, armRight: 3, smiling: true, hat: 'crown' },
-    retro: { headTilt: 0, armLeft: -2, armRight: 2, smiling: false, pixelated: true },
-    space: { headTilt: 1, armLeft: -1, armRight: 1, smiling: false, hat: 'helmet' },
-    nature: { headTilt: -2, armLeft: -1, armRight: 1, smiling: true, hat: 'leaves' },
-    crystal: { headTilt: 0, armLeft: 0, armRight: 0, smiling: true, hat: 'crown', sparkle: true },
-    minimal: { headTilt: 0, armLeft: 0, armRight: 0, smiling: false, simple: true }
-  };
-  
-  const palette = colorPalettes[visualId] || colorPalettes.default;
-  const pose = poseMap[audioId] || poseMap.classic;
-  
-  // Build SVG layers: background, body, head, features, hat
-  const svgParts = [];
-  
-  // White background
-  svgParts.push('<rect width="80" height="100" fill="white" rx="4"/>');
-  
-  // Body (4 blocks, 12x16px each at center)
-  const bodyX = 28, bodyY = 42;
-  svgParts.push(`<rect x="${bodyX}" y="${bodyY}" width="12" height="16" fill="${palette.primary}" stroke="#333" stroke-width="1"/>`);
-  svgParts.push(`<rect x="${bodyX + 12}" y="${bodyY}" width="12" height="16" fill="${palette.primary}" stroke="#333" stroke-width="1"/>`);
-  svgParts.push(`<rect x="${bodyX}" y="${bodyY + 16}" width="12" height="12" fill="${palette.secondary}" stroke="#333" stroke-width="1"/>`);
-  svgParts.push(`<rect x="${bodyX + 12}" y="${bodyY + 16}" width="12" height="12" fill="${palette.secondary}" stroke="#333" stroke-width="1"/>`);
-  
-  // Arms (blocks on sides, position varies by pose)
-  const armOffsetL = pose.armLeft;
-  const armOffsetR = pose.armRight;
-  svgParts.push(`<rect x="${bodyX - 8 + armOffsetL}" y="${bodyY + 4}" width="8" height="8" fill="${palette.primary}" stroke="#333" stroke-width="1"/>`);
-  svgParts.push(`<rect x="${bodyX + 28 + armOffsetR}" y="${bodyY + 4}" width="8" height="8" fill="${palette.primary}" stroke="#333" stroke-width="1"/>`);
-  
-  // Head (12x12 block)
-  const headX = 34, headY = 18 + pose.headTilt;
-  svgParts.push(`<rect x="${headX}" y="${headY}" width="12" height="12" fill="${palette.skin}" stroke="#333" stroke-width="1"/>`);
-  
-  // Eyes (2 pixels each)
-  svgParts.push(`<rect x="${headX + 3}" y="${headY + 4}" width="2" height="2" fill="#333"/>`);
-  svgParts.push(`<rect x="${headX + 7}" y="${headY + 4}" width="2" height="2" fill="#333"/>`);
-  
-  // Mouth (smile or line based on pose)
-  if (pose.smiling) {
-    svgParts.push(`<line x1="${headX + 3}" y1="${headY + 8}" x2="${headX + 9}" y2="${headY + 8}" stroke="#EC4899" stroke-width="1" stroke-linecap="round"/>`);
-  } else {
-    svgParts.push(`<line x1="${headX + 4}" y1="${headY + 8}" x2="${headX + 8}" y2="${headY + 8}" stroke="#333" stroke-width="1"/>`);
-  }
-  
-  // Hat based on audio theme
-  if (pose.hat === 'circle') {
-    svgParts.push(`<circle cx="${headX + 6}" cy="${headY - 3}" r="4" fill="${palette.accent}" stroke="#333" stroke-width="1"/>`);
-  } else if (pose.hat === 'crown') {
-    svgParts.push(`<polygon points="${headX + 2},${headY - 2} ${headX + 6},${headY - 6} ${headX + 10},${headY - 2}" fill="${palette.accent}" stroke="#333" stroke-width="1"/>`);
-  } else if (pose.hat === 'helmet') {
-    svgParts.push(`<path d="M ${headX + 2} ${headY + 2} Q ${headX + 6} ${headY - 2} ${headX + 10} ${headY + 2}" fill="${palette.accent}" stroke="#333" stroke-width="1"/>`);
-  } else if (pose.hat === 'leaves') {
-    svgParts.push(`<circle cx="${headX + 4}" cy="${headY - 2}" r="2" fill="#22C55E" stroke="#333" stroke-width="0.5"/>`);
-    svgParts.push(`<circle cx="${headX + 8}" cy="${headY - 2}" r="2" fill="#22C55E" stroke="#333" stroke-width="0.5"/>`);
-  }
-  
-  // Sparkles for crystal theme
-  if (pose.sparkle) {
-    svgParts.push(`<circle cx="${headX + 14}" cy="${headY - 2}" r="1.5" fill="${palette.accent}"/>`);
-    svgParts.push(`<circle cx="${headX - 2}" cy="${headY + 6}" r="1.5" fill="${palette.accent}"/>`);
-  }
-  
-  return `<svg viewBox="0 0 80 100" xmlns="http://www.w3.org/2000/svg" style="background: white; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">${svgParts.join('')}</svg>`;
+  return `<svg viewBox="0 0 80 60" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
+    <style>
+      @keyframes float-char {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-3px); }
+      }
+      svg { animation: float-char 3s ease-in-out infinite; }
+    </style>
+    ${char.svg}
+  </svg>`;
 };
 
 /**

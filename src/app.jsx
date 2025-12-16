@@ -1193,11 +1193,9 @@ const CampaignMap = ({ progress, onPlayLevel, soundEnabled, onBack, onOpenAwards
 
       <div className="relative z-20 flex justify-between items-center p-2 sm:p-3 md:p-4 bg-gray-900/60 backdrop-blur-md border-b border-purple-500/20 shadow-lg">
         <button onClick={onBack} className="p-1.5 sm:p-2 rounded-full hover:bg-purple-700/30 transition-all hover:scale-110"><Icons.Undo /></button>
-        <div className="flex flex-col items-center gap-2 sm:gap-3">
+        <div className="flex flex-col items-center gap-1 sm:gap-2">
           <h1 className="text-base sm:text-lg md:text-xl font-bold tracking-widest uppercase text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 drop-shadow-lg">Campaign Saga</h1>
           <p className="text-[10px] sm:text-xs text-gray-400 font-medium">Your Quest Awaits</p>
-          {/* Pixel character in header */}
-          <div className="w-10 h-12 sm:w-12 sm:h-14" dangerouslySetInnerHTML={{ __html: pixelCharSvg }} />
         </div>
         <button
           aria-label="Rewards"
@@ -1210,8 +1208,8 @@ const CampaignMap = ({ progress, onPlayLevel, soundEnabled, onBack, onOpenAwards
         </button>
       </div>
 
-      <div ref={scrollContainerRef} className="flex-1 w-full overflow-y-auto relative z-10 scrollbar-hide pb-32">
-        <div className="w-full max-w-md mx-auto relative px-4" style={{ height: `${(CAMPAIGN_LEVELS.length + 2) * 180}px`, paddingTop: '40px' }}>
+      <div ref={scrollContainerRef} className="flex-1 w-full overflow-y-auto relative z-10 scrollbar-hide pb-32 flex">
+        <div className="w-full max-w-md mx-auto relative px-4 flex-1" style={{ height: `${(CAMPAIGN_LEVELS.length + 2) * 180}px`, paddingTop: '40px' }}>
           
           {/* Biome sections background */}
           {CAMPAIGN_LEVELS.map((lvl, i) => {
@@ -1429,6 +1427,21 @@ const CampaignMap = ({ progress, onPlayLevel, soundEnabled, onBack, onOpenAwards
               </div>
             );
           })}
+        </div>
+
+        {/* Character Display Sidebar */}
+        <div className="hidden md:flex flex-col items-center justify-start gap-4 p-4 bg-gradient-to-b from-purple-950/40 to-indigo-950/40 backdrop-blur-sm border-l border-purple-500/20 w-24 lg:w-28 min-w-max">
+          <div className="text-center mt-8">
+            <h3 className="text-xs lg:text-sm font-bold text-purple-300 mb-1 tracking-widest">YOUR GUIDE</h3>
+            <div className="w-20 h-24 lg:w-24 lg:h-28" dangerouslySetInnerHTML={{ __html: pixelCharSvg }} />
+          </div>
+          
+          <div className="flex-1" />
+          
+          <div className="text-center pb-4 text-xs text-gray-400 px-2">
+            <p className="font-semibold text-purple-300 mb-1">Progress</p>
+            <p>{highestUnlockedId} / {CAMPAIGN_LEVELS.length} Quests</p>
+          </div>
         </div>
       </div>
 
