@@ -1,32 +1,41 @@
 #!/usr/bin/env python3
 """
-Generate themed background images for Sudoku-Labs using Google Gemini.
+Generate themed background images for Sudoku-Labs using Google Gemini Imagen via REST API.
 - Iterates over assets/themes/<visual>/<audio>/
 - Builds a prompt from the combo (visual + audio) with tailored style hints
 - Saves output to background.png (or background.jpg) inside each folder
 - Graceful fallback: if GEMINI_API_KEY is missing or API fails, writes a procedural SVG placeholder (background.svg)
 
 Prereqs:
-- pip install google-generativeai
+- pip install requests pillow
 - export GEMINI_API_KEY=... (Google AI Studio key)
 
 Run:
-- python3 scripts/generate_backgrounds.py --format png --model "imagen-3.0" --dry-run
-- python3 scripts/generate_backgrounds.py --format png --model "imagen-3.0"
+- python3 scripts/generate_backgrounds.py --format png --model "imagen-4.0-fast-generate-001" --dry-run
+- python3 scripts/generate_backgrounds.py --format png --model "imagen-4.0-fast-generate-001"
 
 """
 import os
 import sys
 import argparse
+import base64
+import io
 from pathlib import Path
 
-# Optional: try to import the Gemini client
-GEN_AI_AVAILABLE = False
+# Optional: try to import required libraries
+REQUESTS_AVAILABLE = False
+PIL_AVAILABLE = False
 try:
-    import google.generativeai as genai
-    GEN_AI_AVAILABLE = True
+    import requests
+    REQUESTS_AVAILABLE = True
 except Exception:
-    GEN_AI_AVAILABLE = False
+    REQUESTS_AVAILABLE = False
+
+try:
+    from PIL import Image
+    PIL_AVAILABLE = True
+except Exception:
+    PIL_AVAILABLE = False
 
 VISUALS = [
     "default","ocean","forest","sunset","midnight","sakura","volcano","arctic"
@@ -102,7 +111,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", default="assets/themes", help="Root assets directory")
     parser.add_argument("--format", default="png", choices=["png","jpg"], help="Output image format")
-    parser.add_argument("--model", default="imagen-3.0", help="Gemini image model name")
+    parser.add_argument("--model", default="imagen-4.0-fast-generate-001", help="Gemini image model name")
     parser.add_argument("--dry-run", action="store_true", help="Do not call API, only print actions or write placeholders")
     args = parser.parse_args()
 
@@ -112,14 +121,15 @@ def main():
         sys.exit(1)
 
     api_key = os.environ.get("GEMINI_API_KEY")
-    use_api = GEN_AI_AVAILABLE and api_key and not args.dry_run
+    use_api = REQUESTS_AVAILABLE and PIL_AVAILABLE and api_key and not args.dry_run
 
     if use_api:
-        genai.configure(api_key=api_key)
-        print("Using Gemini for image generation")
+        print("Using Gemini Imagen REST API for image generation")
     else:
-        if not GEN_AI_AVAILABLE:
-            print("google-generativeai not installed; falling back to placeholders")
+        if not REQUESTS_AVAILABLE:
+            print("requests not installed; falling back to placeholders")
+        elif not PIL_AVAILABLE:
+            print("PIL not installed; falling back to placeholders")
         elif not api_key:
             print("GEMINI_API_KEY missing; falling back to placeholders")
         elif args.dry_run:
@@ -139,51 +149,48 @@ def main():
 
             if use_api:
                 try:
-                    # Use the correct Gemini API for image generation
-                    # Reference: https://ai.google.dev/gemini-api/docs/imagen
-                    model = genai.ImageGenerationModel(args.model)
-                    result = model.generate_images(
-                        prompt=prompt,
-                        number_of_images=1,
-                        aspect_ratio="16:9"  # 1920x1080 approximation
-                    )
+                    # Use Imagen REST API
+                    url = f"https://generativelanguage.googleapis.com/v1beta/models/{args.model}:predict"
+                    headers = {
+                        "Content-Type": "application/json",
+                        "x-goog-api-key": api_key
+                    }
+                    payload = {
+                        "instances": [{
+                            "prompt": prompt
+                        }],
+                        "parameters": {
+                            "sampleCount": 1,
+                            "aspectRatio": "16:9"
+                        }
+                    }
                     
-                    if result and hasattr(result, 'images') and result.images:
-                        img_data = result.images[0]
-                        # Save the image
-                        if hasattr(img_data, '_pil_image'):
-                            img_data._pil_image.save(out_img)
-                        elif hasattr(img_data, 'save'):
-                            img_data.save(out_img)
+                    response = requests.post(url, json=payload, headers=headers, timeout=60)
+                    
+                    if response.status_code == 200:
+                        result = response.json()
+                        if "predictions" in result and result["predictions"]:
+                            # Imagen returns base64-encoded images
+                            img_b64 = result["predictions"][0].get("bytesBase64Encoded") or result["predictions"][0].get("image")
+                            if img_b64:
+                                img_bytes = base64.b64decode(img_b64)
+                                img = Image.open(io.BytesIO(img_bytes))
+                                img.save(out_img)
+                                generated += 1
+                                print(f"  ✓ Generated {out_img.name}")
+                            else:
+                                print("  ! No image data in response, writing placeholder SVG")
+                                write_placeholder_svg(out_svg, visual)
                         else:
-                            # Try as bytes
-                            with open(out_img, "wb") as f:
-                                f.write(img_data)
-                        generated += 1
-                        print(f"  ✓ Generated {out_img.name}")
-                    else:
-                        print("  ! No image returned, writing placeholder SVG")
-                        write_placeholder_svg(out_svg, visual)
-                except AttributeError as e:
-                    # ImageGenerationModel might not be available, try alternative approach
-                    print(f"  ! API method not available ({e}), trying alternative...")
-                    try:
-                        # Alternative: use generate_content with image model
-                        model = genai.GenerativeModel(args.model)
-                        response = model.generate_content(prompt)
-                        if hasattr(response, 'images') and response.images:
-                            with open(out_img, "wb") as f:
-                                f.write(response.images[0])
-                            generated += 1
-                            print(f"  ✓ Generated {out_img.name}")
-                        else:
-                            print("  ! Alternative method failed, writing placeholder SVG")
+                            print("  ! No predictions in response, writing placeholder SVG")
                             write_placeholder_svg(out_svg, visual)
-                    except Exception as e2:
-                        print(f"  ! Alternative generation error: {e2}. Writing placeholder SVG")
+                    else:
+                        print(f"  ! API error {response.status_code}: {response.text[:200]}")
                         write_placeholder_svg(out_svg, visual)
+                        
                 except Exception as e:
-                    print(f"  ! Generation error: {e}. Writing placeholder SVG")
+                    print(f"  ! Generation error: {e}")
+                    print("  Writing placeholder SVG")
                     write_placeholder_svg(out_svg, visual)
             else:
                 # Placeholder fallbacks
