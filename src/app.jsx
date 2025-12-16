@@ -557,7 +557,7 @@ const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSe
         
         {/* Combination hint */}
         <p className="text-xs text-center text-gray-500 dark:text-gray-400">
-          Mix any visual theme with any audio theme to create {Object.keys(THEMES).length * Object.keys(SOUND_PACKS).length} unique combinations!
+          Mix any visual theme with any audio theme to create 64 unique combinations!
         </p>
       </div>
     );
@@ -2676,8 +2676,8 @@ const App = () => {
               style={{
                 left: `${15 + i * 30}%`,
                 top: `${10 + (i % 2) * 70}%`,
-                animationDelay: `${i * 2}s`,
-                animationDuration: `${12 + i * 3}s`
+                animationDelay: `${i * 1.5}s`,
+                animationDuration: `${8 + i * 2}s`
               }}
             >
               {emoji}
