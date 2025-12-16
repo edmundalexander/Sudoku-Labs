@@ -940,6 +940,15 @@ const getThemeAssetSet = (visualId, audioId) => {
   const texture = BOARD_TEXTURES[combo.boardTexture] || BOARD_TEXTURES.smooth;
   const decorSet = DECOR_SETS[combo.decor] || DECOR_SETS.none;
   
+  // Optional filesystem-based assets (user-provided)
+  const assetBase = `assets/themes/${visualId}/${audioId}`;
+  const assetPaths = {
+    base: assetBase,
+    bgJpg: `${assetBase}/background.jpg`,
+    bgPng: `${assetBase}/background.png`,
+    bgSvg: `${assetBase}/background.svg`
+  };
+  
   // Get theme-specific SVG background pattern
   const svgBgKey = `${visualId}_bg`;
   const svgBg = SVG_PATTERNS[svgBgKey] || '';
@@ -982,6 +991,9 @@ const getThemeAssetSet = (visualId, audioId) => {
     
     // SVG background pattern (theme-specific)
     svgBackground: svgBg,
+    
+    // Optional external background assets (filesystem)
+    assetPaths,
     
     // Material Icon names (theme-specific)
     icons: icons,
