@@ -381,6 +381,21 @@ const CHAT_POLL_INTERVAL = 5000;
 const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSelectTheme, activePackId, unlockedPacks, onSelectPack }) => {
   const [stats, setStats] = useState(StorageService.getGameStats());
   
+  // Compute current asset set for the preview
+  const currentAssetSet = useMemo(() => {
+    if (typeof getThemeAssetSet === 'function') {
+      return getThemeAssetSet(activeThemeId, activePackId);
+    }
+    const theme = THEMES[activeThemeId] || THEMES.default;
+    return {
+      name: theme.name,
+      description: theme.description,
+      background: theme.background,
+      texture: { pattern: 'none', opacity: 0, name: 'None' },
+      decor: []
+    };
+  }, [activeThemeId, activePackId]);
+  
   // Refresh stats from StorageService when component mounts
   useEffect(() => {
     const currentStats = StorageService.getGameStats();
