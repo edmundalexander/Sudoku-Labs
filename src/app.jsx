@@ -259,12 +259,10 @@ window.runDebugTests = async function() {
     const localStorage_stats = StorageService.getGameStats();
     const localStorage_themes = StorageService.getUnlockedThemes();
     const localStorage_packs = StorageService.getUnlockedSoundPacks();
-    const localStorage_campaign = StorageService.getCampaignProgress();
     console.log('✅ Local Storage Accessible:');
     console.log('   Game Stats:', localStorage_stats);
     console.log('   Unlocked Themes:', localStorage_themes);
     console.log('   Unlocked Sound Packs:', localStorage_packs);
-    console.log('   Campaign Progress:', localStorage_campaign);
     results.passed.push('Local Storage Check');
     
     // Test 7: Sound Manager
@@ -1113,456 +1111,8 @@ const UserPanel = ({ soundEnabled, onClose, appUserSession }) => {
   return null;
 };
 
-const CampaignMap = ({ progress, onPlayLevel, soundEnabled, onBack, onOpenAwards, activeThemeId, activeSoundPackId, activeAssetSet }) => {
-  const [selectedLevel, setSelectedLevel] = useState(null);
-  const scrollContainerRef = useRef(null);
-  
-  // Memoize pixel character SVG for current theme
-  const pixelCharSvg = useMemo(() => {
-    return generatePixelCharacter(activeThemeId || 'default', activeSoundPackId || 'classic');
-  }, [activeThemeId, activeSoundPackId]);
 
-  const highestUnlockedId = useMemo(() => {
-    return Math.max(...Object.keys(progress).filter(k => progress[k].unlocked).map(Number), 1);
-  }, [progress]);
-
-  useEffect(() => {
-    if (scrollContainerRef.current) {
-      const scrollPos = (highestUnlockedId * 180) - 200;
-      scrollContainerRef.current.scrollTo({ top: Math.max(0, scrollPos), behavior: 'smooth' });
-    }
-  }, [highestUnlockedId]);
-
-  const getPoints = () => {
-    const points = [];
-    for (let i = 1; i <= CAMPAIGN_LEVELS.length; i++) {
-      const x = 50 + Math.sin(i * 0.8) * 25;
-      const y = i * 180 + 40;
-      points.push(`${x},${y}`);
-    }
-    return points;
-  };
-
-  const getBiomeGradient = (biome) => {
-    if (biome === 'grass') return 'from-green-900/40 via-emerald-900/30 to-green-800/40';
-    if (biome === 'desert') return 'from-yellow-900/40 via-orange-900/30 to-amber-900/40';
-    if (biome === 'space') return 'from-indigo-900/40 via-purple-900/30 to-blue-900/40';
-    return 'from-gray-900/40 via-gray-800/30 to-gray-900/40';
-  };
-
-  const points = getPoints();
-
-  return (
-    <div className="h-screen w-full bg-gray-900 text-gray-100 flex flex-col relative overflow-hidden animate-fade-in">
-      {/* Dynamic background layers */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-b from-blue-900 via-purple-900 to-indigo-950"></div>
-        
-        {/* Animated stars */}
-        <div className="absolute inset-0 opacity-30">
-          {[...Array(30)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-1 h-1 bg-white rounded-full animate-twinkle"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 3}s`,
-                opacity: Math.random() * 0.7 + 0.3
-              }}
-            />
-          ))}
-        </div>
-        
-        {/* Floating particles */}
-        <div className="absolute inset-0 opacity-20">
-          {[...Array(15)].map((_, i) => (
-            <div
-              key={`particle-${i}`}
-              className="absolute w-2 h-2 bg-purple-400 rounded-full blur-sm animate-float-slow"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 5}s`,
-                animationDuration: `${10 + Math.random() * 10}s`
-              }}
-            />
-          ))}
-        </div>
-      </div>
-
-      <div className="relative z-20 flex justify-between items-center p-2 sm:p-3 md:p-4 bg-gray-900/60 backdrop-blur-md border-b border-purple-500/20 shadow-lg">
-        <button onClick={onBack} className="p-1.5 sm:p-2 rounded-full hover:bg-purple-700/30 transition-all hover:scale-110"><Icons.Undo /></button>
-        <div className="flex flex-col items-center gap-1 sm:gap-2">
-          <h1 className="text-base sm:text-lg md:text-xl font-bold tracking-widest uppercase text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 drop-shadow-lg">Campaign Saga</h1>
-          <p className="text-[10px] sm:text-xs text-gray-400 font-medium">Your Quest Awaits</p>
-        </div>
-        <button
-          aria-label="Rewards"
-          title="Rewards"
-          onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); onOpenAwards?.(); }}
-          className="p-1.5 sm:p-2 rounded-full hover:bg-purple-700/30 transition-all hover:scale-110 flex items-center gap-1 text-gray-100"
-        >
-          <Icons.Awards />
-          <span className="hidden sm:inline text-[11px] font-semibold">Rewards</span>
-        </button>
-      </div>
-
-      <div ref={scrollContainerRef} className="flex-1 w-full overflow-y-auto relative z-10 scrollbar-hide pb-32 flex">
-        <div className="w-full max-w-md mx-auto relative px-4 flex-1" style={{ height: `${(CAMPAIGN_LEVELS.length + 2) * 180}px`, paddingTop: '40px' }}>
-          
-          {/* Biome sections background */}
-          {CAMPAIGN_LEVELS.map((lvl, i) => {
-            const y = i * 180 + 40;
-            return (
-              <div
-                key={`biome-${i}`}
-                className={`absolute inset-x-0 h-[220px] bg-gradient-to-b ${getBiomeGradient(lvl.biome)} transition-opacity duration-1000`}
-                style={{ top: `${y}px` }}
-              />
-            );
-          })}
-
-          {/* Decorative biome elements */}
-          <svg className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-40">
-            {CAMPAIGN_LEVELS.map((lvl, i) => {
-              const y = i * 180 + 120;
-              const leftSide = i % 2 === 0;
-              
-              if (lvl.biome === 'grass') {
-                return (
-                  <g key={`deco-${i}`}>
-                    <circle cx={leftSide ? '15%' : '85%'} cy={y} r="20" fill="#4ade80" opacity="0.3" />
-                    <circle cx={leftSide ? '10%' : '90%'} cy={y + 20} r="15" fill="#22c55e" opacity="0.3" />
-                    <path d={`M ${leftSide ? 10 : 320} ${y + 30} Q ${leftSide ? 15 : 315} ${y + 35} ${leftSide ? 20 : 310} ${y + 30}`} stroke="#16a34a" strokeWidth="3" fill="none" opacity="0.3" />
-                  </g>
-                );
-              }
-              
-              if (lvl.biome === 'desert') {
-                return (
-                  <g key={`deco-${i}`}>
-                    <path d={`M ${leftSide ? 15 : 310} ${y} l 15 -25 l 15 25 z`} fill="#fbbf24" opacity="0.3" />
-                    <circle cx={leftSide ? '12%' : '88%'} cy={y - 35} r="25" fill="#fde047" opacity="0.2" />
-                    <ellipse cx={leftSide ? '8%' : '92%'} cy={y + 25} rx="30" ry="10" fill="#d97706" opacity="0.2" />
-                  </g>
-                );
-              }
-              
-              if (lvl.biome === 'space') {
-                return (
-                  <g key={`deco-${i}`}>
-                    <circle cx={leftSide ? '12%' : '88%'} cy={y - 20} r="3" fill="white" className="animate-pulse" opacity="0.8" />
-                    <circle cx={leftSide ? '18%' : '82%'} cy={y + 10} r="2" fill="#93c5fd" className="animate-pulse" opacity="0.6" style={{ animationDelay: '0.5s' }} />
-                    <circle cx={leftSide ? '8%' : '92%'} cy={y + 5} r="2.5" fill="#c084fc" className="animate-pulse" opacity="0.7" style={{ animationDelay: '1s' }} />
-                    <path d={`M ${leftSide ? 40 : 290} ${y - 30} l 5 5 l -5 -2 l -2 5 z`} fill="#fde047" opacity="0.6" />
-                  </g>
-                );
-              }
-              
-              return null;
-            })}
-          </svg>
-
-          {/* Main path line (unfilled) */}
-          <svg className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-visible">
-            <defs>
-              <linearGradient id="pathGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.8" />
-                <stop offset="50%" stopColor="#8b5cf6" stopOpacity="0.8" />
-                <stop offset="100%" stopColor="#ec4899" stopOpacity="0.8" />
-              </linearGradient>
-              <filter id="pathGlow">
-                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-                <feMerge>
-                  <feMergeNode in="coloredBlur"/>
-                  <feMergeNode in="SourceGraphic"/>
-                </feMerge>
-              </filter>
-            </defs>
-            
-            {/* Shadow/outline path */}
-            <polyline 
-              points={points.map(p => { const [x, y] = p.split(','); return `${x}%,${y}`; }).join(' ')} 
-              fill="none" 
-              stroke="#1e293b" 
-              strokeWidth="12" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-              opacity="0.6"
-            />
-            
-            {/* Main unfilled path */}
-            <polyline 
-              points={points.map(p => { const [x, y] = p.split(','); return `${x}%,${y}`; }).join(' ')} 
-              fill="none" 
-              stroke="#374151" 
-              strokeWidth="8" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-            />
-            
-            {/* Completed path with gradient */}
-            <polyline
-              points={points.slice(0, highestUnlockedId).map(p => { const [x, y] = p.split(','); return `${x}%,${y}`; }).join(' ')}
-              fill="none"
-              stroke="url(#pathGradient)"
-              strokeWidth="8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              filter="url(#pathGlow)"
-              className="animate-dash"
-            />
-          </svg>
-
-          {CAMPAIGN_LEVELS.map((level, i) => {
-            const p = progress[level.id] || { unlocked: false, stars: 0 };
-            const isLocked = !p.unlocked;
-            const isCompleted = p.stars > 0;
-            const isCurrent = highestUnlockedId === level.id;
-
-            const leftPos = 50 + Math.sin((i + 1) * 0.8) * 25;
-            const topPos = (i + 1) * 180 + 40;
-
-            return (
-              <div
-                key={level.id}
-                className="absolute transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center z-20"
-                style={{ left: `${leftPos}%`, top: `${topPos}px` }}
-              >
-                {/* Player avatar on current level */}
-                {isCurrent && (
-                  <div className="absolute -top-16 sm:-top-20 z-30 pointer-events-none">
-                    <div className="relative animate-float">
-                      <div className="scale-110 sm:scale-125 drop-shadow-2xl">
-                        <Icons.Avatar />
-                      </div>
-                      <div className="w-8 sm:w-10 h-2 bg-black/30 rounded-full blur-md mt-2 mx-auto"></div>
-                    </div>
-                    {/* Glow effect */}
-                    <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-xl animate-pulse"></div>
-                  </div>
-                )}
-
-                {/* Connection line indicator for next level */}
-                {!isLocked && i < CAMPAIGN_LEVELS.length - 1 && (
-                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0.5 h-8 bg-gradient-to-b from-purple-400 to-transparent animate-pulse"></div>
-                )}
-
-                <div
-                  onClick={() => {
-                    if (!isLocked) {
-                      if (soundEnabled) SoundManager.play('select');
-                      setSelectedLevel(level);
-                    } else {
-                      if (soundEnabled) SoundManager.play('error');
-                    }
-                  }}
-                  className={`
-                    relative w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center shadow-2xl transition-all duration-300 cursor-pointer
-                    ${isLocked 
-                      ? 'bg-gray-800/80 border-2 border-gray-600 backdrop-blur-sm grayscale opacity-50' 
-                      : 'hover:scale-110 active:scale-95 backdrop-blur-md'
-                    }
-                    ${isCompleted 
-                      ? 'bg-gradient-to-br from-green-600 to-emerald-700 border-2 border-green-400 shadow-green-500/50' 
-                      : ''
-                    }
-                    ${!isLocked && !isCompleted 
-                      ? 'bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 border-2 border-blue-300 shadow-blue-500/50 animate-pulse-glow' 
-                      : ''
-                    }
-                    ${level.isChest 
-                      ? 'rounded-full' 
-                      : 'rotate-45'
-                    } 
-                  `}
-                >
-                  {/* Inner glow for active levels */}
-                  {!isLocked && !isCompleted && (
-                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/20 to-transparent animate-pulse"></div>
-                  )}
-                  
-                  {/* Level content */}
-                  <div className={`${level.isChest ? '' : '-rotate-45'} scale-75 sm:scale-90 md:scale-100 relative z-10`}>
-                    {isLocked
-                      ? <div className="text-gray-500"><Icons.Lock /></div>
-                      : level.isChest
-                        ? <div className="text-yellow-400 animate-bounce-slow drop-shadow-lg"><Icons.Chest /></div>
-                        : <span className="font-bold text-xl sm:text-2xl text-white drop-shadow-lg">{level.id}</span>
-                    }
-                  </div>
-
-                  {/* Completion sparkle effect */}
-                  {isCompleted && (
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full animate-ping"></div>
-                  )}
-                </div>
-
-                {/* Level info container - prevent overlapping */}
-                {!isLocked && (
-                  <div className="mt-4 w-36 sm:w-40 text-center space-y-1.5">
-                    {/* Title badge */}
-                    <div className="px-3 py-1.5 bg-gray-900/95 backdrop-blur-md rounded-lg border border-purple-500/40 shadow-xl">
-                      <p className="text-[10px] sm:text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 truncate">
-                        {level.title}
-                      </p>
-                    </div>
-                    
-                    {/* Star rating */}
-                    <div className="flex gap-1 justify-center bg-gray-900/95 px-3 py-1.5 rounded-full border border-yellow-500/40 backdrop-blur-md shadow-lg">
-                      {[1, 2, 3].map(s => (
-                        <div 
-                          key={s} 
-                          className={`${s <= p.stars ? "text-yellow-400 drop-shadow-lg" : "text-gray-600"} scale-90 transition-all duration-300 ${s <= p.stars ? 'animate-bounce-in' : ''}`}
-                          style={{ animationDelay: `${s * 0.1}s` }}
-                          title={level.stars ? `⭐ ${level.stars[`star${s}`]?.label || ''}` : ''}
-                        >
-                          <Icons.Star filled={true} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Character Display Sidebar */}
-        <div className="hidden md:flex flex-col items-center justify-start gap-4 p-4 bg-gradient-to-b from-purple-950/40 to-indigo-950/40 backdrop-blur-sm border-l border-purple-500/20 w-24 lg:w-28 min-w-max">
-          <div className="text-center mt-8">
-            <h3 className="text-xs lg:text-sm font-bold text-purple-300 mb-1 tracking-widest">YOUR GUIDE</h3>
-            <div className="w-20 h-24 lg:w-24 lg:h-28" dangerouslySetInnerHTML={{ __html: pixelCharSvg }} />
-          </div>
-          
-          <div className="flex-1" />
-          
-          <div className="text-center pb-4 text-xs text-gray-400 px-2">
-            <p className="font-semibold text-purple-300 mb-1">Progress</p>
-            <p>{highestUnlockedId} / {CAMPAIGN_LEVELS.length} Quests</p>
-          </div>
-        </div>
-      </div>
-
-      {selectedLevel && (
-        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-lg animate-fade-in">
-          <div className="bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 text-white p-1 rounded-3xl shadow-2xl max-w-sm w-full relative border-2 border-purple-500/30 animate-pop overflow-hidden">
-            {/* Animated background effect */}
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-pink-600/10 animate-gradient-shift"></div>
-            
-            {/* Top accent bar */}
-            <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 animate-gradient-x"></div>
-            
-            <div className="relative p-4 sm:p-6">
-              <button 
-                onClick={() => setSelectedLevel(null)} 
-                className="absolute top-3 sm:top-4 right-3 sm:right-4 text-gray-400 hover:text-white transition-all hover:rotate-90 hover:scale-110 z-10"
-              >
-                <Icons.X />
-              </button>
-
-              <div className="flex items-start gap-3 sm:gap-4 mb-4 sm:mb-6">
-                {/* Pixel character portrait */}
-                <div className="w-16 h-20 sm:w-20 sm:h-24 flex-shrink-0" dangerouslySetInnerHTML={{ __html: pixelCharSvg }} />
-                
-                <div className="flex-1">
-                  {/* Biome icon with glow */}
-                  <div className="relative w-12 h-12 sm:w-14 sm:h-14 mb-2">
-                    <div className={`absolute inset-0 rounded-full blur-lg animate-pulse ${
-                      selectedLevel.biome === 'grass' ? 'bg-green-500/50' :
-                      selectedLevel.biome === 'desert' ? 'bg-yellow-500/50' :
-                      'bg-purple-500/50'
-                    }`}></div>
-                    <div className="relative w-full h-full bg-gradient-to-br from-gray-700 to-gray-800 rounded-full flex items-center justify-center text-xl sm:text-2xl shadow-lg border border-gray-600">
-                      {selectedLevel.biome === 'grass' ? '🌿' : 
-                       selectedLevel.biome === 'desert' ? '🌵' : 
-                       '🌌'}
-                    </div>
-                  </div>
-                  
-                  <h2 className="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
-                    {selectedLevel.title}
-                  </h2>
-                  
-                  {/* Difficulty badge */}
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className={`text-xs px-2 py-1 rounded font-bold shadow border ${
-                      selectedLevel.difficulty === 'Hard' 
-                        ? 'border-red-500 text-red-300 bg-red-900/40' :
-                      selectedLevel.difficulty === 'Medium' 
-                        ? 'border-yellow-500 text-yellow-300 bg-yellow-900/40' :
-                        'border-green-500 text-green-300 bg-green-900/40'
-                    }`}>
-                      {selectedLevel.difficulty}
-                    </span>
-                    {selectedLevel.isChest && (
-                      <span className="text-xs px-2 py-1 rounded font-bold bg-yellow-900/40 border border-yellow-500 text-yellow-300 animate-pulse">
-                        🎁
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Mission objective card */}
-              <div className="bg-gradient-to-br from-gray-900/80 to-gray-800/80 p-3 sm:p-4 rounded-lg mb-4 border border-purple-500/20 backdrop-blur-sm">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-1 h-5 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></div>
-                  <h3 className="text-xs font-bold uppercase text-gray-400 tracking-wider">Mission</h3>
-                </div>
-                <p className="text-sm sm:text-base font-medium text-blue-100">{selectedLevel.desc}</p>
-              </div>
-
-              {/* Lesson / Teaching section */}
-              {selectedLevel.lesson && (
-                <div className="bg-gradient-to-br from-indigo-900/60 to-purple-900/60 p-3 sm:p-4 rounded-lg mb-4 border border-indigo-500/30 backdrop-blur-sm">
-                  <div className="flex items-start gap-2">
-                    <span className="text-lg flex-shrink-0">💡</span>
-                    <p className="text-xs sm:text-sm font-medium text-indigo-100">{selectedLevel.lesson}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Star rewards with explanations */}
-              <div className="mb-4 space-y-2">
-                <h3 className="text-xs font-bold uppercase text-gray-400 tracking-wider mb-2">⭐ Completion Bonus</h3>
-                <div className="space-y-1.5 bg-gray-900/60 p-3 rounded-lg border border-gray-700/50">
-                  {selectedLevel.stars && Object.entries(selectedLevel.stars).map(([key, star], i) => (
-                    <div key={key} className="flex items-center gap-2 text-xs sm:text-sm">
-                      <div className="flex gap-0.5">
-                        {[...Array(i + 1)].map((_, idx) => (
-                          <span key={idx} className="text-yellow-400">⭐</span>
-                        ))}
-                      </div>
-                      <span className="text-gray-300">{star.label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Play button */}
-              <button
-                onClick={() => {
-                  if (soundEnabled) SoundManager.play('questStart');
-                  onPlayLevel(selectedLevel);
-                }}
-                className="w-full py-3 sm:py-4 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-500 hover:via-purple-500 hover:to-pink-500 text-white rounded-lg font-bold shadow-lg transform transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 border border-white/10"
-              >
-                <span className="text-sm sm:text-base">Begin Quest</span> 
-                <div className="animate-pulse text-lg">
-                  <Icons.Play />
-                </div>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-};
-
-const OpeningScreen = ({ onStart, onResume, onCampaign, hasSavedGame, darkMode, toggleDarkMode, loading, soundEnabled, toggleSound, onShowUserPanel, onShowAwards, userSession }) => {
+const OpeningScreen = ({ onStart, onResume, hasSavedGame, darkMode, toggleDarkMode, loading, soundEnabled, toggleSound, onShowUserPanel, onShowAwards, userSession }) => {
   const localStats = StorageService.getGameStats();
   
   return (
@@ -1618,18 +1168,7 @@ const OpeningScreen = ({ onStart, onResume, onCampaign, hasSavedGame, darkMode, 
         )}
 
         {/* Main action buttons */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {/* Campaign */}
-          <button
-            onClick={() => { if (soundEnabled) SoundManager.play('select'); onCampaign(); }}
-            className="py-4 sm:py-5 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:via-purple-500 hover:to-pink-500 text-white rounded-2xl shadow-xl font-bold text-base sm:text-lg transition-all transform hover:scale-[1.02] hover:shadow-2xl flex flex-col items-center justify-center gap-1 border border-purple-400/30"
-          >
-            <div className="flex items-center gap-2">
-              <Icons.Map /> Campaign
-            </div>
-            <span className="text-xs font-normal opacity-80">Earn themes & sounds</span>
-          </button>
-
+        <div className="grid grid-cols-1 gap-3">
           {/* Quick Play section */}
           <div className="bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700">
             <h2 className="text-xs font-bold uppercase text-gray-500 dark:text-gray-400 mb-2 text-center flex items-center justify-center gap-1">
@@ -1681,36 +1220,23 @@ const OpeningScreen = ({ onStart, onResume, onCampaign, hasSavedGame, darkMode, 
   );
 };
 
-const ClosingScreen = ({ status, time, difficulty, mistakes, onRestart, onMenu, loading, soundEnabled, activeQuest, questCompleted, newlyUnlockedThemes, newlyUnlockedSoundPacks }) => {
+const ClosingScreen = ({ status, time, difficulty, mistakes, onRestart, onMenu, loading, soundEnabled, newlyUnlockedThemes, newlyUnlockedSoundPacks }) => {
   const isWin = status === 'won';
 
   useEffect(() => {
-    if (questCompleted) {
-      if (soundEnabled) SoundManager.play(activeQuest.isChest ? 'chestOpen' : 'success');
+    if (isWin) {
+      if (soundEnabled) SoundManager.play('success');
       triggerConfetti();
     }
-  }, [questCompleted, soundEnabled, activeQuest]);
+  }, [isWin, soundEnabled]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 text-gray-900 dark:text-gray-100 animate-fade-in relative">
       <div className="text-center max-w-md w-full bg-white dark:bg-gray-800 p-4 sm:p-6 md:p-8 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 relative overflow-hidden z-10">
-        {questCompleted && <div className="absolute inset-0 pointer-events-none overflow-hidden"><div className="sparkle top-10 left-10"></div><div className="sparkle top-20 right-20"></div></div>}
-
-        <div className="text-4xl sm:text-5xl md:text-6xl mb-3 sm:mb-4 animate-bounce-slow">{isWin ? (questCompleted && activeQuest.isChest ? '🎁' : '🏆') : '💔'}</div>
+        <div className="text-4xl sm:text-5xl md:text-6xl mb-3 sm:mb-4 animate-bounce-slow">{isWin ? '🏆' : '💔'}</div>
         <h1 className={`text-2xl sm:text-3xl font-bold mb-2 ${isWin ? 'text-blue-600' : 'text-red-500'}`}>
-          {isWin ? (questCompleted ? (activeQuest.isChest ? 'Loot Acquired!' : 'Quest Complete!') : 'Puzzle Solved!') : 'Game Over'}
+          {isWin ? 'Puzzle Solved!' : 'Game Over'}
         </h1>
-
-        {activeQuest && (
-          <div className="my-3 sm:my-4 p-2.5 sm:p-3 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg border border-indigo-100 dark:border-indigo-800">
-            <p className="text-[10px] sm:text-xs uppercase font-bold text-indigo-500">Quest Objective</p>
-            <p className="text-xs sm:text-sm font-medium">{activeQuest.desc}</p>
-            {questCompleted
-              ? <div className="mt-2 text-green-600 font-bold flex items-center justify-center gap-1 text-xs sm:text-sm"><Icons.Star filled={true} /> Objective Met!</div>
-              : <div className="mt-2 text-red-500 text-[10px] sm:text-xs">Objective Failed</div>
-            }
-          </div>
-        )}
 
         {newlyUnlockedThemes && newlyUnlockedThemes.length > 0 && (
           <div className="my-3 sm:my-4 p-3 sm:p-4 bg-gradient-to-r from-purple-50 via-pink-50 to-purple-50 dark:from-purple-900/40 dark:via-pink-900/30 dark:to-purple-900/40 rounded-xl border-2 border-purple-400 dark:border-purple-600 animate-pulse-glow relative overflow-hidden">
@@ -1802,13 +1328,11 @@ const ClosingScreen = ({ status, time, difficulty, mistakes, onRestart, onMenu, 
         </div>
 
         <div className="space-y-2 sm:space-y-3">
-          {!activeQuest && (
-            <button onClick={() => { if (soundEnabled) SoundManager.play('startGame'); onRestart(); }} disabled={loading} className="w-full py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm sm:text-base transition-colors disabled:opacity-50">
-              {loading ? 'Generating...' : (isWin ? 'Play Another' : 'Try Again')}
-            </button>
-          )}
+          <button onClick={() => { if (soundEnabled) SoundManager.play('startGame'); onRestart(); }} disabled={loading} className="w-full py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm sm:text-base transition-colors disabled:opacity-50">
+            {loading ? 'Generating...' : (isWin ? 'Play Another' : 'Try Again')}
+          </button>
           <button onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); onMenu(); }} className="w-full py-2.5 sm:py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg font-bold text-sm sm:text-base transition-colors">
-            {activeQuest ? 'Return to Map' : 'Main Menu'}
+            Main Menu
           </button>
         </div>
       </div>
@@ -1838,11 +1362,6 @@ const App = () => {
   const [loading, setLoading] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [emojiCategory, setEmojiCategory] = useState(EMOJI_CATEGORIES[0].id);
-
-  // Campaign State
-  const [activeQuest, setActiveQuest] = useState(null);
-  const [campaignProgress, setCampaignProgress] = useState(StorageService.getCampaignProgress());
-  const [questCompleted, setQuestCompleted] = useState(false);
 
   // User Authentication State
   const [showUserPanel, setShowUserPanel] = useState(false);
@@ -2148,7 +1667,7 @@ const App = () => {
     });
   };
 
-  const startNewGame = async (diff, quest = null) => {
+  const startNewGame = async (diff) => {
     if (soundEnabled) SoundManager.init();
     setLoading(true);
     try {
@@ -2167,7 +1686,7 @@ const App = () => {
 
       setBoard(newBoard); setDifficulty(diff); setStatus('playing');
       setTimer(0); setMistakes(0); setHistory([newBoard]); setSelectedCell(null);
-      setShowModal('none'); setActiveQuest(quest); setQuestCompleted(false);
+      setShowModal('none');
       setView('game');
     } catch (e) { console.error(e); alert("Failed to start game."); } finally { setLoading(false); }
   };
@@ -2286,25 +1805,6 @@ const App = () => {
         } catch (err) {
           console.error('Failed to update user stats:', err);
         }
-      }
-    }
-
-    if (activeQuest) {
-      const gameStats = { status: 'won', time: finalTime, mistakes: finalMistakes };
-      if (activeQuest.criteria(gameStats)) {
-        setQuestCompleted(true);
-        if (soundEnabled) setTimeout(() => SoundManager.play('unlock'), 1000);
-
-        // Update Progress
-        const nextId = activeQuest.id + 1;
-        const newProg = { ...campaignProgress };
-        newProg[activeQuest.id] = { unlocked: true, stars: 3 };
-        if (nextId <= CAMPAIGN_LEVELS.length) {
-          if (!newProg[nextId]) newProg[nextId] = { unlocked: true, stars: 0 };
-          else newProg[nextId].unlocked = true;
-        }
-        setCampaignProgress(newProg);
-        StorageService.saveCampaignProgress(newProg);
       }
     }
   };
@@ -2565,45 +2065,13 @@ const App = () => {
 
   // --- RENDER LOGIC ---
 
-  // 1. CAMPAIGN MAP
-  if (view === 'campaign') {
-    return (
-      <>
-        <CampaignMap
-          progress={campaignProgress}
-          onPlayLevel={(level) => startNewGame(level.difficulty, level)}
-          soundEnabled={soundEnabled}
-          onBack={() => { if (soundEnabled) SoundManager.play('uiTap'); setView('menu'); }}
-          onOpenAwards={() => { if (soundEnabled) SoundManager.play('uiTap'); openAwards(); }}
-          activeThemeId={activeThemeId}
-          activeSoundPackId={activeSoundPackId}
-          activeAssetSet={activeAssetSet}
-        />
-        {showUserPanel && <UserPanel soundEnabled={soundEnabled} onClose={handleUserPanelClose} appUserSession={appUserSession} />}
-        {showAwardsZone && (
-          <AwardsZone
-            soundEnabled={soundEnabled}
-            onClose={handleAwardsClose}
-            activeThemeId={activeThemeId}
-            unlockedThemes={unlockedThemes}
-            onSelectTheme={(id) => handleThemeChange(id, { persist: false })}
-            activePackId={activeSoundPackId}
-            unlockedPacks={unlockedSoundPacks}
-            onSelectPack={(id) => handleSoundPackChange(id, { persist: false })}
-          />
-        )}
-      </>
-    );
-  }
-
-  // 2. MAIN MENU (Opening Screen)
+  // 1. MAIN MENU (Opening Screen)
   if (view === 'menu') {
     return (
       <>
         <OpeningScreen
           onStart={startNewGame}
           onResume={() => { setView('game'); setStatus('playing'); }}
-          onCampaign={() => setView('campaign')}
           hasSavedGame={status === 'paused'}
           darkMode={darkMode} toggleDarkMode={toggleDarkMode}
           loading={loading} soundEnabled={soundEnabled} toggleSound={toggleSound}
@@ -2637,14 +2105,11 @@ const App = () => {
           onRestart={() => startNewGame(difficulty)}
           onMenu={() => {
             setStatus('idle');
-            if (activeQuest) setView('campaign');
-            else setView('menu');
-            setActiveQuest(null);
+            setView('menu');
             setNewlyUnlockedThemes([]);
             setNewlyUnlockedSoundPacks([]);
           }}
           loading={loading} soundEnabled={soundEnabled}
-          activeQuest={activeQuest} questCompleted={questCompleted}
           newlyUnlockedThemes={newlyUnlockedThemes}
           newlyUnlockedSoundPacks={newlyUnlockedSoundPacks}
         />
@@ -2780,7 +2245,6 @@ const App = () => {
         <div className="flex justify-between items-center px-2 sm:px-4 lg:px-0">
           <div className="flex flex-col">
             <h1 className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight cursor-pointer" onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); setStatus('paused'); setView('menu'); }}>Sudoku <span className="text-blue-600">Logic</span> Lab</h1>
-            {activeQuest && <span className="text-[10px] sm:text-xs font-semibold text-indigo-500 uppercase tracking-widest flex items-center gap-1"><Icons.Map /> Campaign Mode</span>}
           </div>
           <div className="flex gap-1 sm:gap-2 items-center">
             {loading && <span className="text-xs text-blue-500 animate-pulse hidden sm:inline">Generating...</span>}
@@ -2801,12 +2265,6 @@ const App = () => {
             </button>
           </div>
         </div>
-
-        {activeQuest && (
-          <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 p-2 rounded-lg text-center text-xs sm:text-sm font-medium text-indigo-700 dark:text-indigo-300">
-            Objective: {activeQuest.desc}
-          </div>
-        )}
 
         <div className="flex flex-col lg:flex-row gap-2 sm:gap-3 md:gap-4 lg:gap-5 justify-center items-start">
 
@@ -2891,14 +2349,14 @@ const App = () => {
             </div>
 
             {/* New Game */}
-            {!activeQuest && <div className="bg-white dark:bg-gray-800 p-2 sm:p-2.5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-800 p-2 sm:p-2.5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
               <h3 className="text-[9px] sm:text-[10px] font-bold uppercase text-gray-500 mb-1.5">{loading ? 'Generating...' : 'New Game'}</h3>
               <div className="grid grid-cols-2 gap-1 sm:gap-1.5">
                 {['Easy', 'Medium', 'Hard', 'Daily'].map(d => (
                   <button key={d} onClick={() => { if (soundEnabled) SoundManager.play('startGame'); startNewGame(d); }} disabled={loading} className={`py-1 sm:py-1.5 px-2 rounded text-[11px] font-medium transition-colors ${difficulty === d ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'} disabled:opacity-50`}>{d}</button>
                 ))}
               </div>
-            </div>}
+            </div>
 
             <div className="grid grid-cols-1 gap-1.5">
               <button onClick={handleOpenLeaderboard} className="py-1.5 sm:py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded shadow-md text-xs font-bold hover:from-yellow-600 hover:to-orange-600 transition-colors transform hover:-translate-y-0.5">🏆 Leaderboard</button>

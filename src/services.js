@@ -251,27 +251,6 @@ const StorageService = {
   },
 
   /**
-   * Get campaign progress
-   * @returns {Object} Campaign progress
-   */
-  getCampaignProgress() {
-    try {
-      const stored = localStorage.getItem(KEYS.CAMPAIGN_PROGRESS);
-      return stored ? JSON.parse(stored) : { 1: { unlocked: true, stars: 0 } };
-    } catch (e) {
-      return { 1: { unlocked: true, stars: 0 } };
-    }
-  },
-
-  /**
-   * Save campaign progress
-   * @param {Object} progress - Campaign progress
-   */
-  saveCampaignProgress(progress) {
-    localStorage.setItem(KEYS.CAMPAIGN_PROGRESS, JSON.stringify(progress));
-  },
-
-  /**
    * Get game stats
    * @returns {Object} Game stats
    */
