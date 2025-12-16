@@ -332,6 +332,576 @@ const SOUND_PACKS = Object.freeze({
 });
 
 // ============================================================================
+// COMBINATORIAL THEME SYSTEM
+// ============================================================================
+
+/**
+ * ThemeAssetSet defines the unique visual output for each (Audio, Visual) combination.
+ * Each combination results in a distinct "recipe" with specific:
+ * - name: Display name for this combination
+ * - description: Flavor text describing the aesthetic
+ * - background: CSS gradient classes for the page background
+ * - backgroundImage: Optional subtle background image/pattern
+ * - boardTexture: Visual texture for the Sudoku grid (wood, pixel, stone, paper, etc.)
+ * - boardBg: Background color/style for the board container
+ * - cellBg: Default cell background
+ * - fixedCellBg: Pre-filled cell background
+ * - selectedCellBg: Selected cell highlight
+ * - decor: Theme-specific decorative elements to render around the UI
+ */
+
+// Helper to generate combination key
+const getComboKey = (visualId, audioId) => `${visualId}_${audioId}`;
+
+// Base visual themes (extracted from THEMES for cleaner combination logic)
+const VISUAL_BASES = Object.freeze({
+  default: {
+    background: 'bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800',
+    boardBg: 'bg-white dark:bg-gray-800',
+    cellBg: 'bg-white dark:bg-gray-800',
+    fixedCellBg: 'bg-gray-50 dark:bg-gray-800',
+    selectedCellBg: 'bg-blue-200 dark:bg-blue-900'
+  },
+  ocean: {
+    background: 'bg-gradient-to-br from-cyan-100 to-blue-200 dark:from-cyan-950 dark:to-blue-950',
+    boardBg: 'bg-cyan-50/80 dark:bg-cyan-900/50',
+    cellBg: 'bg-cyan-50 dark:bg-cyan-900/70',
+    fixedCellBg: 'bg-cyan-100 dark:bg-cyan-950',
+    selectedCellBg: 'bg-blue-300 dark:bg-blue-800'
+  },
+  forest: {
+    background: 'bg-gradient-to-br from-emerald-100 to-green-300 dark:from-emerald-950 dark:to-green-900',
+    boardBg: 'bg-emerald-50/80 dark:bg-emerald-900/50',
+    cellBg: 'bg-emerald-50 dark:bg-emerald-900/70',
+    fixedCellBg: 'bg-emerald-100 dark:bg-emerald-950',
+    selectedCellBg: 'bg-green-300 dark:bg-green-800'
+  },
+  sunset: {
+    background: 'bg-gradient-to-br from-orange-100 to-pink-300 dark:from-orange-900 dark:to-pink-900',
+    boardBg: 'bg-orange-50/80 dark:bg-orange-900/50',
+    cellBg: 'bg-orange-50 dark:bg-orange-800/70',
+    fixedCellBg: 'bg-orange-100 dark:bg-orange-900',
+    selectedCellBg: 'bg-orange-300 dark:bg-orange-700'
+  },
+  midnight: {
+    background: 'bg-gradient-to-br from-indigo-900 to-purple-900 dark:from-black dark:to-indigo-950',
+    boardBg: 'bg-indigo-900/50 dark:bg-black/50',
+    cellBg: 'bg-indigo-800/70 dark:bg-gray-900/70',
+    fixedCellBg: 'bg-indigo-900 dark:bg-black',
+    selectedCellBg: 'bg-purple-700 dark:bg-purple-900'
+  },
+  sakura: {
+    background: 'bg-gradient-to-br from-pink-100 to-rose-200 dark:from-pink-900 dark:to-rose-900',
+    boardBg: 'bg-pink-50/80 dark:bg-pink-900/50',
+    cellBg: 'bg-pink-50 dark:bg-pink-800/70',
+    fixedCellBg: 'bg-pink-100 dark:bg-pink-900',
+    selectedCellBg: 'bg-pink-300 dark:bg-pink-700'
+  },
+  volcano: {
+    background: 'bg-gradient-to-br from-red-100 to-orange-400 dark:from-red-900 dark:to-orange-900',
+    boardBg: 'bg-red-50/80 dark:bg-red-900/50',
+    cellBg: 'bg-red-50 dark:bg-red-800/70',
+    fixedCellBg: 'bg-red-100 dark:bg-red-900',
+    selectedCellBg: 'bg-red-300 dark:bg-red-700'
+  },
+  arctic: {
+    background: 'bg-gradient-to-br from-blue-50 to-cyan-200 dark:from-blue-950 dark:to-cyan-950',
+    boardBg: 'bg-blue-50/80 dark:bg-blue-950/50',
+    cellBg: 'bg-blue-50 dark:bg-blue-900/70',
+    fixedCellBg: 'bg-blue-100 dark:bg-blue-950',
+    selectedCellBg: 'bg-blue-200 dark:bg-blue-800'
+  }
+});
+
+// Audio theme modifiers (how audio themes influence the visual rendering)
+const AUDIO_MODIFIERS = Object.freeze({
+  classic: { style: 'clean', textureHint: 'smooth' },
+  zen: { style: 'watercolor', textureHint: 'paper' },
+  funfair: { style: 'playful', textureHint: 'carnival' },
+  retro: { style: 'pixel', textureHint: 'pixelgrid' },
+  space: { style: 'cosmic', textureHint: 'nebula' },
+  nature: { style: 'organic', textureHint: 'wood' },
+  crystal: { style: 'crystalline', textureHint: 'ice' },
+  minimal: { style: 'stark', textureHint: 'concrete' }
+});
+
+// Board texture definitions
+const BOARD_TEXTURES = Object.freeze({
+  smooth: { name: 'Smooth', pattern: 'none', opacity: 0 },
+  paper: { name: 'Rice Paper', pattern: 'paper', opacity: 0.15 },
+  wood: { name: 'Wood Grain', pattern: 'wood', opacity: 0.2 },
+  pixelgrid: { name: 'Pixel Grid', pattern: 'pixel', opacity: 0.25 },
+  stone: { name: 'Stone', pattern: 'stone', opacity: 0.18 },
+  ice: { name: 'Ice Crystal', pattern: 'ice', opacity: 0.12 },
+  nebula: { name: 'Cosmic Dust', pattern: 'nebula', opacity: 0.15 },
+  carnival: { name: 'Carnival', pattern: 'carnival', opacity: 0.1 },
+  concrete: { name: 'Concrete', pattern: 'concrete', opacity: 0.08 }
+});
+
+// Decorative element sets
+const DECOR_SETS = Object.freeze({
+  none: [],
+  bubbles: ['🫧', '💧', '🐚'],
+  petals: ['🌸', '🎀', '✨'],
+  leaves: ['🍃', '🌿', '🍂'],
+  stars: ['⭐', '✨', '💫'],
+  pixels: ['▪️', '◾', '◽'],
+  flames: ['🔥', '✨', '💥'],
+  snowflakes: ['❄️', '🌨️', '💎'],
+  clouds: ['☁️', '🌤️', '✨'],
+  notes: ['🎵', '🎶', '🎼']
+});
+
+/**
+ * THEME_COMBINATIONS - The Recipe System
+ * Maps (visualId, audioId) => unique ThemeAssetSet
+ * Every permutation produces a distinct visual experience
+ */
+const THEME_COMBINATIONS = Object.freeze({
+  // Default visual + all audio themes
+  'default_classic': {
+    name: 'Classic Logic',
+    description: 'The original Sudoku experience',
+    boardTexture: 'smooth',
+    decor: 'none'
+  },
+  'default_zen': {
+    name: 'Mindful Classic',
+    description: 'Clean design with calming energy',
+    boardTexture: 'paper',
+    decor: 'clouds'
+  },
+  'default_funfair': {
+    name: 'Classic Carnival',
+    description: 'Traditional puzzles with playful flair',
+    boardTexture: 'carnival',
+    decor: 'notes'
+  },
+  'default_retro': {
+    name: '8-Bit Logic',
+    description: 'Classic puzzles, pixel perfect',
+    boardTexture: 'pixelgrid',
+    decor: 'pixels'
+  },
+  'default_space': {
+    name: 'Cosmic Classic',
+    description: 'Timeless puzzles among the stars',
+    boardTexture: 'nebula',
+    decor: 'stars'
+  },
+  'default_nature': {
+    name: 'Natural Logic',
+    description: 'Classic design with organic warmth',
+    boardTexture: 'wood',
+    decor: 'leaves'
+  },
+  'default_crystal': {
+    name: 'Crystal Clear',
+    description: 'Pristine clarity for focused solving',
+    boardTexture: 'ice',
+    decor: 'snowflakes'
+  },
+  'default_minimal': {
+    name: 'Pure Logic',
+    description: 'Stripped down to essentials',
+    boardTexture: 'concrete',
+    decor: 'none'
+  },
+
+  // Ocean visual + all audio themes
+  'ocean_classic': {
+    name: 'Ocean Breeze',
+    description: 'Tranquil waters with classic sounds',
+    boardTexture: 'smooth',
+    decor: 'bubbles'
+  },
+  'ocean_zen': {
+    name: 'Underwater Meditation',
+    description: 'Deep sea tranquility',
+    boardTexture: 'paper',
+    decor: 'bubbles'
+  },
+  'ocean_funfair': {
+    name: 'Beach Carnival',
+    description: 'Seaside fun and games',
+    boardTexture: 'carnival',
+    decor: 'bubbles'
+  },
+  'ocean_retro': {
+    name: '8-Bit Ocean',
+    description: 'Pixel art sea creatures, chiptune waves',
+    boardTexture: 'pixelgrid',
+    decor: 'pixels'
+  },
+  'ocean_space': {
+    name: 'Cosmic Depths',
+    description: 'Where the ocean meets the cosmos',
+    boardTexture: 'nebula',
+    decor: 'stars'
+  },
+  'ocean_nature': {
+    name: 'Coral Garden',
+    description: 'Living reef atmosphere',
+    boardTexture: 'wood',
+    decor: 'bubbles'
+  },
+  'ocean_crystal': {
+    name: 'Frozen Depths',
+    description: 'Ice crystals beneath the waves',
+    boardTexture: 'ice',
+    decor: 'snowflakes'
+  },
+  'ocean_minimal': {
+    name: 'Silent Sea',
+    description: 'Calm waters, minimal distractions',
+    boardTexture: 'concrete',
+    decor: 'none'
+  },
+
+  // Forest visual + all audio themes
+  'forest_classic': {
+    name: 'Forest Logic',
+    description: 'Classic solving among the trees',
+    boardTexture: 'smooth',
+    decor: 'leaves'
+  },
+  'forest_zen': {
+    name: 'Bamboo Grove',
+    description: 'Eastern forest meditation',
+    boardTexture: 'paper',
+    decor: 'leaves'
+  },
+  'forest_funfair': {
+    name: 'Enchanted Forest',
+    description: 'Whimsical woodland adventure',
+    boardTexture: 'carnival',
+    decor: 'notes'
+  },
+  'forest_retro': {
+    name: 'Pixel Woods',
+    description: '8-bit forest adventure',
+    boardTexture: 'pixelgrid',
+    decor: 'pixels'
+  },
+  'forest_space': {
+    name: 'Alien Forest',
+    description: 'Bioluminescent alien flora',
+    boardTexture: 'nebula',
+    decor: 'stars'
+  },
+  'forest_nature': {
+    name: 'Woodland Breeze',
+    description: 'Pure forest immersion',
+    boardTexture: 'wood',
+    decor: 'leaves'
+  },
+  'forest_crystal': {
+    name: 'Frost Forest',
+    description: 'Winter wonderland among the pines',
+    boardTexture: 'ice',
+    decor: 'snowflakes'
+  },
+  'forest_minimal': {
+    name: 'Quiet Grove',
+    description: 'Simple serenity in nature',
+    boardTexture: 'concrete',
+    decor: 'none'
+  },
+
+  // Sunset visual + all audio themes
+  'sunset_classic': {
+    name: 'Golden Hour',
+    description: 'Classic puzzles at twilight',
+    boardTexture: 'smooth',
+    decor: 'clouds'
+  },
+  'sunset_zen': {
+    name: 'Twilight Meditation',
+    description: 'Peaceful sunset contemplation',
+    boardTexture: 'paper',
+    decor: 'clouds'
+  },
+  'sunset_funfair': {
+    name: 'Carnival Twilight',
+    description: 'Evening fair under warm skies',
+    boardTexture: 'carnival',
+    decor: 'notes'
+  },
+  'sunset_retro': {
+    name: 'Pixel Sunset',
+    description: 'Retro vibes at dusk',
+    boardTexture: 'pixelgrid',
+    decor: 'pixels'
+  },
+  'sunset_space': {
+    name: 'Cosmic Dusk',
+    description: 'Where sunset meets starlight',
+    boardTexture: 'nebula',
+    decor: 'stars'
+  },
+  'sunset_nature': {
+    name: 'Evening Meadow',
+    description: 'Golden fields at golden hour',
+    boardTexture: 'wood',
+    decor: 'leaves'
+  },
+  'sunset_crystal': {
+    name: 'Amber Crystal',
+    description: 'Warm light through crystal prisms',
+    boardTexture: 'ice',
+    decor: 'snowflakes'
+  },
+  'sunset_minimal': {
+    name: 'Simple Sunset',
+    description: 'Clean lines at twilight',
+    boardTexture: 'concrete',
+    decor: 'none'
+  },
+
+  // Midnight visual + all audio themes
+  'midnight_classic': {
+    name: 'Midnight Logic',
+    description: 'Classic puzzles under the stars',
+    boardTexture: 'smooth',
+    decor: 'stars'
+  },
+  'midnight_zen': {
+    name: 'Night Meditation',
+    description: 'Peaceful darkness for focus',
+    boardTexture: 'paper',
+    decor: 'stars'
+  },
+  'midnight_funfair': {
+    name: 'Night Carnival',
+    description: 'Neon lights in the darkness',
+    boardTexture: 'carnival',
+    decor: 'notes'
+  },
+  'midnight_retro': {
+    name: 'Neon Nights',
+    description: 'Cyberpunk pixel aesthetic',
+    boardTexture: 'pixelgrid',
+    decor: 'pixels'
+  },
+  'midnight_space': {
+    name: 'Cosmic Stargazing',
+    description: 'Deep space exploration',
+    boardTexture: 'nebula',
+    decor: 'stars'
+  },
+  'midnight_nature': {
+    name: 'Moonlit Forest',
+    description: 'Nocturnal woodland atmosphere',
+    boardTexture: 'wood',
+    decor: 'leaves'
+  },
+  'midnight_crystal': {
+    name: 'Starlight Crystal',
+    description: 'Crystalline beauty in moonlight',
+    boardTexture: 'ice',
+    decor: 'snowflakes'
+  },
+  'midnight_minimal': {
+    name: 'Dark Mode',
+    description: 'Pure focus in darkness',
+    boardTexture: 'concrete',
+    decor: 'none'
+  },
+
+  // Sakura visual + all audio themes
+  'sakura_classic': {
+    name: 'Cherry Blossom',
+    description: 'Classic beauty in bloom',
+    boardTexture: 'smooth',
+    decor: 'petals'
+  },
+  'sakura_zen': {
+    name: 'Watercolor Garden',
+    description: 'Eastern watercolor paintings, paper textures',
+    boardTexture: 'paper',
+    decor: 'petals'
+  },
+  'sakura_funfair': {
+    name: 'Hanami Festival',
+    description: 'Cherry blossom celebration',
+    boardTexture: 'carnival',
+    decor: 'petals'
+  },
+  'sakura_retro': {
+    name: '8-Bit Blossom',
+    description: 'Pixel petals falling',
+    boardTexture: 'pixelgrid',
+    decor: 'pixels'
+  },
+  'sakura_space': {
+    name: 'Cosmic Petals',
+    description: 'Blossoms among the stars',
+    boardTexture: 'nebula',
+    decor: 'stars'
+  },
+  'sakura_nature': {
+    name: 'Spring Garden',
+    description: 'Natural cherry blossom grove',
+    boardTexture: 'wood',
+    decor: 'petals'
+  },
+  'sakura_crystal': {
+    name: 'Frozen Blossoms',
+    description: 'Ice-preserved spring beauty',
+    boardTexture: 'ice',
+    decor: 'snowflakes'
+  },
+  'sakura_minimal': {
+    name: 'Simple Sakura',
+    description: 'Elegant minimalist spring',
+    boardTexture: 'concrete',
+    decor: 'none'
+  },
+
+  // Volcano visual + all audio themes
+  'volcano_classic': {
+    name: 'Volcanic Logic',
+    description: 'Classic puzzles with fiery intensity',
+    boardTexture: 'smooth',
+    decor: 'flames'
+  },
+  'volcano_zen': {
+    name: 'Lava Meditation',
+    description: 'Finding calm in the heat',
+    boardTexture: 'paper',
+    decor: 'flames'
+  },
+  'volcano_funfair': {
+    name: 'Fire Festival',
+    description: 'Celebration of flames',
+    boardTexture: 'carnival',
+    decor: 'flames'
+  },
+  'volcano_retro': {
+    name: 'Pixel Inferno',
+    description: '8-bit volcanic action',
+    boardTexture: 'pixelgrid',
+    decor: 'pixels'
+  },
+  'volcano_space': {
+    name: 'Solar Flare',
+    description: 'Cosmic fire and fury',
+    boardTexture: 'nebula',
+    decor: 'stars'
+  },
+  'volcano_nature': {
+    name: 'Geothermal Springs',
+    description: 'Natural volcanic beauty',
+    boardTexture: 'stone',
+    decor: 'flames'
+  },
+  'volcano_crystal': {
+    name: 'Obsidian Crystal',
+    description: 'Volcanic glass formations',
+    boardTexture: 'ice',
+    decor: 'snowflakes'
+  },
+  'volcano_minimal': {
+    name: 'Focused Intensity',
+    description: 'Channeled volcanic energy',
+    boardTexture: 'concrete',
+    decor: 'none'
+  },
+
+  // Arctic visual + all audio themes
+  'arctic_classic': {
+    name: 'Arctic Logic',
+    description: 'Crystal clear cold solving',
+    boardTexture: 'smooth',
+    decor: 'snowflakes'
+  },
+  'arctic_zen': {
+    name: 'Frozen Meditation',
+    description: 'Ice cold focus',
+    boardTexture: 'paper',
+    decor: 'snowflakes'
+  },
+  'arctic_funfair': {
+    name: 'Winter Wonderland',
+    description: 'Festive ice carnival',
+    boardTexture: 'carnival',
+    decor: 'snowflakes'
+  },
+  'arctic_retro': {
+    name: 'Pixel Tundra',
+    description: '8-bit frozen landscape',
+    boardTexture: 'pixelgrid',
+    decor: 'pixels'
+  },
+  'arctic_space': {
+    name: 'Frozen Cosmos',
+    description: 'Cold reaches of space',
+    boardTexture: 'nebula',
+    decor: 'stars'
+  },
+  'arctic_nature': {
+    name: 'Snowy Forest',
+    description: 'Winter woodland serenity',
+    boardTexture: 'wood',
+    decor: 'snowflakes'
+  },
+  'arctic_crystal': {
+    name: 'Ice Crystal Sparkle',
+    description: 'Pure crystalline beauty',
+    boardTexture: 'ice',
+    decor: 'snowflakes'
+  },
+  'arctic_minimal': {
+    name: 'Arctic Minimal',
+    description: 'Clean ice, clean mind',
+    boardTexture: 'concrete',
+    decor: 'none'
+  }
+});
+
+/**
+ * Get the combined ThemeAssetSet for a given visual and audio theme
+ * @param {string} visualId - Visual theme ID
+ * @param {string} audioId - Audio/sound pack ID
+ * @returns {Object} Combined ThemeAssetSet with all styling properties
+ */
+const getThemeAssetSet = (visualId, audioId) => {
+  const comboKey = getComboKey(visualId, audioId);
+  const combo = THEME_COMBINATIONS[comboKey] || THEME_COMBINATIONS['default_classic'];
+  const visualBase = VISUAL_BASES[visualId] || VISUAL_BASES.default;
+  const texture = BOARD_TEXTURES[combo.boardTexture] || BOARD_TEXTURES.smooth;
+  const decorSet = DECOR_SETS[combo.decor] || DECOR_SETS.none;
+  
+  return {
+    // Combination metadata
+    name: combo.name,
+    description: combo.description,
+    comboKey,
+    
+    // Visual base styles (from visual theme)
+    background: visualBase.background,
+    boardBg: visualBase.boardBg,
+    cellBg: visualBase.cellBg,
+    fixedCellBg: visualBase.fixedCellBg,
+    selectedCellBg: visualBase.selectedCellBg,
+    
+    // Texture overlay
+    texture: {
+      name: texture.name,
+      pattern: texture.pattern,
+      opacity: texture.opacity
+    },
+    
+    // Decorative elements
+    decor: decorSet,
+    
+    // Original IDs for reference
+    visualThemeId: visualId,
+    audioThemeId: audioId
+  };
+};
+
+// ============================================================================
 // EMOJI CATEGORIES (for chat)
 // ============================================================================
 
@@ -373,3 +943,12 @@ window.CAMPAIGN_LEVELS = CAMPAIGN_LEVELS;
 window.THEMES = THEMES;
 window.SOUND_PACKS = SOUND_PACKS;
 window.EMOJI_CATEGORIES = EMOJI_CATEGORIES;
+
+// Combinatorial Theme System exports
+window.VISUAL_BASES = VISUAL_BASES;
+window.AUDIO_MODIFIERS = AUDIO_MODIFIERS;
+window.BOARD_TEXTURES = BOARD_TEXTURES;
+window.DECOR_SETS = DECOR_SETS;
+window.THEME_COMBINATIONS = THEME_COMBINATIONS;
+window.getComboKey = getComboKey;
+window.getThemeAssetSet = getThemeAssetSet;
