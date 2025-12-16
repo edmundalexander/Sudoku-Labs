@@ -70,99 +70,107 @@ const GAME_SETTINGS = Object.freeze({
 const CAMPAIGN_LEVELS = Object.freeze([
   {
     id: 1,
-    title: "The Awakening",
+    title: "First Moves",
     difficulty: DIFFICULTY.EASY,
-    desc: "Start your journey. Complete an Easy puzzle.",
+    desc: "Learn the basics: fill in cells with numbers 1-9. Each row, column, and 3×3 box needs each number once.",
+    lesson: "📖 LESSON: Each row, column, and 3×3 box must contain digits 1-9 exactly once.",
     stars: {
       star1: { label: "Complete", criteria: (s) => s.status === 'won' },
       star2: { label: "Perfect", criteria: (s) => s.status === 'won' && s.mistakes === 0 },
-      star3: { label: "Swift", criteria: (s) => s.status === 'won' && s.time < 120 }
+      star3: { label: "Speed", criteria: (s) => s.status === 'won' && s.time < 120 }
     },
     biome: 'grass'
   },
   {
     id: 2,
-    title: "Swift Mind",
+    title: "Row Mastery",
     difficulty: DIFFICULTY.EASY,
-    desc: "Solve an Easy puzzle in under 3 minutes.",
+    desc: "Focus on row logic: use process of elimination within rows to find values.",
+    lesson: "💡 SKILL: Scan rows to find where numbers can go - spot which cells must contain a value.",
     stars: {
       star1: { label: "Complete", criteria: (s) => s.status === 'won' },
-      star2: { label: "Swift", criteria: (s) => s.status === 'won' && s.time < 180 },
-      star3: { label: "Flawless", criteria: (s) => s.status === 'won' && s.time < 180 && s.mistakes === 0 }
+      star2: { label: "Flawless", criteria: (s) => s.status === 'won' && s.mistakes === 0 },
+      star3: { label: "Champion", criteria: (s) => s.status === 'won' && s.mistakes === 0 && s.time < 90 }
     },
     biome: 'grass'
   },
   {
     id: 3,
-    title: "Treasure Trove",
+    title: "Hidden Treasures",
     difficulty: DIFFICULTY.EASY,
-    desc: "Bonus Level! Solve with 0 mistakes.",
+    desc: "Bonus: Put it all together! Combine row, column, and box logic to solve under 2 min.",
+    lesson: "🎯 TIP: When stuck, look for candidates with only 1 possibility.",
     stars: {
       star1: { label: "Complete", criteria: (s) => s.status === 'won' },
-      star2: { label: "Flawless", criteria: (s) => s.status === 'won' && s.mistakes === 0 },
-      star3: { label: "Champion", criteria: (s) => s.status === 'won' && s.mistakes === 0 && s.time < 60 }
+      star2: { label: "Swift", criteria: (s) => s.status === 'won' && s.time < 120 },
+      star3: { label: "Flawless Swift", criteria: (s) => s.status === 'won' && s.time < 120 && s.mistakes === 0 }
     },
     biome: 'grass',
     isChest: true
   },
   {
     id: 4,
-    title: "Sandstorm",
+    title: "Column Challenge",
     difficulty: DIFFICULTY.MEDIUM,
-    desc: "Step up the challenge. Complete a Medium puzzle.",
+    desc: "Step up: Now puzzles have fewer clues. Use column elimination alongside rows and boxes.",
+    lesson: "📚 ADVANCED: Combine row + column + box constraints - each limits where numbers go.",
     stars: {
       star1: { label: "Complete", criteria: (s) => s.status === 'won' },
-      star2: { label: "Skilled", criteria: (s) => s.status === 'won' && s.mistakes <= 1 },
+      star2: { label: "Precise", criteria: (s) => s.status === 'won' && s.mistakes <= 1 },
       star3: { label: "Mastery", criteria: (s) => s.status === 'won' && s.mistakes === 0 && s.time < 300 }
     },
     biome: 'desert'
   },
   {
     id: 5,
-    title: "Mirage",
+    title: "Box Logic",
     difficulty: DIFFICULTY.MEDIUM,
-    desc: "Medium puzzle, max 1 mistake.",
+    desc: "Master the 3×3 boxes: use box-specific constraints to eliminate possibilities.",
+    lesson: "🔍 TECHNIQUE: Look at intersections - where rows meet columns within boxes.",
     stars: {
       star1: { label: "Complete", criteria: (s) => s.status === 'won' },
-      star2: { label: "Skilled", criteria: (s) => s.status === 'won' && s.mistakes <= 1 },
-      star3: { label: "Perfect", criteria: (s) => s.status === 'won' && s.mistakes === 0 && s.time < 360 }
+      star2: { label: "Strategic", criteria: (s) => s.status === 'won' && s.mistakes === 0 },
+      star3: { label: "Legend", criteria: (s) => s.status === 'won' && s.mistakes === 0 && s.time < 300 }
     },
     biome: 'desert'
   },
   {
     id: 6,
-    title: "Oasis Cache",
+    title: "Oasis Ascension",
     difficulty: DIFFICULTY.MEDIUM,
-    desc: "Bonus! Medium puzzle under 8 mins.",
+    desc: "Bonus: Combine all your skills - solve a medium puzzle with zero mistakes under 8 min.",
+    lesson: "⭐ INSIGHT: Expert players use 'candidate sets' - track all possible values per cell.",
     stars: {
       star1: { label: "Complete", criteria: (s) => s.status === 'won' },
-      star2: { label: "Swift", criteria: (s) => s.status === 'won' && s.time < 480 },
-      star3: { label: "Legend", criteria: (s) => s.status === 'won' && s.time < 300 && s.mistakes === 0 }
+      star2: { label: "Quick-Witted", criteria: (s) => s.status === 'won' && s.time < 480 },
+      star3: { label: "Expert", criteria: (s) => s.status === 'won' && s.time < 300 && s.mistakes === 0 }
     },
     biome: 'desert',
     isChest: true
   },
   {
     id: 7,
-    title: "Void Walker",
+    title: "The Hard Void",
     difficulty: DIFFICULTY.HARD,
-    desc: "Face the ultimate test. Complete a Hard puzzle.",
+    desc: "Elite training begins: Hard puzzles require advanced deduction. Stay logical, stay patient.",
+    lesson: "🧠 MASTER TECHNIQUE: Naked pairs, pointing pairs, box/line reduction - advanced logic.",
     stars: {
       star1: { label: "Complete", criteria: (s) => s.status === 'won' },
-      star2: { label: "Mastery", criteria: (s) => s.status === 'won' && s.mistakes === 0 },
+      star2: { label: "Flawless", criteria: (s) => s.status === 'won' && s.mistakes === 0 },
       star3: { label: "Legend", criteria: (s) => s.status === 'won' && s.mistakes === 0 && s.time < 600 }
     },
     biome: 'space'
   },
   {
     id: 8,
-    title: "Star Lord",
+    title: "Void Ascendant",
     difficulty: DIFFICULTY.HARD,
-    desc: "Hard puzzle, 0 mistakes, under 15 min.",
+    desc: "Final test: Solve a hard puzzle perfectly. No mistakes. Under 15 minutes. Become a Sudoku master.",
+    lesson: "👑 MASTERY: You now understand the deeper patterns of Sudoku. Every puzzle has a logical path.",
     stars: {
       star1: { label: "Complete", criteria: (s) => s.status === 'won' },
       star2: { label: "Perfect", criteria: (s) => s.status === 'won' && s.mistakes === 0 },
-      star3: { label: "Legend", criteria: (s) => s.status === 'won' && s.mistakes === 0 && s.time < 900 }
+      star3: { label: "Master", criteria: (s) => s.status === 'won' && s.mistakes === 0 && s.time < 900 }
     },
     biome: 'space'
   }
@@ -968,88 +976,182 @@ const THEME_COMBINATIONS = Object.freeze({
  * @returns {string} SVG markup for the pixel art character
  */
 const generatePixelCharacter = (visualId, audioId) => {
-  // Theme-specific character outlines - simple shapes like the background motifs
+  // Enhanced theme-specific characters with more personality and detail
   const characters = {
     default: {
       name: 'Sage',
       color: '#6366F1',
-      svg: `<circle cx="40" cy="28" r="8" fill="#6366F1" stroke="#fff" stroke-width="1.5"/>
-            <path d="M 32 38 L 32 52 L 48 52 L 48 38 Q 40 35 32 38" fill="#6366F1" stroke="#fff" stroke-width="1.5"/>
-            <line x1="32" y1="42" x2="24" y2="45" stroke="#6366F1" stroke-width="2"/>
-            <line x1="48" y1="42" x2="56" y2="45" stroke="#6366F1" stroke-width="2"/>`
+      svg: `<!-- Head with wisdom aura -->
+            <circle cx="40" cy="22" r="6" fill="#6366F1" stroke="#fff" stroke-width="1.5"/>
+            <circle cx="40" cy="22" r="7.5" fill="none" stroke="#818CF8" stroke-width="1" opacity="0.5"/>
+            <!-- Eyes (wisdom) -->
+            <circle cx="37" cy="21" r="1" fill="#fff"/>
+            <circle cx="43" cy="21" r="1" fill="#fff"/>
+            <!-- Robe -->
+            <path d="M 34 28 Q 32 38 34 50 L 46 50 Q 48 38 46 28 Z" fill="#6366F1" stroke="#fff" stroke-width="1.5"/>
+            <path d="M 34 28 Q 40 25 46 28" fill="#4F46E5" stroke="#fff" stroke-width="1.5"/>
+            <!-- Arms raised in teaching -->
+            <path d="M 34 32 L 22 28" stroke="#6366F1" stroke-width="2" stroke-linecap="round"/>
+            <path d="M 46 32 L 58 28" stroke="#6366F1" stroke-width="2" stroke-linecap="round"/>
+            <!-- Book in hands -->
+            <rect x="20" y="26" width="4" height="5" fill="#fbbf24" stroke="#fff" stroke-width="1"/>
+            <rect x="56" y="26" width="4" height="5" fill="#fbbf24" stroke="#fff" stroke-width="1"/>`
     },
     ocean: {
       name: 'Tidal Guardian',
       color: '#0891b2',
-      svg: `<ellipse cx="40" cy="26" rx="7" ry="9" fill="#0891b2" stroke="#fff" stroke-width="1.5"/>
-            <path d="M 33 38 Q 30 42 33 50 L 47 50 Q 50 42 47 38 Z" fill="#0891b2" stroke="#fff" stroke-width="1.5"/>
-            <path d="M 25 45 L 32 48" stroke="#0891b2" stroke-width="2" stroke-linecap="round"/>
-            <path d="M 55 45 L 48 48" stroke="#0891b2" stroke-width="2" stroke-linecap="round"/>
-            <circle cx="36" cy="23" r="2" fill="#00d9ff"/>`
+      svg: `<!-- Head (fish-like) -->
+            <ellipse cx="40" cy="22" rx="6" ry="8" fill="#0891b2" stroke="#fff" stroke-width="1.5"/>
+            <!-- Gill details -->
+            <path d="M 34.5 20 Q 33 22 34.5 24" stroke="#00d9ff" stroke-width="1" fill="none"/>
+            <path d="M 45.5 20 Q 47 22 45.5 24" stroke="#00d9ff" stroke-width="1" fill="none"/>
+            <!-- Eyes (large, fish-like) -->
+            <circle cx="37" cy="20" r="1.5" fill="#fff"/>
+            <circle cx="43" cy="20" r="1.5" fill="#fff"/>
+            <circle cx="37" cy="20" r="0.8" fill="#06b6d4"/>
+            <circle cx="43" cy="20" r="0.8" fill="#06b6d4"/>
+            <!-- Flowing body/waves -->
+            <path d="M 33 30 Q 30 35 32 42 Q 35 48 40 50 Q 45 48 48 42 Q 50 35 47 30 Z" fill="#0891b2" stroke="#fff" stroke-width="1.5"/>
+            <!-- Fin-like arms -->
+            <path d="M 33 35 Q 20 36 15 40" stroke="#0891b2" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+            <path d="M 47 35 Q 60 36 65 40" stroke="#0891b2" stroke-width="2.5" stroke-linecap="round" fill="none"/>`
     },
     forest: {
       name: 'Forest Keeper',
       color: '#059669',
-      svg: `<polygon points="40,15 46,28 34,28" fill="#059669" stroke="#fff" stroke-width="1.5"/>
-            <circle cx="40" cy="32" r="8" fill="#059669" stroke="#fff" stroke-width="1.5"/>
-            <path d="M 32 42 L 32 54 L 48 54 L 48 42 Z" fill="#059669" stroke="#fff" stroke-width="1.5"/>
-            <line x1="28" y1="48" x2="20" y2="50" stroke="#059669" stroke-width="2"/>
-            <line x1="52" y1="48" x2="60" y2="50" stroke="#059669" stroke-width="2"/>
-            <circle cx="38" cy="30" r="1.5" fill="#22C55E"/>
-            <circle cx="42" cy="30" r="1.5" fill="#22C55E"/>`
+      svg: `<!-- Tree-like head (foliage) -->
+            <circle cx="40" cy="18" r="6" fill="#22c55e" stroke="#fff" stroke-width="1.5"/>
+            <circle cx="35" cy="20" r="4" fill="#22c55e" stroke="#fff" stroke-width="1"/>
+            <circle cx="45" cy="20" r="4" fill="#22c55e" stroke="#fff" stroke-width="1"/>
+            <!-- Eyes peering through leaves -->
+            <circle cx="37" cy="17" r="0.8" fill="#fff"/>
+            <circle cx="43" cy="17" r="0.8" fill="#fff"/>
+            <!-- Trunk -->
+            <rect x="36" y="24" width="8" height="12" fill="#92400e" stroke="#fff" stroke-width="1.5"/>
+            <!-- Torso with leaves -->
+            <ellipse cx="40" cy="40" rx="8" ry="10" fill="#059669" stroke="#fff" stroke-width="1.5"/>
+            <circle cx="33" cy="38" r="3" fill="#22c55e" stroke="#fff" stroke-width="1"/>
+            <circle cx="47" cy="38" r="3" fill="#22c55e" stroke="#fff" stroke-width="1"/>
+            <!-- Arms as branches -->
+            <path d="M 33 38 L 18 36" stroke="#92400e" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M 47 38 L 62 36" stroke="#92400e" stroke-width="2.5" stroke-linecap="round"/>
+            <!-- Leaves at hand ends -->
+            <circle cx="16" cy="34" r="2" fill="#22c55e"/>
+            <circle cx="64" cy="34" r="2" fill="#22c55e"/>`
     },
     sunset: {
-      name: 'Horizon Wanderer',
+      name: 'Horizon Seeker',
       color: '#ea580c',
-      svg: `<circle cx="40" cy="26" r="8" fill="#ea580c" stroke="#fff" stroke-width="1.5"/>
-            <path d="M 35 36 Q 32 40 35 50 L 45 50 Q 48 40 45 36 Z" fill="#ea580c" stroke="#fff" stroke-width="1.5"/>
-            <line x1="35" y1="40" x2="20" y2="42" stroke="#ea580c" stroke-width="2" stroke-linecap="round"/>
-            <line x1="45" y1="40" x2="60" y2="42" stroke="#ea580c" stroke-width="2" stroke-linecap="round"/>
-            <path d="M 38 22 L 40 18 L 42 22" fill="#fb923c" stroke="#fff" stroke-width="1"/>
-            <circle cx="38" cy="24" r="1" fill="#fbbf24"/>`
+      svg: `<!-- Head (glowing sun-like) -->
+            <circle cx="40" cy="20" r="6" fill="#ea580c" stroke="#fff" stroke-width="1.5"/>
+            <!-- Glow rays around head -->
+            <line x1="40" y1="12" x2="40" y2="8" stroke="#fb923c" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="49" y1="15" x2="53" y2="11" stroke="#fb923c" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="48" y1="26" x2="52" y2="30" stroke="#fb923c" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="31" y1="15" x2="27" y2="11" stroke="#fb923c" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="32" y1="26" x2="28" y2="30" stroke="#fb923c" stroke-width="1.5" stroke-linecap="round"/>
+            <!-- Eyes filled with determination -->
+            <circle cx="37" cy="19" r="1.2" fill="#fff"/>
+            <circle cx="43" cy="19" r="1.2" fill="#fff"/>
+            <!-- Body (torso reaching upward) -->
+            <path d="M 35 26 L 35 48 L 45 48 L 45 26 Q 40 24 35 26" fill="#ea580c" stroke="#fff" stroke-width="1.5"/>
+            <!-- Arms reaching to sky -->
+            <path d="M 35 30 L 20 18" stroke="#ea580c" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M 45 30 L 60 18" stroke="#ea580c" stroke-width="2.5" stroke-linecap="round"/>`
     },
     midnight: {
-      name: 'Night Wanderer',
+      name: 'Starlight Sage',
       color: '#7c3aed',
-      svg: `<circle cx="40" cy="26" r="8" fill="#7c3aed" stroke="#a78bfa" stroke-width="1.5"/>
-            <path d="M 33 38 L 33 52 L 47 52 L 47 38 Q 40 35 33 38" fill="#7c3aed" stroke="#a78bfa" stroke-width="1.5"/>
-            <circle cx="37" cy="24" r="1.5" fill="#a78bfa"/>
-            <circle cx="43" cy="24" r="1.5" fill="#a78bfa"/>
-            <line x1="30" y1="44" x2="18" y2="46" stroke="#7c3aed" stroke-width="2"/>
-            <line x1="50" y1="44" x2="62" y2="46" stroke="#7c3aed" stroke-width="2"/>
-            <circle cx="40" cy="58" r="2" fill="#a78bfa" opacity="0.6"/>`
+      svg: `<!-- Head with moon/star theme -->
+            <circle cx="40" cy="22" r="6" fill="#7c3aed" stroke="#a78bfa" stroke-width="1.5"/>
+            <!-- Stars around head -->
+            <polygon points="40,10 42,14 46,14 43,17 44,21 40,18 36,21 37,17 34,14 38,14" fill="#fde047" stroke="#fff" stroke-width="0.5"/>
+            <circle cx="28" cy="16" r="1" fill="#fde047"/>
+            <circle cx="52" cy="16" r="1" fill="#fde047"/>
+            <circle cx="26" cy="28" r="1.2" fill="#a78bfa"/>
+            <circle cx="54" cy="28" r="1.2" fill="#a78bfa"/>
+            <!-- Eyes seeing the unseen -->
+            <circle cx="37" cy="21" r="1.2" fill="#a78bfa"/>
+            <circle cx="43" cy="21" r="1.2" fill="#a78bfa"/>
+            <circle cx="37" cy="21" r="0.5" fill="#fff"/>
+            <circle cx="43" cy="21" r="0.5" fill="#fff"/>
+            <!-- Mystical robe -->
+            <path d="M 35 28 Q 33 38 35 50 L 45 50 Q 47 38 45 28 Z" fill="#7c3aed" stroke="#a78bfa" stroke-width="1.5"/>
+            <!-- Magical aura arms -->
+            <path d="M 35 34 L 18 36" stroke="#a78bfa" stroke-width="2" stroke-dasharray="2,2" opacity="0.7"/>
+            <path d="M 45 34 L 62 36" stroke="#a78bfa" stroke-width="2" stroke-dasharray="2,2" opacity="0.7"/>`
     },
     sakura: {
-      name: 'Blossom Spirit',
+      name: 'Blossom Guardian',
       color: '#ec4899',
-      svg: `<circle cx="40" cy="26" r="8" fill="#ec4899" stroke="#fff" stroke-width="1.5"/>
-            <path d="M 35 38 Q 32 44 35 52 L 45 52 Q 48 44 45 38 Z" fill="#fbbf24" stroke="#fff" stroke-width="1.5" opacity="0.8"/>
-            <path d="M 35 38 L 32 40 M 45 38 L 48 40" stroke="#ec4899" stroke-width="1.5" stroke-linecap="round"/>
-            <circle cx="40" cy="35" r="1.5" fill="#f472b6"/>
-            <circle cx="35" cy="42" r="1" fill="#f472b6"/>
-            <circle cx="45" cy="42" r="1" fill="#f472b6"/>`
+      svg: `<!-- Petals forming head -->
+            <circle cx="40" cy="16" r="2.5" fill="#f472b6"/>
+            <circle cx="35" cy="19" r="2.5" fill="#f472b6"/>
+            <circle cx="45" cy="19" r="2.5" fill="#f472b6"/>
+            <circle cx="36" cy="26" r="2.5" fill="#f472b6"/>
+            <circle cx="44" cy="26" r="2.5" fill="#f472b6"/>
+            <!-- Center head -->
+            <circle cx="40" cy="22" r="5" fill="#ec4899" stroke="#fff" stroke-width="1.5"/>
+            <!-- Eyes with happiness -->
+            <circle cx="37" cy="21" r="1" fill="#fff"/>
+            <circle cx="43" cy="21" r="1" fill="#fff"/>
+            <!-- Smile -->
+            <path d="M 37 24 Q 40 25 43 24" stroke="#fff" stroke-width="1" stroke-linecap="round"/>
+            <!-- Flowing petals body -->
+            <path d="M 34 28 Q 32 35 33 45 Q 40 50 47 45 Q 48 35 46 28 Z" fill="#ec4899" stroke="#fff" stroke-width="1.5"/>
+            <circle cx="32" cy="35" r="3" fill="#f472b6"/>
+            <circle cx="48" cy="35" r="3" fill="#f472b6"/>
+            <!-- Petal arms -->
+            <path d="M 33 32 L 15 28" stroke="#ec4899" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M 47 32 L 65 28" stroke="#ec4899" stroke-width="2.5" stroke-linecap="round"/>`
     },
     volcano: {
       name: 'Magma Warden',
       color: '#dc2626',
-      svg: `<polygon points="40,16 50,30 30,30" fill="#dc2626" stroke="#fff" stroke-width="1.5"/>
-            <circle cx="40" cy="32" r="7" fill="#dc2626" stroke="#fff" stroke-width="1.5"/>
-            <path d="M 36 40 L 35 54 L 45 54 L 44 40 Z" fill="#9F2C0C" stroke="#fff" stroke-width="1.5"/>
-            <path d="M 35 45 Q 32 47 35 50" stroke="#fca5a5" stroke-width="1.5" stroke-linecap="round"/>
-            <path d="M 45 45 Q 48 47 45 50" stroke="#fca5a5" stroke-width="1.5" stroke-linecap="round"/>
-            <circle cx="40" cy="30" r="1" fill="#fca5a5"/>`
+      svg: `<!-- Mountain peak head -->
+            <polygon points="40,10 48,24 32,24" fill="#dc2626" stroke="#fff" stroke-width="1.5"/>
+            <!-- Lava glow -->
+            <polygon points="40,10 48,24 32,24" fill="none" stroke="#fca5a5" stroke-width="2" opacity="0.6"/>
+            <!-- Eyes in crater -->
+            <circle cx="37" cy="20" r="1.2" fill="#fde2e4"/>
+            <circle cx="43" cy="20" r="1.2" fill="#fde2e4"/>
+            <!-- Crater mouth -->
+            <ellipse cx="40" cy="22" rx="2.5" ry="1.5" fill="#7c2d12"/>
+            <!-- Main body volcanic -->
+            <path d="M 34 26 Q 32 36 35 50 L 45 50 Q 48 36 46 26 Z" fill="#9F2C0C" stroke="#fff" stroke-width="1.5"/>
+            <!-- Lava flows inside -->
+            <path d="M 37 32 Q 38 40 37 48" stroke="#fca5a5" stroke-width="2" opacity="0.8"/>
+            <path d="M 43 32 Q 42 40 43 48" stroke="#fca5a5" stroke-width="2" opacity="0.8"/>
+            <!-- Arms throwing lava -->
+            <path d="M 34 35 L 18 38" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M 46 35 L 62 38" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round"/>
+            <!-- Lava drips from hands -->
+            <circle cx="16" cy="40" r="1.5" fill="#fca5a5"/>
+            <circle cx="64" cy="40" r="1.5" fill="#fca5a5"/>`
     },
     arctic: {
       name: 'Frost Guardian',
       color: '#0ea5e9',
-      svg: `<polygon points="40,18 47,30 33,30" fill="#0ea5e9" stroke="#fff" stroke-width="1.5"/>
-            <circle cx="40" cy="35" r="7" fill="#0ea5e9" stroke="#fff" stroke-width="1.5"/>
-            <path d="M 34 44 L 34 54 L 46 54 L 46 44 Q 40 42 34 44" fill="#06b6d4" stroke="#fff" stroke-width="1.5"/>
-            <line x1="40" y1="50" x2="40" y2="56" stroke="#bae6fd" stroke-width="1.5" stroke-linecap="round"/>
-            <line x1="35" y1="52" x2="32" y2="58" stroke="#bae6fd" stroke-width="1.5" stroke-linecap="round"/>
-            <line x1="45" y1="52" x2="48" y2="58" stroke="#bae6fd" stroke-width="1.5" stroke-linecap="round"/>
-            <circle cx="38" cy="32" r="1" fill="#bae6fd"/>
-            <circle cx="42" cy="32" r="1" fill="#bae6fd"/>`
+      svg: `<!-- Icy crystalline head -->
+            <polygon points="40,14 48,22 44,26 40,28 36,26 32,22" fill="#0ea5e9" stroke="#fff" stroke-width="1.5"/>
+            <!-- Frost sparkles -->
+            <circle cx="40" cy="12" r="1.5" fill="#bae6fd" opacity="0.8"/>
+            <circle cx="30" cy="20" r="1" fill="#bae6fd" opacity="0.8"/>
+            <circle cx="50" cy="20" r="1" fill="#bae6fd" opacity="0.8"/>
+            <!-- Ice crystal eyes -->
+            <polygon points="37,21 37,23 39,22" fill="#fff"/>
+            <polygon points="41,21 41,23 43,22" fill="#fff"/>
+            <!-- Icicle body with ridges -->
+            <path d="M 35 30 L 33 50 L 47 50 L 45 30 Q 40 28 35 30" fill="#0ea5e9" stroke="#fff" stroke-width="1.5"/>
+            <!-- Vertical icy ridges -->
+            <line x1="38" y1="30" x2="37" y2="50" stroke="#06b6d4" stroke-width="1.5" opacity="0.6"/>
+            <line x1="42" y1="30" x2="43" y2="50" stroke="#06b6d4" stroke-width="1.5" opacity="0.6"/>
+            <!-- Arms with ice shards -->
+            <path d="M 35 38 L 18 42" stroke="#0ea5e9" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M 45 38 L 62 42" stroke="#0ea5e9" stroke-width="2.5" stroke-linecap="round"/>
+            <!-- Icicle hands -->
+            <path d="M 18 42 L 17 48" stroke="#bae6fd" stroke-width="1.5"/>
+            <path d="M 62 42 L 63 48" stroke="#bae6fd" stroke-width="1.5"/>`
     }
   };
 

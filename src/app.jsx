@@ -1514,6 +1514,16 @@ const CampaignMap = ({ progress, onPlayLevel, soundEnabled, onBack, onOpenAwards
                 <p className="text-sm sm:text-base font-medium text-blue-100">{selectedLevel.desc}</p>
               </div>
 
+              {/* Lesson / Teaching section */}
+              {selectedLevel.lesson && (
+                <div className="bg-gradient-to-br from-indigo-900/60 to-purple-900/60 p-3 sm:p-4 rounded-lg mb-4 border border-indigo-500/30 backdrop-blur-sm">
+                  <div className="flex items-start gap-2">
+                    <span className="text-lg flex-shrink-0">💡</span>
+                    <p className="text-xs sm:text-sm font-medium text-indigo-100">{selectedLevel.lesson}</p>
+                  </div>
+                </div>
+              )}
+
               {/* Star rewards with explanations */}
               <div className="mb-4 space-y-2">
                 <h3 className="text-xs font-bold uppercase text-gray-400 tracking-wider mb-2">⭐ Completion Bonus</h3>
