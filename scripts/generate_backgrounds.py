@@ -113,6 +113,7 @@ def main():
     parser.add_argument("--format", default="png", choices=["png","jpg"], help="Output image format")
     parser.add_argument("--model", default="imagen-4.0-fast-generate-001", help="Gemini image model name")
     parser.add_argument("--dry-run", action="store_true", help="Do not call API, only print actions or write placeholders")
+    parser.add_argument("--limit", type=int, default=None, help="Limit number of images to generate (for testing)")
     args = parser.parse_args()
 
     root = Path(args.root)
@@ -125,6 +126,8 @@ def main():
 
     if use_api:
         print("Using Gemini Imagen REST API for image generation")
+        if args.limit:
+            print(f"Limiting to {args.limit} images for testing")
     else:
         if not REQUESTS_AVAILABLE:
             print("requests not installed; falling back to placeholders")
@@ -136,8 +139,13 @@ def main():
             print("Dry run enabled; writing placeholders")
 
     generated = 0
+    total_attempts = 0
     for visual in VISUALS:
         for audio in AUDIOS:
+            if args.limit and total_attempts >= args.limit:
+                print(f"\nReached limit of {args.limit} images. Stopping.")
+                break
+                
             combo_dir = root / visual / audio
             if not combo_dir.exists():
                 combo_dir.mkdir(parents=True, exist_ok=True)
@@ -146,6 +154,7 @@ def main():
             out_svg = combo_dir / "background.svg"
 
             print(f"-> {visual}/{audio}: {out_img.name}")
+            total_attempts += 1
 
             if use_api:
                 try:
@@ -196,6 +205,9 @@ def main():
                 # Placeholder fallbacks
                 write_placeholder_svg(out_svg, visual)
                 generated += 1
+        
+        if args.limit and total_attempts >= args.limit:
+            break
 
     print(f"Done. Generated {generated} assets (including placeholders).")
 
