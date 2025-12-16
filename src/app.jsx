@@ -2364,6 +2364,25 @@ const App = () => {
   const remaining = getRemainingNumbers();
   const userId = StorageService.getCurrentUserId();
 
+  // Compute active theme asset set (must be before any conditional returns)
+  const activeAssetSet = useMemo(() => {
+    // Safety check: ensure getThemeAssetSet is loaded before calling
+    if (typeof getThemeAssetSet === 'function') {
+      return getThemeAssetSet(activeThemeId, activeSoundPackId);
+    }
+    // Fallback: return basic theme directly from THEMES
+    const theme = THEMES[activeThemeId] || THEMES.default;
+    return {
+      background: theme.background,
+      boardBg: theme.boardBg,
+      cellBg: theme.cellBg,
+      fixedCellBg: theme.fixedCellBg,
+      selectedCellBg: theme.selectedCellBg,
+      texture: { pattern: 'none', opacity: 0 },
+      decor: []
+    };
+  }, [activeThemeId, activeSoundPackId]);
+
   // --- RENDER LOGIC ---
 
   // 1. CAMPAIGN MAP
@@ -2463,7 +2482,6 @@ const App = () => {
   }
 
   // 4. GAME SCREEN
-  const activeAssetSet = useMemo(() => getThemeAssetSet(activeThemeId, activeSoundPackId), [activeThemeId, activeSoundPackId]);
   return (
     <div className={`min-h-screen flex flex-col items-center p-2 sm:p-4 transition-colors duration-300 text-gray-900 dark:text-gray-100 ${activeAssetSet.background} relative overflow-hidden`}>
       {/* Texture overlay layer */}
