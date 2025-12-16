@@ -89,13 +89,13 @@ const getThemeVisualElement = (visualThemeId, audioThemeId, index) => {
     },
     sunset: {
       colors: ['#ea580c', '#f97316', '#fb923c'],
-      bgGradient: 'linear-gradient(135deg, #f97316, '#fbbf24)',
+      bgGradient: 'linear-gradient(135deg, #f97316, #fbbf24)',
       animation: 'float-glow',
       blur: 'blur(14px)'
     },
     midnight: {
       colors: ['#6366f1', '#818cf8', '#a5b4fc'],
-      bgGradient: 'linear-gradient(135deg, '#6366f1, #a5b4fc)',
+      bgGradient: 'linear-gradient(135deg, #6366f1, #a5b4fc)',
       animation: 'float-pulse',
       blur: 'blur(16px)'
     },
