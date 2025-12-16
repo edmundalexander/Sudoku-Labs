@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Character Preview</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      color: white;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 2rem;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 2rem;
+    }
+    .card {
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: center;
+    }
+    .character-display {
+      width: 100%;
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 1rem 0;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .character-display svg {
+      width: 100%;
+      height: 100%;
+      max-width: 100px;
+      max-height: 100px;
+    }
+    .theme-name {
+      font-weight: bold;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+    .character-name {
+      font-size: 0.9rem;
+      color: #ccc;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎨 Campaign Character Gallery</h1>
+    <div class="gallery" id="gallery"></div>
+  </div>
+
+  <script>
+    // Copy the character definitions from constants.js
+    const generatePixelCharacter = (visualId, audioId) => {
+      const characters = {
+        default: {
+          name: 'Sage',
+          color: '#6366F1',
+          svg: `<circle cx="40" cy="28" r="8" fill="#6366F1" stroke="#fff" stroke-width="1.5"/>
+                <path d="M 32 38 L 32 52 L 48 52 L 48 38 Q 40 35 32 38" fill="#6366F1" stroke="#fff" stroke-width="1.5"/>
+                <line x1="32" y1="42" x2="24" y2="45" stroke="#6366F1" stroke-width="2"/>
+                <line x1="48" y1="42" x2="56" y2="45" stroke="#6366F1" stroke-width="2"/>`
+        },
+        ocean: {
+          name: 'Tidal Guardian',
+          color: '#0891b2',
+          svg: `<ellipse cx="40" cy="26" rx="7" ry="9" fill="#0891b2" stroke="#fff" stroke-width="1.5"/>
+                <path d="M 33 38 Q 30 42 33 50 L 47 50 Q 50 42 47 38 Z" fill="#0891b2" stroke="#fff" stroke-width="1.5"/>
+                <path d="M 25 45 L 32 48" stroke="#0891b2" stroke-width="2" stroke-linecap="round"/>
+                <path d="M 55 45 L 48 48" stroke="#0891b2" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="36" cy="23" r="2" fill="#00d9ff"/>`
+        },
+        forest: {
+          name: 'Forest Keeper',
+          color: '#059669',
+          svg: `<polygon points="40,15 46,28 34,28" fill="#059669" stroke="#fff" stroke-width="1.5"/>
+                <circle cx="40" cy="32" r="8" fill="#059669" stroke="#fff" stroke-width="1.5"/>
+                <path d="M 32 42 L 32 54 L 48 54 L 48 42 Z" fill="#059669" stroke="#fff" stroke-width="1.5"/>
+                <line x1="28" y1="48" x2="20" y2="50" stroke="#059669" stroke-width="2"/>
+                <line x1="52" y1="48" x2="60" y2="50" stroke="#059669" stroke-width="2"/>
+                <circle cx="38" cy="30" r="1.5" fill="#22C55E"/>
+                <circle cx="42" cy="30" r="1.5" fill="#22C55E"/>`
+        },
+        sunset: {
+          name: 'Horizon Wanderer',
+          color: '#ea580c',
+          svg: `<circle cx="40" cy="26" r="8" fill="#ea580c" stroke="#fff" stroke-width="1.5"/>
+                <path d="M 35 36 Q 32 40 35 50 L 45 50 Q 48 40 45 36 Z" fill="#ea580c" stroke="#fff" stroke-width="1.5"/>
+                <line x1="35" y1="40" x2="20" y2="42" stroke="#ea580c" stroke-width="2" stroke-linecap="round"/>
+                <line x1="45" y1="40" x2="60" y2="42" stroke="#ea580c" stroke-width="2" stroke-linecap="round"/>
+                <path d="M 38 22 L 40 18 L 42 22" fill="#fb923c" stroke="#fff" stroke-width="1"/>
+                <circle cx="38" cy="24" r="1" fill="#fbbf24"/>`
+        },
+        midnight: {
+          name: 'Night Wanderer',
+          color: '#7c3aed',
+          svg: `<circle cx="40" cy="26" r="8" fill="#7c3aed" stroke="#a78bfa" stroke-width="1.5"/>
+                <path d="M 33 38 L 33 52 L 47 52 L 47 38 Q 40 35 33 38" fill="#7c3aed" stroke="#a78bfa" stroke-width="1.5"/>
+                <circle cx="37" cy="24" r="1.5" fill="#a78bfa"/>
+                <circle cx="43" cy="24" r="1.5" fill="#a78bfa"/>
+                <line x1="30" y1="44" x2="18" y2="46" stroke="#7c3aed" stroke-width="2"/>
+                <line x1="50" y1="44" x2="62" y2="46" stroke="#7c3aed" stroke-width="2"/>
+                <circle cx="40" cy="58" r="2" fill="#a78bfa" opacity="0.6"/>`
+        },
+        sakura: {
+          name: 'Blossom Spirit',
+          color: '#ec4899',
+          svg: `<circle cx="40" cy="26" r="8" fill="#ec4899" stroke="#fff" stroke-width="1.5"/>
+                <path d="M 35 38 Q 32 44 35 52 L 45 52 Q 48 44 45 38 Z" fill="#fbbf24" stroke="#fff" stroke-width="1.5" opacity="0.8"/>
+                <path d="M 35 38 L 32 40 M 45 38 L 48 40" stroke="#ec4899" stroke-width="1.5" stroke-linecap="round"/>
+                <circle cx="40" cy="35" r="1.5" fill="#f472b6"/>
+                <circle cx="35" cy="42" r="1" fill="#f472b6"/>
+                <circle cx="45" cy="42" r="1" fill="#f472b6"/>`
+        },
+        volcano: {
+          name: 'Magma Warden',
+          color: '#dc2626',
+          svg: `<polygon points="40,16 50,30 30,30" fill="#dc2626" stroke="#fff" stroke-width="1.5"/>
+                <circle cx="40" cy="32" r="7" fill="#dc2626" stroke="#fff" stroke-width="1.5"/>
+                <path d="M 36 40 L 35 54 L 45 54 L 44 40 Z" fill="#9F2C0C" stroke="#fff" stroke-width="1.5"/>
+                <path d="M 35 45 Q 32 47 35 50" stroke="#fca5a5" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M 45 45 Q 48 47 45 50" stroke="#fca5a5" stroke-width="1.5" stroke-linecap="round"/>
+                <circle cx="40" cy="30" r="1" fill="#fca5a5"/>`
+        },
+        arctic: {
+          name: 'Frost Guardian',
+          color: '#0ea5e9',
+          svg: `<polygon points="40,18 47,30 33,30" fill="#0ea5e9" stroke="#fff" stroke-width="1.5"/>
+                <circle cx="40" cy="35" r="7" fill="#0ea5e9" stroke="#fff" stroke-width="1.5"/>
+                <path d="M 34 44 L 34 54 L 46 54 L 46 44 Q 40 42 34 44" fill="#06b6d4" stroke="#fff" stroke-width="1.5"/>
+                <line x1="40" y1="50" x2="40" y2="56" stroke="#bae6fd" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="35" y1="52" x2="32" y2="58" stroke="#bae6fd" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="45" y1="52" x2="48" y2="58" stroke="#bae6fd" stroke-width="1.5" stroke-linecap="round"/>
+                <circle cx="38" cy="32" r="1" fill="#bae6fd"/>
+                <circle cx="42" cy="32" r="1" fill="#bae6fd"/>`
+        }
+      };
+
+      const char = characters[visualId] || characters.default;
+      
+      return `<svg viewBox="0 0 80 60" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
+        ${char.svg}
+      </svg>`;
+    };
+
+    const themes = ['default', 'ocean', 'forest', 'sunset', 'midnight', 'sakura', 'volcano', 'arctic'];
+    const gallery = document.getElementById('gallery');
+
+    themes.forEach(theme => {
+      const svg = generatePixelCharacter(theme);
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="character-display" id="char-${theme}"></div>
+        <div class="theme-name">${theme.charAt(0).toUpperCase() + theme.slice(1)}</div>
+        <div class="character-name" id="name-${theme}"></div>
+      `;
+      gallery.appendChild(card);
+      document.getElementById(`char-${theme}`).innerHTML = svg;
+    });
+  </script>
+</body>
+</html>
