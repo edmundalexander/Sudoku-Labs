@@ -379,7 +379,6 @@ const CHAT_POLL_INTERVAL = 5000;
 
 // --- AWARDS ZONE (Themes + Sound Packs) ---
 const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSelectTheme, activePackId, unlockedPacks, onSelectPack }) => {
-  const [tab, setTab] = useState('mix');
   const [stats, setStats] = useState(StorageService.getGameStats());
   
   // Refresh stats from StorageService when component mounts
@@ -390,11 +389,6 @@ const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSe
 
   const isThemeUnlocked = (themeId) => unlockedThemes.includes(themeId);
   const isPackUnlocked = (packId) => unlockedPacks.includes(packId) || SOUND_PACKS[packId]?.unlocked;
-
-  // Get current combinatorial theme asset set
-  const currentAssetSet = useMemo(() => {
-    return getThemeAssetSet(activeThemeId, activePackId);
-  }, [activeThemeId, activePackId]);
 
   const getThemeProgress = (themeId) => {
     if (!THEMES[themeId] || THEMES[themeId].unlocked || isThemeUnlocked(themeId)) return null;
@@ -563,158 +557,6 @@ const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSe
     );
   };
 
-  const renderThemes = () => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-      {Object.values(THEMES).map((theme) => {
-        const unlocked = isThemeUnlocked(theme.id);
-        const isActive = theme.id === activeThemeId;
-        const progress = getThemeProgress(theme.id);
-        
-        // Get preview of what combining with current audio would look like
-        const previewAsset = getThemeAssetSet(theme.id, activePackId);
-
-        return (
-          <div
-            key={theme.id}
-            onClick={() => handleThemeSelect(theme.id)}
-            className={`p-3 sm:p-4 rounded-lg border-2 transition-all ${isActive
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
-                : unlocked
-                  ? 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 cursor-pointer'
-                  : 'border-gray-200 dark:border-gray-700 opacity-60'
-              }`}
-          >
-            <div className="flex items-start gap-3">
-              <div className={`text-3xl sm:text-4xl ${unlocked ? '' : 'grayscale opacity-50'}`}>
-                {theme.icon}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-sm sm:text-base text-gray-900 dark:text-gray-100">
-                    {theme.name}
-                  </h3>
-                  {isActive && (
-                    <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full">Active</span>
-                  )}
-                  {!unlocked && <span className="text-xs text-gray-500">🔒</span>}
-                </div>
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">{theme.description}</p>
-                {!unlocked && theme.unlockCriteria && (
-                  <div className="mt-2 text-xs space-y-1.5">
-                    <p className="text-gray-500 dark:text-gray-400"><span className="font-semibold">Unlock:</span> {theme.unlockCriteria}</p>
-                    {progress && progress.includes('/') && (
-                      <div>
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="text-blue-600 dark:text-blue-400 font-medium">Progress: {progress}</span>
-                        </div>
-                        <div className="w-full bg-gray-300 dark:bg-gray-700 rounded-full h-1.5">
-                          <div 
-                            className="bg-gradient-to-r from-blue-500 to-purple-500 h-1.5 rounded-full transition-all duration-300"
-                            style={{
-                              width: `${Math.min(parseFloat(progress) / parseInt(progress.split('/')[1]) * 100, 100)}%`
-                            }}
-                          ></div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-            {/* Current combination preview */}
-            {unlocked && (
-              <div className={`mt-3 p-2 rounded-lg ${theme.background} border border-gray-300 dark:border-gray-600`}>
-                <div className="flex items-center justify-center gap-2">
-                  <span className="text-xl">{theme.icon}</span>
-                  <span className="text-gray-500 dark:text-gray-400 text-xs">+</span>
-                  <span className="text-xl">{(SOUND_PACKS[activePackId] || SOUND_PACKS.classic).icon}</span>
-                  <span className="text-xs font-medium text-gray-700 dark:text-gray-200 ml-1">=</span>
-                  <span className="text-xs font-semibold text-gray-800 dark:text-gray-100">{previewAsset.name}</span>
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-
-  const renderPacks = () => {
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-        {Object.values(SOUND_PACKS).map((pack) => {
-          const unlocked = isPackUnlocked(pack.id);
-          const isActive = pack.id === activePackId;
-          const progress = getPackProgress(pack.id);
-          
-          // Get preview of what combining with current visual would look like
-          const previewAsset = getThemeAssetSet(activeThemeId, pack.id);
-
-          return (
-            <div
-              key={pack.id}
-              onClick={() => handlePackSelect(pack.id)}
-              className={`p-3 sm:p-4 rounded-lg border-2 transition-all ${isActive
-                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
-                  : unlocked
-                    ? 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 cursor-pointer'
-                    : 'border-gray-200 dark:border-gray-700 opacity-60'
-                }`}
-            >
-              <div className="flex items-start gap-3">
-                <div className={`text-3xl sm:text-4xl ${unlocked ? '' : 'grayscale opacity-50'}`}>
-                  {pack.icon}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-sm sm:text-base text-gray-900 dark:text-gray-100">{pack.name}</h3>
-                    {isActive && (
-                      <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full">Active</span>
-                    )}
-                    {!unlocked && <span className="text-xs text-gray-500">🔒</span>}
-                  </div>
-                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">{pack.description}</p>
-                  {!unlocked && pack.unlockCriteria && (
-                    <div className="mt-2 text-xs space-y-1.5">
-                      <p className="text-gray-500 dark:text-gray-400"><span className="font-semibold">Unlock:</span> {pack.unlockCriteria}</p>
-                      {progress && progress.includes('/') && (
-                        <div>
-                          <div className="flex justify-between items-center mb-1">
-                            <span className="text-blue-600 dark:text-blue-400 font-medium">Progress: {progress}</span>
-                          </div>
-                          <div className="w-full bg-gray-300 dark:bg-gray-700 rounded-full h-1.5">
-                            <div 
-                              className="bg-gradient-to-r from-blue-500 to-purple-500 h-1.5 rounded-full transition-all duration-300"
-                              style={{
-                                width: `${Math.min(parseFloat(progress) / parseInt(progress.split('/')[1]) * 100, 100)}%`
-                              }}
-                            ></div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-              {/* Current combination preview */}
-              {unlocked && (
-                <div className={`mt-3 p-2 rounded-lg ${(THEMES[activeThemeId] || THEMES.default).background} border border-gray-300 dark:border-gray-600`}>
-                  <div className="flex items-center justify-center gap-2">
-                    <span className="text-xl">{(THEMES[activeThemeId] || THEMES.default).icon}</span>
-                    <span className="text-gray-500 dark:text-gray-400 text-xs">+</span>
-                    <span className="text-xl">{pack.icon}</span>
-                    <span className="text-xs font-medium text-gray-700 dark:text-gray-200 ml-1">=</span>
-                    <span className="text-xs font-semibold text-gray-800 dark:text-gray-100">{previewAsset.name}</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm animate-fade-in">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-4 sm:p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto animate-pop relative">
@@ -726,31 +568,14 @@ const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSe
         </button>
 
         <div className="flex items-center gap-2 mb-2 sm:mb-3">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2"><Icons.Awards /> Theme Lab</h2>
-          <span className="text-[10px] sm:text-xs text-gray-500">Mix & Match</span>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2"><Icons.Awards /> Customizer</h2>
+          <span className="text-[10px] sm:text-xs text-gray-500">Style Your Game</span>
         </div>
         <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-          Combine any visual theme with any audio theme to create your perfect experience.
+          Mix any visual theme with any sound pack to create your perfect experience.
         </p>
 
-        <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
-          <button
-            onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); setTab('mix'); }}
-            className={`px-3 py-2 rounded-lg text-sm font-semibold border whitespace-nowrap ${tab === 'mix' ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white border-blue-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'}`}
-          >🎨 Mix & Match</button>
-          <button
-            onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); setTab('themes'); }}
-            className={`px-3 py-2 rounded-lg text-sm font-semibold border whitespace-nowrap ${tab === 'themes' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'}`}
-          >👁️ Visual Themes</button>
-          <button
-            onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); setTab('sounds'); }}
-            className={`px-3 py-2 rounded-lg text-sm font-semibold border whitespace-nowrap ${tab === 'sounds' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'}`}
-          >🔊 Audio Themes</button>
-        </div>
-
-        {tab === 'mix' && renderMixMatch()}
-        {tab === 'themes' && renderThemes()}
-        {tab === 'sounds' && renderPacks()}
+        {renderMixMatch()}
       </div>
     </div>
   );
