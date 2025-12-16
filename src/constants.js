@@ -73,7 +73,11 @@ const CAMPAIGN_LEVELS = Object.freeze([
     title: "The Awakening",
     difficulty: DIFFICULTY.EASY,
     desc: "Start your journey. Complete an Easy puzzle.",
-    criteria: (s) => s.status === 'won',
+    stars: {
+      star1: { label: "Complete", criteria: (s) => s.status === 'won' },
+      star2: { label: "Perfect", criteria: (s) => s.status === 'won' && s.mistakes === 0 },
+      star3: { label: "Swift", criteria: (s) => s.status === 'won' && s.time < 120 }
+    },
     biome: 'grass'
   },
   {
@@ -81,7 +85,11 @@ const CAMPAIGN_LEVELS = Object.freeze([
     title: "Swift Mind",
     difficulty: DIFFICULTY.EASY,
     desc: "Solve an Easy puzzle in under 3 minutes.",
-    criteria: (s) => s.status === 'won' && s.time < 180,
+    stars: {
+      star1: { label: "Complete", criteria: (s) => s.status === 'won' },
+      star2: { label: "Swift", criteria: (s) => s.status === 'won' && s.time < 180 },
+      star3: { label: "Flawless", criteria: (s) => s.status === 'won' && s.time < 180 && s.mistakes === 0 }
+    },
     biome: 'grass'
   },
   {
@@ -89,7 +97,11 @@ const CAMPAIGN_LEVELS = Object.freeze([
     title: "Treasure Trove",
     difficulty: DIFFICULTY.EASY,
     desc: "Bonus Level! Solve with 0 mistakes.",
-    criteria: (s) => s.status === 'won' && s.mistakes === 0,
+    stars: {
+      star1: { label: "Complete", criteria: (s) => s.status === 'won' },
+      star2: { label: "Flawless", criteria: (s) => s.status === 'won' && s.mistakes === 0 },
+      star3: { label: "Champion", criteria: (s) => s.status === 'won' && s.mistakes === 0 && s.time < 60 }
+    },
     biome: 'grass',
     isChest: true
   },
@@ -98,7 +110,11 @@ const CAMPAIGN_LEVELS = Object.freeze([
     title: "Sandstorm",
     difficulty: DIFFICULTY.MEDIUM,
     desc: "Step up the challenge. Complete a Medium puzzle.",
-    criteria: (s) => s.status === 'won',
+    stars: {
+      star1: { label: "Complete", criteria: (s) => s.status === 'won' },
+      star2: { label: "Skilled", criteria: (s) => s.status === 'won' && s.mistakes <= 1 },
+      star3: { label: "Mastery", criteria: (s) => s.status === 'won' && s.mistakes === 0 && s.time < 300 }
+    },
     biome: 'desert'
   },
   {
@@ -106,7 +122,11 @@ const CAMPAIGN_LEVELS = Object.freeze([
     title: "Mirage",
     difficulty: DIFFICULTY.MEDIUM,
     desc: "Medium puzzle, max 1 mistake.",
-    criteria: (s) => s.status === 'won' && s.mistakes <= 1,
+    stars: {
+      star1: { label: "Complete", criteria: (s) => s.status === 'won' },
+      star2: { label: "Skilled", criteria: (s) => s.status === 'won' && s.mistakes <= 1 },
+      star3: { label: "Perfect", criteria: (s) => s.status === 'won' && s.mistakes === 0 && s.time < 360 }
+    },
     biome: 'desert'
   },
   {
@@ -114,7 +134,11 @@ const CAMPAIGN_LEVELS = Object.freeze([
     title: "Oasis Cache",
     difficulty: DIFFICULTY.MEDIUM,
     desc: "Bonus! Medium puzzle under 8 mins.",
-    criteria: (s) => s.status === 'won' && s.time < 480,
+    stars: {
+      star1: { label: "Complete", criteria: (s) => s.status === 'won' },
+      star2: { label: "Swift", criteria: (s) => s.status === 'won' && s.time < 480 },
+      star3: { label: "Legend", criteria: (s) => s.status === 'won' && s.time < 300 && s.mistakes === 0 }
+    },
     biome: 'desert',
     isChest: true
   },
@@ -123,7 +147,11 @@ const CAMPAIGN_LEVELS = Object.freeze([
     title: "Void Walker",
     difficulty: DIFFICULTY.HARD,
     desc: "Face the ultimate test. Complete a Hard puzzle.",
-    criteria: (s) => s.status === 'won',
+    stars: {
+      star1: { label: "Complete", criteria: (s) => s.status === 'won' },
+      star2: { label: "Mastery", criteria: (s) => s.status === 'won' && s.mistakes === 0 },
+      star3: { label: "Legend", criteria: (s) => s.status === 'won' && s.mistakes === 0 && s.time < 600 }
+    },
     biome: 'space'
   },
   {
@@ -131,7 +159,11 @@ const CAMPAIGN_LEVELS = Object.freeze([
     title: "Star Lord",
     difficulty: DIFFICULTY.HARD,
     desc: "Hard puzzle, 0 mistakes, under 15 min.",
-    criteria: (s) => s.status === 'won' && s.mistakes === 0 && s.time < 900,
+    stars: {
+      star1: { label: "Complete", criteria: (s) => s.status === 'won' },
+      star2: { label: "Perfect", criteria: (s) => s.status === 'won' && s.mistakes === 0 },
+      star3: { label: "Legend", criteria: (s) => s.status === 'won' && s.mistakes === 0 && s.time < 900 }
+    },
     biome: 'space'
   }
 ]);
@@ -928,6 +960,97 @@ const THEME_COMBINATIONS = Object.freeze({
 });
 
 /**
+ * Generate a pixel art character SVG based on theme combination.
+ * Creates deterministic, theme-aware 8-bit style characters with theme colors.
+ * 
+ * @param {string} visualId - Visual theme ID (determines character color palette)
+ * @param {string} audioId - Audio theme ID (determines character pose/expression)
+ * @returns {string} SVG markup for the pixel art character
+ */
+const generatePixelCharacter = (visualId, audioId) => {
+  // Color palettes per visual theme (primary, secondary, accent)
+  const colorPalettes = {
+    default: { skin: '#E8D5C4', primary: '#4F46E5', secondary: '#818CF8', accent: '#C7D2FE' },
+    ocean: { skin: '#D4F1F9', primary: '#0369A1', secondary: '#06B6D4', accent: '#5DADE2' },
+    forest: { skin: '#C7F0D8', primary: '#059669', secondary: '#10B981', accent: '#86EFAC' },
+    sunset: { skin: '#FED7AA', primary: '#EA580C', secondary: '#FB923C', accent: '#FDBA74' },
+    midnight: { skin: '#E2E8F0', primary: '#4C1D95', secondary: '#7C3AED', accent: '#A78BFA' },
+    sakura: { skin: '#F5D5E3', primary: '#EC4899', secondary: '#F472B6', accent: '#FBB6CE' },
+    volcano: { skin: '#FADBD8', primary: '#9F2C0C', secondary: '#DC2626', accent: '#FECACA' },
+    arctic: { skin: '#E0F2FE', primary: '#0C4A6E', secondary: '#0EA5E9', accent: '#BAE6FD' }
+  };
+  
+  // Pose variations based on audio theme (changes body/head tilt, arm positions)
+  const poseMap = {
+    classic: { headTilt: 0, armLeft: -2, armRight: 0, smiling: false },
+    zen: { headTilt: -1, armLeft: 0, armRight: 0, smiling: true, hat: 'circle' },
+    funfair: { headTilt: 2, armLeft: -3, armRight: 3, smiling: true, hat: 'crown' },
+    retro: { headTilt: 0, armLeft: -2, armRight: 2, smiling: false, pixelated: true },
+    space: { headTilt: 1, armLeft: -1, armRight: 1, smiling: false, hat: 'helmet' },
+    nature: { headTilt: -2, armLeft: -1, armRight: 1, smiling: true, hat: 'leaves' },
+    crystal: { headTilt: 0, armLeft: 0, armRight: 0, smiling: true, hat: 'crown', sparkle: true },
+    minimal: { headTilt: 0, armLeft: 0, armRight: 0, smiling: false, simple: true }
+  };
+  
+  const palette = colorPalettes[visualId] || colorPalettes.default;
+  const pose = poseMap[audioId] || poseMap.classic;
+  
+  // Build SVG layers: background, body, head, features, hat
+  const svgParts = [];
+  
+  // White background
+  svgParts.push('<rect width="80" height="100" fill="white" rx="4"/>');
+  
+  // Body (4 blocks, 12x16px each at center)
+  const bodyX = 28, bodyY = 42;
+  svgParts.push(`<rect x="${bodyX}" y="${bodyY}" width="12" height="16" fill="${palette.primary}" stroke="#333" stroke-width="1"/>`);
+  svgParts.push(`<rect x="${bodyX + 12}" y="${bodyY}" width="12" height="16" fill="${palette.primary}" stroke="#333" stroke-width="1"/>`);
+  svgParts.push(`<rect x="${bodyX}" y="${bodyY + 16}" width="12" height="12" fill="${palette.secondary}" stroke="#333" stroke-width="1"/>`);
+  svgParts.push(`<rect x="${bodyX + 12}" y="${bodyY + 16}" width="12" height="12" fill="${palette.secondary}" stroke="#333" stroke-width="1"/>`);
+  
+  // Arms (blocks on sides, position varies by pose)
+  const armOffsetL = pose.armLeft;
+  const armOffsetR = pose.armRight;
+  svgParts.push(`<rect x="${bodyX - 8 + armOffsetL}" y="${bodyY + 4}" width="8" height="8" fill="${palette.primary}" stroke="#333" stroke-width="1"/>`);
+  svgParts.push(`<rect x="${bodyX + 28 + armOffsetR}" y="${bodyY + 4}" width="8" height="8" fill="${palette.primary}" stroke="#333" stroke-width="1"/>`);
+  
+  // Head (12x12 block)
+  const headX = 34, headY = 18 + pose.headTilt;
+  svgParts.push(`<rect x="${headX}" y="${headY}" width="12" height="12" fill="${palette.skin}" stroke="#333" stroke-width="1"/>`);
+  
+  // Eyes (2 pixels each)
+  svgParts.push(`<rect x="${headX + 3}" y="${headY + 4}" width="2" height="2" fill="#333"/>`);
+  svgParts.push(`<rect x="${headX + 7}" y="${headY + 4}" width="2" height="2" fill="#333"/>`);
+  
+  // Mouth (smile or line based on pose)
+  if (pose.smiling) {
+    svgParts.push(`<line x1="${headX + 3}" y1="${headY + 8}" x2="${headX + 9}" y2="${headY + 8}" stroke="#EC4899" stroke-width="1" stroke-linecap="round"/>`);
+  } else {
+    svgParts.push(`<line x1="${headX + 4}" y1="${headY + 8}" x2="${headX + 8}" y2="${headY + 8}" stroke="#333" stroke-width="1"/>`);
+  }
+  
+  // Hat based on audio theme
+  if (pose.hat === 'circle') {
+    svgParts.push(`<circle cx="${headX + 6}" cy="${headY - 3}" r="4" fill="${palette.accent}" stroke="#333" stroke-width="1"/>`);
+  } else if (pose.hat === 'crown') {
+    svgParts.push(`<polygon points="${headX + 2},${headY - 2} ${headX + 6},${headY - 6} ${headX + 10},${headY - 2}" fill="${palette.accent}" stroke="#333" stroke-width="1"/>`);
+  } else if (pose.hat === 'helmet') {
+    svgParts.push(`<path d="M ${headX + 2} ${headY + 2} Q ${headX + 6} ${headY - 2} ${headX + 10} ${headY + 2}" fill="${palette.accent}" stroke="#333" stroke-width="1"/>`);
+  } else if (pose.hat === 'leaves') {
+    svgParts.push(`<circle cx="${headX + 4}" cy="${headY - 2}" r="2" fill="#22C55E" stroke="#333" stroke-width="0.5"/>`);
+    svgParts.push(`<circle cx="${headX + 8}" cy="${headY - 2}" r="2" fill="#22C55E" stroke="#333" stroke-width="0.5"/>`);
+  }
+  
+  // Sparkles for crystal theme
+  if (pose.sparkle) {
+    svgParts.push(`<circle cx="${headX + 14}" cy="${headY - 2}" r="1.5" fill="${palette.accent}"/>`);
+    svgParts.push(`<circle cx="${headX - 2}" cy="${headY + 6}" r="1.5" fill="${palette.accent}"/>`);
+  }
+  
+  return `<svg viewBox="0 0 80 100" xmlns="http://www.w3.org/2000/svg" style="background: white; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">${svgParts.join('')}</svg>`;
+};
+
+/**
  * Get the combined ThemeAssetSet for a given visual and audio theme
  * @param {string} visualId - Visual theme ID
  * @param {string} audioId - Audio/sound pack ID
@@ -1067,3 +1190,4 @@ window.SVG_PATTERNS = SVG_PATTERNS;
 window.MATERIAL_ICONS = MATERIAL_ICONS;
 window.getComboKey = getComboKey;
 window.getThemeAssetSet = getThemeAssetSet;
+window.generatePixelCharacter = generatePixelCharacter;

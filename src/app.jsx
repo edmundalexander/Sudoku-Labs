@@ -1113,9 +1113,14 @@ const UserPanel = ({ soundEnabled, onClose, appUserSession }) => {
   return null;
 };
 
-const CampaignMap = ({ progress, onPlayLevel, soundEnabled, onBack, onOpenAwards }) => {
+const CampaignMap = ({ progress, onPlayLevel, soundEnabled, onBack, onOpenAwards, activeThemeId, activeSoundPackId, activeAssetSet }) => {
   const [selectedLevel, setSelectedLevel] = useState(null);
   const scrollContainerRef = useRef(null);
+  
+  // Memoize pixel character SVG for current theme
+  const pixelCharSvg = useMemo(() => {
+    return generatePixelCharacter(activeThemeId || 'default', activeSoundPackId || 'classic');
+  }, [activeThemeId, activeSoundPackId]);
 
   const highestUnlockedId = useMemo(() => {
     return Math.max(...Object.keys(progress).filter(k => progress[k].unlocked).map(Number), 1);
@@ -1188,9 +1193,11 @@ const CampaignMap = ({ progress, onPlayLevel, soundEnabled, onBack, onOpenAwards
 
       <div className="relative z-20 flex justify-between items-center p-2 sm:p-3 md:p-4 bg-gray-900/60 backdrop-blur-md border-b border-purple-500/20 shadow-lg">
         <button onClick={onBack} className="p-1.5 sm:p-2 rounded-full hover:bg-purple-700/30 transition-all hover:scale-110"><Icons.Undo /></button>
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center gap-2 sm:gap-3">
           <h1 className="text-base sm:text-lg md:text-xl font-bold tracking-widest uppercase text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 drop-shadow-lg">Campaign Saga</h1>
           <p className="text-[10px] sm:text-xs text-gray-400 font-medium">Your Quest Awaits</p>
+          {/* Pixel character in header */}
+          <div className="w-10 h-12 sm:w-12 sm:h-14" dangerouslySetInnerHTML={{ __html: pixelCharSvg }} />
         </div>
         <button
           aria-label="Rewards"
@@ -1411,6 +1418,7 @@ const CampaignMap = ({ progress, onPlayLevel, soundEnabled, onBack, onOpenAwards
                           key={s} 
                           className={`${s <= p.stars ? "text-yellow-400 drop-shadow-lg" : "text-gray-600"} scale-90 transition-all duration-300 ${s <= p.stars ? 'animate-bounce-in' : ''}`}
                           style={{ animationDelay: `${s * 0.1}s` }}
+                          title={level.stars ? `⭐ ${level.stars[`star${s}`]?.label || ''}` : ''}
                         >
                           <Icons.Star filled={true} />
                         </div>
@@ -1441,63 +1449,73 @@ const CampaignMap = ({ progress, onPlayLevel, soundEnabled, onBack, onOpenAwards
                 <Icons.X />
               </button>
 
-              <div className="text-center mb-4 sm:mb-6">
-                {/* Biome icon with glow */}
-                <div className="relative w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-5">
-                  <div className={`absolute inset-0 rounded-full blur-xl animate-pulse ${
-                    selectedLevel.biome === 'grass' ? 'bg-green-500/50' :
-                    selectedLevel.biome === 'desert' ? 'bg-yellow-500/50' :
-                    'bg-purple-500/50'
-                  }`}></div>
-                  <div className="relative w-full h-full bg-gradient-to-br from-gray-700 to-gray-800 rounded-full flex items-center justify-center text-3xl sm:text-4xl shadow-2xl border-2 border-gray-600">
-                    {selectedLevel.biome === 'grass' ? '🌿' : 
-                     selectedLevel.biome === 'desert' ? '🌵' : 
-                     '🌌'}
+              <div className="flex items-start gap-3 sm:gap-4 mb-4 sm:mb-6">
+                {/* Pixel character portrait */}
+                <div className="w-16 h-20 sm:w-20 sm:h-24 flex-shrink-0" dangerouslySetInnerHTML={{ __html: pixelCharSvg }} />
+                
+                <div className="flex-1">
+                  {/* Biome icon with glow */}
+                  <div className="relative w-12 h-12 sm:w-14 sm:h-14 mb-2">
+                    <div className={`absolute inset-0 rounded-full blur-lg animate-pulse ${
+                      selectedLevel.biome === 'grass' ? 'bg-green-500/50' :
+                      selectedLevel.biome === 'desert' ? 'bg-yellow-500/50' :
+                      'bg-purple-500/50'
+                    }`}></div>
+                    <div className="relative w-full h-full bg-gradient-to-br from-gray-700 to-gray-800 rounded-full flex items-center justify-center text-xl sm:text-2xl shadow-lg border border-gray-600">
+                      {selectedLevel.biome === 'grass' ? '🌿' : 
+                       selectedLevel.biome === 'desert' ? '🌵' : 
+                       '🌌'}
+                    </div>
                   </div>
-                </div>
-                
-                <h2 className="text-2xl sm:text-3xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 drop-shadow-lg">
-                  {selectedLevel.title}
-                </h2>
-                
-                {/* Difficulty badge */}
-                <div className="inline-flex items-center gap-2 mb-3">
-                  <span className={`text-xs sm:text-sm px-3 py-1.5 rounded-full font-bold shadow-lg border-2 transition-all ${
-                    selectedLevel.difficulty === 'Hard' 
-                      ? 'border-red-500 text-red-300 bg-red-900/40 shadow-red-500/50' :
-                    selectedLevel.difficulty === 'Medium' 
-                      ? 'border-yellow-500 text-yellow-300 bg-yellow-900/40 shadow-yellow-500/50' :
-                      'border-green-500 text-green-300 bg-green-900/40 shadow-green-500/50'
-                  }`}>
-                    {selectedLevel.difficulty}
-                  </span>
-                  {selectedLevel.isChest && (
-                    <span className="text-xs sm:text-sm px-3 py-1.5 rounded-full font-bold bg-yellow-900/40 border-2 border-yellow-500 text-yellow-300 shadow-lg shadow-yellow-500/50 animate-pulse">
-                      🎁 Bonus
+                  
+                  <h2 className="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
+                    {selectedLevel.title}
+                  </h2>
+                  
+                  {/* Difficulty badge */}
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className={`text-xs px-2 py-1 rounded font-bold shadow border ${
+                      selectedLevel.difficulty === 'Hard' 
+                        ? 'border-red-500 text-red-300 bg-red-900/40' :
+                      selectedLevel.difficulty === 'Medium' 
+                        ? 'border-yellow-500 text-yellow-300 bg-yellow-900/40' :
+                        'border-green-500 text-green-300 bg-green-900/40'
+                    }`}>
+                      {selectedLevel.difficulty}
                     </span>
-                  )}
+                    {selectedLevel.isChest && (
+                      <span className="text-xs px-2 py-1 rounded font-bold bg-yellow-900/40 border border-yellow-500 text-yellow-300 animate-pulse">
+                        🎁
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 
               {/* Mission objective card */}
-              <div className="bg-gradient-to-br from-gray-900/80 to-gray-800/80 p-4 sm:p-5 rounded-2xl mb-5 sm:mb-6 border border-purple-500/20 backdrop-blur-sm shadow-xl">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-1.5 h-6 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></div>
-                  <h3 className="text-xs sm:text-sm font-bold uppercase text-gray-400 tracking-wider">Mission Objective</h3>
+              <div className="bg-gradient-to-br from-gray-900/80 to-gray-800/80 p-3 sm:p-4 rounded-lg mb-4 border border-purple-500/20 backdrop-blur-sm">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-1 h-5 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></div>
+                  <h3 className="text-xs font-bold uppercase text-gray-400 tracking-wider">Mission</h3>
                 </div>
-                <p className="text-base sm:text-lg font-medium text-blue-100 leading-relaxed">{selectedLevel.desc}</p>
+                <p className="text-sm sm:text-base font-medium text-blue-100">{selectedLevel.desc}</p>
               </div>
 
-              {/* Star rewards preview */}
-              <div className="flex justify-center gap-2 mb-5 sm:mb-6">
-                {[1, 2, 3].map(s => (
-                  <div key={s} className="flex items-center gap-1 bg-gray-800/60 px-3 py-2 rounded-lg border border-gray-700/50">
-                    <div className="text-yellow-400 scale-90">
-                      <Icons.Star filled={true} />
+              {/* Star rewards with explanations */}
+              <div className="mb-4 space-y-2">
+                <h3 className="text-xs font-bold uppercase text-gray-400 tracking-wider mb-2">⭐ Completion Bonus</h3>
+                <div className="space-y-1.5 bg-gray-900/60 p-3 rounded-lg border border-gray-700/50">
+                  {selectedLevel.stars && Object.entries(selectedLevel.stars).map(([key, star], i) => (
+                    <div key={key} className="flex items-center gap-2 text-xs sm:text-sm">
+                      <div className="flex gap-0.5">
+                        {[...Array(i + 1)].map((_, idx) => (
+                          <span key={idx} className="text-yellow-400">⭐</span>
+                        ))}
+                      </div>
+                      <span className="text-gray-300">{star.label}</span>
                     </div>
-                    <span className="text-xs text-gray-400">×{s}</span>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
 
               {/* Play button */}
@@ -1506,10 +1524,10 @@ const CampaignMap = ({ progress, onPlayLevel, soundEnabled, onBack, onOpenAwards
                   if (soundEnabled) SoundManager.play('questStart');
                   onPlayLevel(selectedLevel);
                 }}
-                className="w-full py-3.5 sm:py-4 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-500 hover:via-purple-500 hover:to-pink-500 text-white rounded-xl font-bold shadow-2xl transform transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 text-base sm:text-lg border border-white/10"
+                className="w-full py-3 sm:py-4 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-500 hover:via-purple-500 hover:to-pink-500 text-white rounded-lg font-bold shadow-lg transform transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 border border-white/10"
               >
-                <span>Begin Quest</span> 
-                <div className="animate-pulse">
+                <span className="text-sm sm:text-base">Begin Quest</span> 
+                <div className="animate-pulse text-lg">
                   <Icons.Play />
                 </div>
               </button>
@@ -2534,6 +2552,9 @@ const App = () => {
           soundEnabled={soundEnabled}
           onBack={() => { if (soundEnabled) SoundManager.play('uiTap'); setView('menu'); }}
           onOpenAwards={() => { if (soundEnabled) SoundManager.play('uiTap'); openAwards(); }}
+          activeThemeId={activeThemeId}
+          activeSoundPackId={activeSoundPackId}
+          activeAssetSet={activeAssetSet}
         />
         {showUserPanel && <UserPanel soundEnabled={soundEnabled} onClose={handleUserPanelClose} appUserSession={appUserSession} />}
         {showAwardsZone && (
