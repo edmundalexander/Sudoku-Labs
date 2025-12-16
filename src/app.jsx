@@ -1854,6 +1854,7 @@ const App = () => {
   const [pendingActiveThemeId, setPendingActiveThemeId] = useState(null);
   const [pendingActiveSoundPackId, setPendingActiveSoundPackId] = useState(null);
   const [awardsDirty, setAwardsDirty] = useState(false);
+  const [bgAssetUrl, setBgAssetUrl] = useState(null);
 
   const timerRef = useRef(null);
   const chatEndRef = useRef(null);
@@ -2525,6 +2526,36 @@ const App = () => {
     };
   }, [activeThemeId, activeSoundPackId]);
 
+  // Probe filesystem backgrounds in order (png -> svg -> jpg) and pick the first that loads
+  useEffect(() => {
+    const paths = activeAssetSet?.assetPaths;
+    if (!paths) {
+      setBgAssetUrl(null);
+      return;
+    }
+
+    const order = [paths.bgPng, paths.bgSvg, paths.bgJpg].filter(Boolean);
+    if (order.length === 0) {
+      setBgAssetUrl(null);
+      return;
+    }
+
+    let cancelled = false;
+    const tryLoad = (idx) => {
+      if (idx >= order.length) {
+        if (!cancelled) setBgAssetUrl(null);
+        return;
+      }
+      const img = new Image();
+      img.onload = () => { if (!cancelled) setBgAssetUrl(order[idx]); };
+      img.onerror = () => tryLoad(idx + 1);
+      img.src = order[idx];
+    };
+
+    tryLoad(0);
+    return () => { cancelled = true; };
+  }, [activeAssetSet?.assetPaths?.bgPng, activeAssetSet?.assetPaths?.bgSvg, activeAssetSet?.assetPaths?.bgJpg, activeAssetSet?.comboKey]);
+
   // --- RENDER LOGIC ---
 
   // 1. CAMPAIGN MAP
@@ -2671,10 +2702,12 @@ const App = () => {
           <div 
             className="absolute inset-0 pointer-events-none z-0"
             style={{ 
-              backgroundImage: `url(${activeAssetSet.assetPaths.bgSvg}), url(${activeAssetSet.assetPaths.bgPng}), url(${activeAssetSet.assetPaths.bgJpg})`,
+              backgroundImage: bgAssetUrl
+                ? `url(${bgAssetUrl})`
+                : `url(${activeAssetSet.assetPaths.bgSvg}), url(${activeAssetSet.assetPaths.bgPng}), url(${activeAssetSet.assetPaths.bgJpg})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
-              opacity: 0.7
+              opacity: bgAssetUrl ? 0.85 : 0.7
             }}
           />
         </>
