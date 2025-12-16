@@ -2664,6 +2664,22 @@ const App = () => {
         />
       )}
       
+      {/* Filesystem-provided background asset (if present) */}
+      {activeAssetSet.assetPaths && (
+        <>
+          {/* Prefer SVG, then PNG, then JPG. We attempt load by layering; browser will fetch actual URLs if they exist. */}
+          <div 
+            className="absolute inset-0 pointer-events-none z-0"
+            style={{ 
+              backgroundImage: `url(${activeAssetSet.assetPaths.bgSvg}), url(${activeAssetSet.assetPaths.bgPng}), url(${activeAssetSet.assetPaths.bgJpg})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              opacity: 0.7
+            }}
+          />
+        </>
+      )}
+      
       {/* Decorative elements layer - Procedural theme-aware shapes */}
       {activeAssetSet.icons && activeAssetSet.icons.length > 0 && (
         <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
