@@ -409,6 +409,7 @@ const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSe
         const unlocked = isThemeUnlocked(theme.id);
         const isActive = theme.id === activeThemeId;
         const progress = getThemeProgress(theme.id);
+        const pairedPack = SOUND_PACKS[theme.pairedSoundPack];
 
         return (
           <div
@@ -439,7 +440,7 @@ const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSe
                 {!unlocked && theme.unlockCriteria && (
                   <div className="mt-2 text-xs space-y-1.5">
                     <p className="text-gray-500 dark:text-gray-400"><span className="font-semibold">Unlock:</span> {theme.unlockCriteria}</p>
-                    {progress && (
+                    {progress && progress.includes('/') && (
                       <div>
                         <div className="flex justify-between items-center mb-1">
                           <span className="text-blue-600 dark:text-blue-400 font-medium">Progress: {progress}</span>
@@ -458,14 +459,13 @@ const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSe
                 )}
               </div>
             </div>
-            {/* Theme preview - show sample cells */}
+            {/* Theme + Sound Pack pairing preview */}
             <div className={`mt-3 p-2 rounded-lg ${theme.background} border border-gray-300 dark:border-gray-600`}>
-              <div className="flex justify-center gap-1">
-                {[1, 2, 3].map(n => (
-                  <div key={n} className={`w-8 h-8 ${theme.cellBg} border border-gray-400/50 rounded flex items-center justify-center text-sm font-semibold text-gray-700 dark:text-gray-200`}>
-                    {n}
-                  </div>
-                ))}
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-xl">{theme.icon}</span>
+                <span className="text-gray-500 dark:text-gray-400 text-xs">+</span>
+                <span className="text-xl">{pairedPack?.icon || SOUND_PACKS.classic.icon}</span>
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-200 ml-1">{theme.pairingName}</span>
               </div>
             </div>
           </div>
@@ -474,64 +474,83 @@ const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSe
     </div>
   );
 
-  const renderPacks = () => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-      {Object.values(SOUND_PACKS).map((pack) => {
-        const unlocked = isPackUnlocked(pack.id);
-        const isActive = pack.id === activePackId;
-        const progress = getPackProgress(pack.id);
+  const renderPacks = () => {
+    // Build reverse lookup: soundPackId -> theme that pairs with it
+    const packToTheme = {};
+    Object.values(THEMES).forEach(theme => {
+      if (theme.pairedSoundPack) {
+        packToTheme[theme.pairedSoundPack] = theme;
+      }
+    });
 
-        return (
-          <div
-            key={pack.id}
-            onClick={() => handlePackSelect(pack.id)}
-            className={`p-3 sm:p-4 rounded-lg border-2 transition-all ${isActive
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
-                : unlocked
-                  ? 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 cursor-pointer'
-                  : 'border-gray-200 dark:border-gray-700 opacity-60'
-              }`}
-          >
-            <div className="flex items-start gap-3">
-              <div className={`text-3xl sm:text-4xl ${unlocked ? '' : 'grayscale opacity-50'}`}>
-                {pack.icon}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-sm sm:text-base text-gray-900 dark:text-gray-100">{pack.name}</h3>
-                  {isActive && (
-                    <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full">Active</span>
-                  )}
-                  {!unlocked && <span className="text-xs text-gray-500">🔒</span>}
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        {Object.values(SOUND_PACKS).map((pack) => {
+          const unlocked = isPackUnlocked(pack.id);
+          const isActive = pack.id === activePackId;
+          const progress = getPackProgress(pack.id);
+          const pairedTheme = packToTheme[pack.id];
+
+          return (
+            <div
+              key={pack.id}
+              onClick={() => handlePackSelect(pack.id)}
+              className={`p-3 sm:p-4 rounded-lg border-2 transition-all ${isActive
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
+                  : unlocked
+                    ? 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 cursor-pointer'
+                    : 'border-gray-200 dark:border-gray-700 opacity-60'
+                }`}
+            >
+              <div className="flex items-start gap-3">
+                <div className={`text-3xl sm:text-4xl ${unlocked ? '' : 'grayscale opacity-50'}`}>
+                  {pack.icon}
                 </div>
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">{pack.description}</p>
-                {!unlocked && pack.unlockCriteria && (
-                  <div className="mt-2 text-xs space-y-1.5">
-                    <p className="text-gray-500 dark:text-gray-400"><span className="font-semibold">Unlock:</span> {pack.unlockCriteria}</p>
-                    {progress && (
-                      <div>
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="text-blue-600 dark:text-blue-400 font-medium">Progress: {progress}</span>
-                        </div>
-                        <div className="w-full bg-gray-300 dark:bg-gray-700 rounded-full h-1.5">
-                          <div 
-                            className="bg-gradient-to-r from-blue-500 to-purple-500 h-1.5 rounded-full transition-all duration-300"
-                            style={{
-                              width: `${Math.min(parseFloat(progress) / parseInt(progress.split('/')[1]) * 100, 100)}%`
-                            }}
-                          ></div>
-                        </div>
-                      </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-sm sm:text-base text-gray-900 dark:text-gray-100">{pack.name}</h3>
+                    {isActive && (
+                      <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full">Active</span>
                     )}
+                    {!unlocked && <span className="text-xs text-gray-500">🔒</span>}
                   </div>
-                )}
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">{pack.description}</p>
+                  {/* Show paired visual theme */}
+                  {pairedTheme && (
+                    <p className="text-xs text-purple-600 dark:text-purple-400 mt-1 flex items-center gap-1">
+                      <span>Pairs with</span>
+                      <span className="text-sm">{pairedTheme.icon}</span>
+                      <span className="font-medium">{pairedTheme.name}</span>
+                    </p>
+                  )}
+                  {!unlocked && pack.unlockCriteria && (
+                    <div className="mt-2 text-xs space-y-1.5">
+                      <p className="text-gray-500 dark:text-gray-400"><span className="font-semibold">Unlock:</span> {pack.unlockCriteria}</p>
+                      {progress && progress.includes('/') && (
+                        <div>
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-blue-600 dark:text-blue-400 font-medium">Progress: {progress}</span>
+                          </div>
+                          <div className="w-full bg-gray-300 dark:bg-gray-700 rounded-full h-1.5">
+                            <div 
+                              className="bg-gradient-to-r from-blue-500 to-purple-500 h-1.5 rounded-full transition-all duration-300"
+                              style={{
+                                width: `${Math.min(parseFloat(progress) / parseInt(progress.split('/')[1]) * 100, 100)}%`
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        );
-      })}
-    </div>
-  );
+          );
+        })}
+      </div>
+    );
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm animate-fade-in">
@@ -545,7 +564,7 @@ const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSe
 
         <div className="flex items-center gap-2 mb-2 sm:mb-3">
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2"><Icons.Awards /> Awards</h2>
-          <span className="text-[10px] sm:text-xs text-gray-500">Themes and Sound Packs</span>
+          <span className="text-[10px] sm:text-xs text-gray-500">Visual Themes and Sound Packs</span>
         </div>
         <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">Track your unlocks and switch your look and sound from one place.</p>
 
@@ -553,7 +572,7 @@ const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSe
           <button
             onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); setTab('themes'); }}
             className={`px-3 py-2 rounded-lg text-sm font-semibold border ${tab === 'themes' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'}`}
-          >Themes</button>
+          >Visual Themes</button>
           <button
             onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); setTab('sounds'); }}
             className={`px-3 py-2 rounded-lg text-sm font-semibold border ${tab === 'sounds' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'}`}

@@ -151,7 +151,9 @@ const THEMES = Object.freeze({
     fixedCellBg: 'bg-gray-50 dark:bg-gray-800',
     selectedCellBg: 'bg-blue-200 dark:bg-blue-900',
     icon: '📋',
-    unlocked: true
+    unlocked: true,
+    pairedSoundPack: 'classic',
+    pairingName: 'Classic Logic'
   },
   ocean: {
     id: 'ocean',
@@ -164,7 +166,9 @@ const THEMES = Object.freeze({
     selectedCellBg: 'bg-blue-300 dark:bg-blue-800',
     icon: '🌊',
     unlocked: false,
-    unlockCriteria: 'Win 5 games'
+    unlockCriteria: 'Win 5 games',
+    pairedSoundPack: 'zen',
+    pairingName: 'Underwater Meditation'
   },
   forest: {
     id: 'forest',
@@ -177,7 +181,9 @@ const THEMES = Object.freeze({
     selectedCellBg: 'bg-green-300 dark:bg-green-800',
     icon: '🌲',
     unlocked: false,
-    unlockCriteria: 'Win 10 games'
+    unlockCriteria: 'Win 10 games',
+    pairedSoundPack: 'nature',
+    pairingName: 'Woodland Breeze'
   },
   sunset: {
     id: 'sunset',
@@ -190,7 +196,9 @@ const THEMES = Object.freeze({
     selectedCellBg: 'bg-orange-300 dark:bg-orange-700',
     icon: '🌅',
     unlocked: false,
-    unlockCriteria: 'Complete a Hard puzzle'
+    unlockCriteria: 'Complete a Hard puzzle',
+    pairedSoundPack: 'funfair',
+    pairingName: 'Carnival Twilight'
   },
   midnight: {
     id: 'midnight',
@@ -203,7 +211,9 @@ const THEMES = Object.freeze({
     selectedCellBg: 'bg-purple-700 dark:bg-purple-900',
     icon: '🌙',
     unlocked: false,
-    unlockCriteria: 'Win a puzzle with 0 mistakes'
+    unlockCriteria: 'Win a puzzle with 0 mistakes',
+    pairedSoundPack: 'space',
+    pairingName: 'Cosmic Stargazing'
   },
   sakura: {
     id: 'sakura',
@@ -216,7 +226,9 @@ const THEMES = Object.freeze({
     selectedCellBg: 'bg-pink-300 dark:bg-pink-700',
     icon: '🌸',
     unlocked: false,
-    unlockCriteria: 'Win 3 Easy puzzles'
+    unlockCriteria: 'Win 3 Easy puzzles',
+    pairedSoundPack: 'retro',
+    pairingName: '8-Bit Blossom Garden'
   },
   volcano: {
     id: 'volcano',
@@ -229,7 +241,9 @@ const THEMES = Object.freeze({
     selectedCellBg: 'bg-red-300 dark:bg-red-700',
     icon: '🌋',
     unlocked: false,
-    unlockCriteria: 'Win 3 Medium puzzles'
+    unlockCriteria: 'Win 3 Medium puzzles',
+    pairedSoundPack: 'minimal',
+    pairingName: 'Focused Intensity'
   },
   arctic: {
     id: 'arctic',
@@ -242,7 +256,9 @@ const THEMES = Object.freeze({
     selectedCellBg: 'bg-blue-200 dark:bg-blue-800',
     icon: '❄️',
     unlocked: false,
-    unlockCriteria: 'Win a puzzle in under 3 minutes'
+    unlockCriteria: 'Win a puzzle in under 3 minutes',
+    pairedSoundPack: 'crystal',
+    pairingName: 'Ice Crystal Sparkle'
   }
 });
 
