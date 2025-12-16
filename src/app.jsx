@@ -59,6 +59,45 @@ class ErrorBoundary extends Component {
 }
 
 // ============================================================================
+// THEME-AWARE ICON STYLING HELPER
+// ============================================================================
+
+/**
+ * Get themed styling for decorative icons based on visual and audio theme
+ * Similar to campaign map's biome-based styling
+ */
+const getIconThemeStyle = (visualThemeId, audioThemeId) => {
+  // Map visual themes to icon colors and shadows
+  const visualStyles = {
+    default: { color: '#3b82f6', shadow: 'shadow-blue-500/50', glow: 'bg-blue-400/20' },
+    ocean: { color: '#0891b2', shadow: 'shadow-cyan-500/50', glow: 'bg-cyan-400/20' },
+    forest: { color: '#059669', shadow: 'shadow-green-500/50', glow: 'bg-emerald-400/20' },
+    sunset: { color: '#ea580c', shadow: 'shadow-orange-500/50', glow: 'bg-orange-400/20' },
+    midnight: { color: '#6366f1', shadow: 'shadow-purple-500/50', glow: 'bg-purple-400/20' },
+    sakura: { color: '#db2777', shadow: 'shadow-pink-500/50', glow: 'bg-pink-400/20' },
+    volcano: { color: '#dc2626', shadow: 'shadow-red-500/50', glow: 'bg-red-400/20' },
+    arctic: { color: '#0284c7', shadow: 'shadow-blue-500/50', glow: 'bg-blue-300/20' }
+  };
+
+  // Map audio themes to animation/filter effects
+  const audioEffects = {
+    classic: 'opacity-60 hover:opacity-100',
+    zen: 'opacity-50 blur-sm hover:blur-none',
+    funfair: 'opacity-70 brightness-110 hue-rotate-12',
+    retro: 'opacity-60 pixelated',
+    space: 'opacity-55 hue-rotate-180',
+    nature: 'opacity-60 saturate-150',
+    crystal: 'opacity-75 brightness-125 hue-rotate-45',
+    minimal: 'opacity-50 grayscale hover:grayscale-0'
+  };
+
+  const visual = visualStyles[visualThemeId] || visualStyles.default;
+  const audio = audioEffects[audioThemeId] || audioEffects.classic;
+
+  return { visual, audio };
+};
+
+// ============================================================================
 // DEBUG UTILITIES
 // ============================================================================
 
@@ -495,18 +534,34 @@ const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSe
               {currentAssetSet.description}
             </p>
             
-            {/* Decor preview - Material Icons based */}
+            {/* Decor preview - Material Icons with theme styling */}
             {currentAssetSet.icons && currentAssetSet.icons.length > 0 && (
               <div className="flex justify-center gap-2 mb-3">
-                {currentAssetSet.icons.slice(0, 3).map((iconName, i) => (
-                  <div 
-                    key={i} 
-                    className="w-10 h-10 flex items-center justify-center animate-float text-blue-600 dark:text-blue-400"
-                    style={{ animationDelay: `${i * 0.2}s`, fontSize: '24px' }}
-                  >
-                    <span className="material-icons-outlined">{iconName}</span>
-                  </div>
-                ))}
+                {currentAssetSet.icons.slice(0, 3).map((iconName, i) => {
+                  const { visual, audio } = getIconThemeStyle(activeThemeId, activePackId);
+                  return (
+                    <div 
+                      key={i} 
+                      className={`w-10 h-10 flex items-center justify-center animate-float relative ${audio}`}
+                      style={{ animationDelay: `${i * 0.2}s`, fontSize: '20px' }}
+                    >
+                      {/* Small glow */}
+                      <div 
+                        className={`absolute inset-0 rounded-full blur-md ${visual.glow}`}
+                        style={{ opacity: 0.6 }}
+                      />
+                      <span 
+                        className="material-icons-outlined relative z-10"
+                        style={{ 
+                          color: visual.color,
+                          textShadow: `0 2px 6px ${visual.color}40`
+                        }}
+                      >
+                        {iconName}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             )}
             
@@ -2565,27 +2620,43 @@ const App = () => {
         />
       )}
       
-      {/* Decorative elements layer - Material Icons based */}
+      {/* Decorative elements layer - Material Icons with theme styling */}
       {activeAssetSet.icons && activeAssetSet.icons.length > 0 && (
         <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-          {activeAssetSet.icons.map((iconName, i) => (
-            <div
-              key={i}
-              className="absolute animate-float-slow flex items-center justify-center"
-              style={{
-                left: `${15 + (i % 3) * 30}%`,
-                top: `${10 + Math.floor(i / 3) * 40}%`,
-                width: '60px',
-                height: '60px',
-                animationDelay: `${i * 1.5}s`,
-                animationDuration: `${8 + i * 2}s`,
-                opacity: 0.5,
-                fontSize: '32px'
-              }}
-            >
-              <span className="material-icons-outlined">{iconName}</span>
-            </div>
-          ))}
+          {activeAssetSet.icons.map((iconName, i) => {
+            const { visual, audio } = getIconThemeStyle(activeThemeId, activeSoundPackId);
+            return (
+              <div
+                key={i}
+                className={`absolute animate-float-slow flex items-center justify-center transition-all duration-500 ${audio}`}
+                style={{
+                  left: `${15 + (i % 3) * 30}%`,
+                  top: `${10 + Math.floor(i / 3) * 40}%`,
+                  width: '60px',
+                  height: '60px',
+                  animationDelay: `${i * 1.5}s`,
+                  animationDuration: `${8 + i * 2}s`,
+                }}
+              >
+                {/* Glow background */}
+                <div 
+                  className={`absolute inset-0 rounded-full blur-xl animate-pulse ${visual.glow}`}
+                  style={{ animationDelay: `${i * 0.3}s` }}
+                />
+                {/* Icon */}
+                <span 
+                  className="material-icons-outlined relative z-10 transition-all duration-500"
+                  style={{ 
+                    color: visual.color,
+                    fontSize: '32px',
+                    textShadow: `0 4px 12px ${visual.color}40, 0 0 8px ${visual.color}60`
+                  }}
+                >
+                  {iconName}
+                </span>
+              </div>
+            );
+          })}
         </div>
       )}
       
