@@ -252,7 +252,7 @@ const SOUND_PACKS = Object.freeze({
     description: 'Short, dry clicky cues',
     icon: '◽',
     unlocked: false,
-    unlockCriteria: 'Win under 3 minutes'
+    unlockCriteria: 'Win in 3 minutes or less'
   }
 });
 

@@ -535,7 +535,7 @@ const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSe
       case 'space': return stats.hardWins >= 1 ? 'Unlocked!' : `${stats.hardWins}/1 Hard win`;
       case 'nature': return `${Math.min(stats.mediumWins, 3)}/3 Medium wins`;
       case 'crystal': return stats.perfectWins >= 1 ? 'Unlocked!' : `${stats.perfectWins}/1 perfect win`;
-      case 'minimal': return stats.fastWins >= 1 ? 'Unlocked!' : `${stats.fastWins}/1 under 3 min`;
+      case 'minimal': return stats.fastWins >= 1 ? 'Unlocked!' : `${stats.fastWins}/1 win ≤3min`;
       default: return null;
     }
   };
@@ -918,7 +918,7 @@ const UserPanel = ({ soundEnabled, onClose, appUserSession }) => {
               <div className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
                 <div className="flex items-center gap-2">
                   <span className="text-lg">⚡</span>
-                  <span className="text-xs text-gray-600 dark:text-gray-400">Speed (&lt;3m)</span>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">Speed (≤3m)</span>
                 </div>
                 <span className="font-bold text-sm text-gray-800 dark:text-white">{mergedStats.fastWins}</span>
               </div>
@@ -1859,7 +1859,7 @@ const App = () => {
     if (difficulty === 'Medium') stats.mediumWins += 1;
     if (difficulty === 'Hard') stats.hardWins += 1;
     if (finalMistakes === 0) stats.perfectWins += 1;
-    if (finalTime < 180) stats.fastWins += 1;
+    if (finalTime <= 180) stats.fastWins += 1; // 3 minutes or less = fast win
     StorageService.saveGameStats(stats);
 
     // Check for theme unlocks
@@ -1892,7 +1892,7 @@ const App = () => {
             incrementWins: true,
             difficulty: difficulty,  // Track which difficulty was won
             perfectWin: finalMistakes === 0,  // Perfect win if no mistakes
-            fastWin: finalTime < 180  // Fast win if under 3 minutes
+            fastWin: finalTime <= 180  // Fast win if 3 minutes or less
           };
           
           await runGasFn('updateUserProfile', updateData);
@@ -1932,7 +1932,9 @@ const App = () => {
   };
 
   const handleChatSend = async (text) => {
-    const txt = text.trim(); if (!txt) return;
+    const txt = (text || '').trim(); 
+    if (!txt || txt.length === 0) return; // Don't send empty messages
+    
     if (soundEnabled) SoundManager.play('uiTap');
     setChatInput('');
     const currentUserId = StorageService.getCurrentUserId();
@@ -2029,6 +2031,9 @@ const App = () => {
     const cell = board[cellId];
     if (!cell || !cell.value) return new Set();
     
+    // Don't show conflicts for fixed cells (they're always correct)
+    if (cell.isFixed) return new Set();
+    
     const conflicts = new Set();
     const row = cell.row;
     const col = cell.col;
@@ -2037,6 +2042,8 @@ const App = () => {
     
     board.forEach((c, idx) => {
       if (idx === cellId || !c.value || c.value !== cell.value) return;
+      // Only show conflicts with user-entered values, not fixed cells
+      if (c.isFixed) return;
       if (c.row === row || c.col === col || 
           (c.row >= boxRow && c.row < boxRow + 3 && c.col >= boxCol && c.col < boxCol + 3)) {
         conflicts.add(idx);
