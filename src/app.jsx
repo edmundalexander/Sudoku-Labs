@@ -336,7 +336,7 @@ const Cell = memo(({ data, isSelected, onClick, isCompletedBox, isConflicting = 
   const { row, col, value, isFixed, isError, notes, isHinted } = data;
   const isRightBorder = (col + 1) % 3 === 0 && col !== 8;
   const isBottomBorder = (row + 1) % 3 === 0 && row !== 8;
-  let baseClasses = "relative flex items-center justify-center text-base sm:text-lg md:text-xl font-medium cursor-pointer transition-all duration-200 select-none h-8 w-8 sm:h-10 sm:w-10 md:h-11 md:w-11 lg:h-12 lg:w-12";
+  let baseClasses = "relative flex items-center justify-center text-base sm:text-lg md:text-xl font-medium cursor-pointer transition-all duration-200 select-none h-8 w-8 sm:h-10 sm:w-10 md:h-11 md:w-11 lg:h-12 lg:w-12 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:z-10";
   if (isRightBorder) baseClasses += " border-r-2 border-gray-400 dark:border-gray-500";
   else baseClasses += " border-r border-gray-200 dark:border-gray-700";
   if (isBottomBorder) baseClasses += " border-b-2 border-gray-400 dark:border-gray-500";
@@ -351,11 +351,15 @@ const Cell = memo(({ data, isSelected, onClick, isCompletedBox, isConflicting = 
   if (isCompletedBox && !isSelected && !isError) {
     bgClass += " transition-colors duration-1000 bg-amber-50 dark:bg-amber-900/30";
   }
+  
+  // Accessibility labels
+  const cellLabel = `Row ${row + 1}, Column ${col + 1}${value ? `, Value ${value}` : ', Empty'}${isFixed ? ', Fixed' : ''}`;
+  
   const renderContent = () => {
     if (value !== null) return <span className={!isFixed ? "animate-pop" : ""}>{value}</span>;
     if (notes.length > 0) {
       return (
-        <div className="grid grid-cols-3 gap-0 w-full h-full p-0.5">
+        <div className="grid grid-cols-3 gap-0 w-full h-full p-0.5" aria-label={`Notes: ${notes.join(', ')}`}>
           {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => (
             <div key={n} className="flex items-center justify-center text-[0.4rem] sm:text-[0.5rem] md:text-xs leading-none text-gray-500 dark:text-gray-400">
               {notes.includes(n) ? n : ''}
@@ -367,10 +371,18 @@ const Cell = memo(({ data, isSelected, onClick, isCompletedBox, isConflicting = 
     return null;
   };
   return (
-    <div className={`${baseClasses} ${bgClass}`} onClick={onClick}>
+    <button
+      className={`${baseClasses} ${bgClass}`}
+      onClick={onClick}
+      role="gridcell"
+      aria-label={cellLabel}
+      aria-selected={isSelected}
+      aria-readonly={isFixed}
+      tabIndex={isSelected ? 0 : -1}
+    >
       {renderContent()}
       {isCompletedBox && !isError && <div className="sparkle top-1/2 left-1/2" />}
-    </div>
+    </button>
   );
 });
 
@@ -408,7 +420,11 @@ const SudokuBoard = ({ board, selectedId, onCellClick, completedBoxes, boardText
           }}
         />
       )}
-      <div className="grid grid-cols-9 relative z-0">
+      <div 
+        className="grid grid-cols-9 relative z-0"
+        role="grid"
+        aria-label="Sudoku puzzle grid"
+      >
         {board.map((cell) => {
           const boxIdx = Math.floor(cell.row / 3) * 3 + Math.floor(cell.col / 3);
           const isCompleted = completedBoxes.includes(boxIdx);
@@ -1602,32 +1618,51 @@ const App = () => {
   }, [appUserSession, hydrateUserState]);
 
   useEffect(() => {
+    // Initialize dark mode BEFORE first render to prevent flash
     const savedTheme = localStorage.getItem('theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const savedSound = localStorage.getItem(KEYS.SOUND_ENABLED);
 
     if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-      setDarkMode(true); document.documentElement.classList.add('dark');
+      setDarkMode(true); 
+      document.documentElement.classList.add('dark');
     } else {
-      setDarkMode(false); document.documentElement.classList.remove('dark');
+      setDarkMode(false); 
+      document.documentElement.classList.remove('dark');
     }
     if (savedSound === 'false') setSoundEnabled(false);
 
-    const saved = StorageService.loadGame();
-    if (saved && saved.status === 'playing') {
-      setBoard(saved.board); setTimer(saved.timer); setMistakes(saved.mistakes);
-      setDifficulty(saved.difficulty); setStatus('paused'); setHistory(saved.history); setView('game');
+    // Load saved game
+    try {
+      const saved = StorageService.loadGame();
+      if (saved && saved.status === 'playing') {
+        setBoard(saved.board); 
+        setTimer(saved.timer); 
+        setMistakes(saved.mistakes);
+        setDifficulty(saved.difficulty); 
+        setStatus('paused'); 
+        setHistory(saved.history || [saved.board]); 
+        setMode(saved.mode || 'pen');
+        setView('game');
+      }
+    } catch (err) {
+      console.error('Failed to load saved game:', err);
+      // Clear corrupted save
+      StorageService.clearSavedGame();
     }
   }, []);
 
   useEffect(() => {
-    if (status === 'playing') {
+    // Pause timer when status is not 'playing' OR when modals are open
+    const shouldPause = status !== 'playing' || showModal !== 'none' || showKeyboardHelp || showUserPanel || showAwardsZone;
+    
+    if (status === 'playing' && !shouldPause) {
       timerRef.current = window.setInterval(() => { setTimer(t => t + 1); }, 1000);
     } else {
       if (timerRef.current) clearInterval(timerRef.current);
     }
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [status]);
+  }, [status, showModal, showKeyboardHelp, showUserPanel, showAwardsZone]);
 
   useEffect(() => {
     if (status === 'playing' || status === 'paused') {
