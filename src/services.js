@@ -126,14 +126,61 @@ const logError = async (message, error) => {
 
 const StorageService = {
   /**
+   * Check if localStorage is available and has space
+   * @returns {boolean} Whether localStorage is usable
+   */
+  isAvailable() {
+    try {
+      const test = '__storage_test__';
+      localStorage.setItem(test, test);
+      localStorage.removeItem(test);
+      return true;
+    } catch (e) {
+      console.warn('localStorage not available:', e);
+      return false;
+    }
+  },
+
+  /**
+   * Handle quota exceeded error
+   */
+  handleQuotaExceeded() {
+    console.warn('localStorage quota exceeded, attempting cleanup...');
+    try {
+      // Clear non-essential data
+      const keysToKeep = [KEYS.GAME_STATE, KEYS.USER_SESSION, KEYS.USER_ID, 
+                          KEYS.UNLOCKED_THEMES, KEYS.UNLOCKED_SOUND_PACKS];
+      const allKeys = Object.keys(localStorage);
+      allKeys.forEach(key => {
+        if (!keysToKeep.includes(key) && !key.startsWith('theme_') && key !== 'APP_VERSION') {
+          localStorage.removeItem(key);
+        }
+      });
+    } catch (e) {
+      console.error('Failed to clean up localStorage:', e);
+    }
+  },
+
+  /**
    * Save game state to localStorage
    * @param {Object} state - Game state to save
    */
   saveGame(state) {
+    if (!this.isAvailable()) return;
     try {
       localStorage.setItem(KEYS.GAME_STATE, JSON.stringify(state));
     } catch (e) {
-      console.error('Failed to save game:', e);
+      if (e.name === 'QuotaExceededError') {
+        this.handleQuotaExceeded();
+        // Try again after cleanup
+        try {
+          localStorage.setItem(KEYS.GAME_STATE, JSON.stringify(state));
+        } catch (retryErr) {
+          console.error('Failed to save game even after cleanup:', retryErr);
+        }
+      } else {
+        console.error('Failed to save game:', e);
+      }
     }
   },
 

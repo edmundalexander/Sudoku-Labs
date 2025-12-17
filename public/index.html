@@ -294,6 +294,17 @@
   <body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
     <div id="root"></div>
 
+    <!-- Prevent dark mode flash: Check localStorage and apply dark class ASAP -->
+    <script>
+      (function() {
+        const savedTheme = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
+
     <!-- Cache/version guard: uses deployed ETag (commit) as version so any push forces a fresh load -->
     <script>
       (function() {
