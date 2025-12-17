@@ -1636,6 +1636,9 @@ const App = () => {
   }, [board, timer, status, difficulty, mistakes, history, selectedCell, mode]);
 
   useEffect(() => {
+    // Only poll chat when backend is configured
+    if (!isGasEnvironment()) return;
+    
     let interval;
     const fetchChat = async () => {
       if (isSendingRef.current) return;
@@ -1655,7 +1658,7 @@ const App = () => {
       }
     };
     fetchChat();
-    interval = setInterval(fetchChat, CHAT_POLL_INTERVAL);
+    interval = setInterval(fetchChat, GAME_SETTINGS.CHAT_POLL_INTERVAL);
     return () => clearInterval(interval);
   }, [isChatOpen, soundEnabled]);
 
@@ -1687,6 +1690,9 @@ const App = () => {
     if (selectedCell === null || status !== 'playing' || !board.length) return;
     const currentCell = board[selectedCell];
     if (!currentCell || currentCell.isFixed || currentCell.value !== null) return;
+    
+    // Don't give hint if cell already has correct value
+    if (currentCell.value === currentCell.solution) return;
     
     if (soundEnabled) SoundManager.play('write');
     const newBoard = JSON.parse(JSON.stringify(board));
@@ -1720,6 +1726,7 @@ const App = () => {
       setMistakes(0);
       setHistory([initialBoard]);
       setSelectedCell(null);
+      setMode('pen'); // Reset to pen mode on restart
       setStatus('playing');
     }
     setShowRestartConfirm(false);
@@ -1750,6 +1757,9 @@ const App = () => {
   };
 
   const handleNumberInput = useCallback((num) => {
+    // Validate input is a number between 1-9
+    if (typeof num !== 'number' || num < 1 || num > 9) return;
+    
     if (selectedCell === null || status !== 'playing' || !board.length) return;
     const currentCell = board[selectedCell];
     if (!currentCell || currentCell.isFixed) return;
@@ -1769,10 +1779,16 @@ const App = () => {
         if (newMistakes >= 3) {
           setBoard(newBoard); setStatus('lost'); StorageService.clearSavedGame(); return;
         }
+        
+        // Capture cellIndex to avoid race condition
+        const errorCellIndex = selectedCell;
         setTimeout(() => {
           setBoard(prev => {
-            const b = [...prev];
-            if (b[selectedCell]) { b[selectedCell].isError = false; b[selectedCell].value = null; }
+            const b = JSON.parse(JSON.stringify(prev));
+            if (b[errorCellIndex]) { 
+              b[errorCellIndex].isError = false; 
+              b[errorCellIndex].value = null; 
+            }
             return b;
           });
         }, 500);
@@ -1935,7 +1951,10 @@ const App = () => {
       else if (e.key === 'Backspace' || e.key === 'Delete') {
         if (selectedCell !== null && !board[selectedCell].isFixed) {
           if (soundEnabled) SoundManager.play('erase');
-          const newBoard = [...board]; newBoard[selectedCell].value = null; newBoard[selectedCell].notes = [];
+          const newBoard = JSON.parse(JSON.stringify(board));
+          newBoard[selectedCell].value = null;
+          newBoard[selectedCell].notes = [];
+          setHistory(prev => [...prev.slice(-10), newBoard]);
           setBoard(newBoard);
         }
       } else if (e.key === 'n' || e.key === 'N') {
@@ -1948,12 +1967,16 @@ const App = () => {
         e.preventDefault();
         if (selectedCell === null) { if (soundEnabled) SoundManager.play('select'); setSelectedCell(0); return; }
         if (soundEnabled) SoundManager.play('select');
-        let next = selectedCell;
-        if (e.key === 'ArrowRight') next = (selectedCell + 1) % 81;
-        if (e.key === 'ArrowLeft') next = (selectedCell - 1 + 81) % 81;
-        if (e.key === 'ArrowDown') next = (selectedCell + 9) % 81;
-        if (e.key === 'ArrowUp') next = (selectedCell - 9 + 81) % 81;
-        setSelectedCell(next);
+        const row = Math.floor(selectedCell / 9);
+        const col = selectedCell % 9;
+        let nextRow = row, nextCol = col;
+        
+        if (e.key === 'ArrowRight') nextCol = Math.min(8, col + 1);
+        if (e.key === 'ArrowLeft') nextCol = Math.max(0, col - 1);
+        if (e.key === 'ArrowDown') nextRow = Math.min(8, row + 1);
+        if (e.key === 'ArrowUp') nextRow = Math.max(0, row - 1);
+        
+        setSelectedCell(nextRow * 9 + nextCol);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -1995,9 +2018,25 @@ const App = () => {
 
   const completedBoxes = useMemo(() => {
     const completed = [];
-    for (let b = 0; b < 9; b++) {
-      const cells = board.filter(c => Math.floor(c.row / 3) * 3 + Math.floor(c.col / 3) === b);
-      if (cells.length !== 9) continue;
+    const boxCells = Array.from({ length: 9 }, () => []);
+    
+    // Single pass: group cells by box
+    board.forEach(c => {
+      const boxIndex = Math.floor(c.row / 3) * 3 + Math.floor(c.col / 3);
+      boxCells[boxIndex].push(c);
+    });
+    
+    // Check each box for completion
+    boxCells.forEach((cells, boxIndex) => {
+      if (cells.length !== 9) return;
+      const values = cells.map(c => c.value).filter(v => v !== null);
+      if (values.length === 9 && new Set(values).size === 9) {
+        completed.push(boxIndex);
+      }
+    });
+    
+    return completed;
+  }, [board]);
       const values = cells.map(c => c.value).filter(v => v !== null);
       if (new Set(values).size === 9) completed.push(b);
     }

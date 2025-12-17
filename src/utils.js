@@ -259,6 +259,9 @@ const generateLocalBoard = (difficulty) => {
 const triggerConfetti = () => {
   const colors = ['#EF476F', '#FFD166', '#06D6A0', '#118AB2', '#073B4C'];
   const root = document.getElementById('root');
+  if (!root) return;
+  
+  const pieces = [];
   for (let i = 0; i < 50; i++) {
     const el = document.createElement('div');
     el.classList.add('confetti-piece');
@@ -266,8 +269,17 @@ const triggerConfetti = () => {
     el.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
     el.style.animation = `confettiDrop ${1 + Math.random() * 2}s linear forwards`;
     root.appendChild(el);
-    setTimeout(() => el.remove(), 3000);
+    pieces.push(el);
   }
+  
+  // Clean up confetti pieces after animation completes
+  setTimeout(() => {
+    pieces.forEach(el => {
+      if (el && el.parentNode) {
+        el.parentNode.removeChild(el);
+      }
+    });
+  }, 3000);
 };
 
 // ============================================================================
