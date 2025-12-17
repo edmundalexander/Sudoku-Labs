@@ -2408,7 +2408,7 @@ const App = () => {
         <div className="flex flex-col lg:flex-row gap-2 sm:gap-3 md:gap-4 lg:gap-5 justify-center items-start">
 
           {/* Left: Board */}
-          <div className="flex-shrink-0 mx-auto lg:mx-0">
+          <div className="flex-shrink-0 mx-auto lg:mx-0 relative">
             <SudokuBoard
               board={board} selectedId={selectedCell}
               onCellClick={(id) => { if (soundEnabled) SoundManager.play('select'); setSelectedCell(id); }}
@@ -2416,62 +2416,146 @@ const App = () => {
               boardTexture={activeAssetSet.texture}
               conflictingCells={getConflictingCells(selectedCell)}
             />
+            
+            {/* Pause Overlay */}
+            {status === 'paused' && (
+              <div 
+                className="absolute inset-0 bg-gray-900/80 dark:bg-black/85 backdrop-blur-sm rounded-sm flex flex-col items-center justify-center cursor-pointer animate-fade-in z-20"
+                onClick={togglePause}
+              >
+                <div className="text-white text-center">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 bg-white/20 rounded-full flex items-center justify-center animate-pulse">
+                    <Icons.Play />
+                  </div>
+                  <p className="text-lg sm:text-xl font-bold mb-1">Game Paused</p>
+                  <p className="text-xs sm:text-sm text-gray-300 mb-4">Click anywhere or press Space to resume</p>
+                  <div className="flex gap-4 justify-center text-sm">
+                    <div className="bg-white/10 px-3 py-1.5 rounded-lg">
+                      <span className="text-gray-400 text-xs">Time</span>
+                      <p className="font-mono font-bold">{Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}</p>
+                    </div>
+                    <div className="bg-white/10 px-3 py-1.5 rounded-lg">
+                      <span className="text-gray-400 text-xs">Progress</span>
+                      <p className="font-bold">{getProgressPercentage()}%</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Right: Sidebar */}
           <div className="flex flex-col gap-2 sm:gap-2.5 w-full max-w-xs lg:w-72 mx-auto lg:mx-0">
 
             {/* Number Pad (top of sidebar) */}
-            <div className="grid grid-cols-3 gap-1 sm:gap-1.5">
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
-                <button
-                  key={num}
-                  onClick={() => { if (soundEnabled) SoundManager.play('select'); handleNumberInput(num); }}
-                  disabled={(status !== 'playing') || (remaining[num] === 0)}
-                  className={`h-11 sm:h-12 rounded-lg text-base sm:text-lg font-bold transition-all transform active:scale-95 ${((status !== 'playing') || (remaining[num] === 0)) ? 'opacity-20 cursor-not-allowed bg-gray-200 dark:bg-gray-800' : 'bg-white dark:bg-gray-700 shadow-sm hover:bg-blue-50 dark:hover:bg-gray-600 text-blue-600 dark:text-blue-400 border border-gray-200 dark:border-gray-600'}`}
-                >
-                  {num} <span className="block text-[8px] sm:text-[9px] text-gray-400 font-normal -mt-0.5">{remaining[num]} left</span>
-                </button>
-              ))}
+            <div className="grid grid-cols-3 gap-1.5 sm:gap-2 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-900/50 p-2 sm:p-2.5 rounded-xl shadow-inner">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => {
+                const isDisabled = (status !== 'playing') || (remaining[num] === 0);
+                const isComplete = remaining[num] === 0;
+                return (
+                  <button
+                    key={num}
+                    onClick={() => { if (soundEnabled) SoundManager.play('select'); handleNumberInput(num); }}
+                    disabled={isDisabled}
+                    className={`relative h-12 sm:h-14 rounded-xl text-lg sm:text-xl font-bold transition-all duration-200 transform active:scale-95 overflow-hidden group ${
+                      isComplete 
+                        ? 'bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30 text-green-600 dark:text-green-400 border-2 border-green-300 dark:border-green-700 cursor-default' 
+                        : isDisabled 
+                          ? 'opacity-30 cursor-not-allowed bg-gray-200 dark:bg-gray-800' 
+                          : 'bg-gradient-to-br from-white to-gray-50 dark:from-gray-700 dark:to-gray-800 hover:from-blue-50 hover:to-blue-100 dark:hover:from-blue-900/40 dark:hover:to-blue-800/40 text-blue-600 dark:text-blue-400 border-2 border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 shadow-md hover:shadow-lg'
+                    }`}
+                  >
+                    {/* Shine effect on hover */}
+                    {!isDisabled && !isComplete && (
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                    )}
+                    <span className="relative z-10">{num}</span>
+                    <span className={`block text-[9px] sm:text-[10px] font-medium -mt-0.5 relative z-10 ${isComplete ? 'text-green-500' : 'text-gray-400'}`}>
+                      {isComplete ? '✓' : `${remaining[num]} left`}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
 
 
 
             {/* Stats */}
-            <div className="w-full flex justify-between items-center bg-white dark:bg-gray-800 py-2 sm:py-2.5 px-2.5 sm:px-3 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 text-xs sm:text-sm">
-              <div className="flex flex-col">
-                <span className="text-[9px] sm:text-[10px] text-gray-500 uppercase font-semibold">Difficulty</span>
-                <span className="font-bold text-sm sm:text-base">{difficulty}</span>
+            <div className="w-full bg-gradient-to-r from-white via-gray-50 to-white dark:from-gray-800 dark:via-gray-800/80 dark:to-gray-800 py-3 sm:py-4 px-3 sm:px-4 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+              {/* Progress Bar */}
+              <div className="mb-3">
+                <div className="flex justify-between items-center mb-1.5">
+                  <span className="text-[10px] sm:text-xs font-semibold text-gray-600 dark:text-gray-400">Progress</span>
+                  <span className="text-xs sm:text-sm font-bold text-blue-600 dark:text-blue-400">{getProgressPercentage()}%</span>
+                </div>
+                <div className="h-2 sm:h-2.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-blue-500 via-blue-400 to-cyan-400 rounded-full transition-all duration-500 ease-out relative"
+                    style={{ width: `${getProgressPercentage()}%` }}
+                  >
+                    {getProgressPercentage() > 20 && (
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
+                    )}
+                  </div>
+                </div>
               </div>
-              <div className="flex flex-col items-center">
-                <span className="text-[9px] sm:text-[10px] text-gray-500 uppercase font-semibold">Progress</span>
-                <span className="font-bold text-sm sm:text-base">{getProgressPercentage()}%</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <span className="text-[9px] sm:text-[10px] text-gray-500 uppercase font-semibold">Mistakes</span>
-                <span className={`font-bold text-sm sm:text-base ${mistakes > 2 ? 'text-red-500' : ''}`}>{mistakes}/3</span>
-              </div>
-              <div className="flex flex-col items-end">
-                <span className="text-[9px] sm:text-[10px] text-gray-500 uppercase font-semibold">Time</span>
-                <span className="font-mono text-sm sm:text-base">{Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}</span>
+              
+              {/* Stats Grid */}
+              <div className="flex justify-between items-center text-center">
+                <div className="flex flex-col">
+                  <span className="text-[9px] sm:text-[10px] text-gray-500 uppercase font-semibold tracking-wide">Difficulty</span>
+                  <span className={`font-bold text-sm sm:text-base ${
+                    difficulty === 'Hard' ? 'text-red-500' : 
+                    difficulty === 'Medium' ? 'text-yellow-600 dark:text-yellow-400' : 
+                    difficulty === 'Daily' ? 'text-blue-500' : 'text-green-500'
+                  }`}>{difficulty}</span>
+                </div>
+                <div className="w-px h-8 bg-gradient-to-b from-transparent via-gray-300 dark:via-gray-600 to-transparent"></div>
+                <div className="flex flex-col items-center">
+                  <span className="text-[9px] sm:text-[10px] text-gray-500 uppercase font-semibold tracking-wide">Mistakes</span>
+                  <div className="flex items-center gap-1">
+                    {[0, 1, 2].map(i => (
+                      <div 
+                        key={i} 
+                        className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full transition-all duration-300 ${
+                          i < mistakes 
+                            ? 'bg-red-500 shadow-md shadow-red-500/50' 
+                            : 'bg-gray-300 dark:bg-gray-600'
+                        }`}
+                      ></div>
+                    ))}
+                  </div>
+                </div>
+                <div className="w-px h-8 bg-gradient-to-b from-transparent via-gray-300 dark:via-gray-600 to-transparent"></div>
+                <div className="flex flex-col items-end">
+                  <span className="text-[9px] sm:text-[10px] text-gray-500 uppercase font-semibold tracking-wide">Time</span>
+                  <span className="font-mono text-sm sm:text-base font-bold tabular-nums">{Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}</span>
+                </div>
               </div>
             </div>
 
             {/* Tools */}
-            <div className="flex w-full justify-between gap-1 sm:gap-1.5">
+            <div className="flex w-full justify-between gap-1.5 sm:gap-2">
               <button
                 onClick={() => { handleUndo(); }}
-                className="flex-1 flex flex-col items-center p-1 sm:p-1.5 rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700"
+                disabled={history.length <= 1}
+                className="flex-1 flex flex-col items-center justify-center p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-amber-50 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 hover:from-amber-100 hover:to-orange-200 dark:hover:from-amber-900/50 dark:hover:to-orange-900/50 transition-all border border-amber-200 dark:border-amber-700/50 shadow-sm hover:shadow-md group disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-sm"
               >
-                <Icons.Undo /><span className="text-[8px] sm:text-[9px] mt-0.5">Undo</span>
+                <div className="transform group-hover:-rotate-12 transition-transform">
+                  <Icons.Undo />
+                </div>
+                <span className="text-[8px] sm:text-[9px] mt-1 font-medium text-amber-700 dark:text-amber-300">Undo</span>
               </button>
               <button
                 onClick={handleHint}
-                disabled={status !== 'playing' || selectedCell === null || board[selectedCell]?.isFixed}
-                className="flex-1 flex flex-col items-center p-1 sm:p-1.5 rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                disabled={status !== 'playing' || selectedCell === null || board[selectedCell]?.isFixed || board[selectedCell]?.value !== null}
+                className="flex-1 flex flex-col items-center justify-center p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-yellow-50 to-amber-100 dark:from-yellow-900/30 dark:to-amber-900/30 hover:from-yellow-100 hover:to-amber-200 dark:hover:from-yellow-900/50 dark:hover:to-amber-900/50 transition-all border border-yellow-200 dark:border-yellow-700/50 shadow-sm hover:shadow-md group disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-sm"
                 title="Reveal solution (H or ?)"
               >
-                <Icons.Lightbulb /><span className="text-[8px] sm:text-[9px] mt-0.5">Hint</span>
+                <div className="transform group-hover:scale-110 transition-transform">
+                  <Icons.Lightbulb />
+                </div>
+                <span className="text-[8px] sm:text-[9px] mt-1 font-medium text-yellow-700 dark:text-yellow-300">Hint</span>
               </button>
               <button
                 onClick={() => {
@@ -2481,63 +2565,118 @@ const App = () => {
                     setBoard(newBoard);
                   }
                 }}
-                className="flex-1 flex flex-col items-center p-1 sm:p-1.5 rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700"
+                disabled={status !== 'playing' || selectedCell === null || board[selectedCell]?.isFixed}
+                className="flex-1 flex flex-col items-center justify-center p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-red-50 to-rose-100 dark:from-red-900/30 dark:to-rose-900/30 hover:from-red-100 hover:to-rose-200 dark:hover:from-red-900/50 dark:hover:to-rose-900/50 transition-all border border-red-200 dark:border-red-700/50 shadow-sm hover:shadow-md group disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-sm"
               >
-                <Icons.Eraser /><span className="text-[8px] sm:text-[9px] mt-0.5">Erase</span>
+                <div className="transform group-hover:rotate-12 transition-transform">
+                  <Icons.Eraser />
+                </div>
+                <span className="text-[8px] sm:text-[9px] mt-1 font-medium text-red-700 dark:text-red-300">Erase</span>
               </button>
               <button
                 onClick={() => { if (soundEnabled) SoundManager.play('pencil'); setMode(mode === 'pen' ? 'pencil' : 'pen'); }}
-                className={`flex-1 flex flex-col items-center p-1 sm:p-1.5 rounded-lg transition-colors border border-gray-200 dark:border-gray-700 ${mode === 'pencil' ? 'bg-blue-100 dark:bg-blue-900 border-blue-500' : 'bg-white dark:bg-gray-800'}`}
+                className={`flex-1 flex flex-col items-center justify-center p-2 sm:p-2.5 rounded-xl transition-all shadow-sm hover:shadow-md group ${
+                  mode === 'pencil' 
+                    ? 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white border-2 border-blue-300 dark:border-blue-500 shadow-lg shadow-blue-500/30' 
+                    : 'bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 hover:from-blue-100 hover:to-indigo-200 dark:hover:from-blue-900/50 dark:hover:to-indigo-900/50 border border-blue-200 dark:border-blue-700/50'
+                }`}
               >
-                <div className="relative">
+                <div className="relative transform group-hover:scale-110 transition-transform">
                   <Icons.Pencil />
-                  <span className="absolute -top-1 -right-1 flex h-1.5 w-1.5">
-                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75 ${mode === 'pencil' ? '' : 'hidden'}`}></span>
-                    <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${mode === 'pencil' ? 'bg-blue-500' : 'bg-transparent'}`}></span>
-                  </span>
+                  {mode === 'pencil' && (
+                    <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                    </span>
+                  )}
                 </div>
-                <span className="text-[8px] sm:text-[9px] mt-0.5">{mode === 'pencil' ? 'Notes' : 'Notes'}</span>
+                <span className={`text-[8px] sm:text-[9px] mt-1 font-medium ${mode === 'pencil' ? 'text-white' : 'text-blue-700 dark:text-blue-300'}`}>
+                  {mode === 'pencil' ? 'Notes ON' : 'Notes'}
+                </span>
               </button>
             </div>
 
             {/* New Game */}
-            <div className="bg-white dark:bg-gray-800 p-2 sm:p-2.5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-              <div className="flex justify-between items-center mb-1.5">
-                <h3 className="text-[9px] sm:text-[10px] font-bold uppercase text-gray-500">{loading ? 'Generating...' : 'New Game'}</h3>
+            <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 p-3 sm:p-4 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-200 flex items-center gap-1.5">
+                  {loading ? (
+                    <>
+                      <span className="animate-spin">⏳</span>
+                      <span>Generating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Icons.Play />
+                      <span>New Game</span>
+                    </>
+                  )}
+                </h3>
                 <button
                   onClick={handleQuickRestart}
                   disabled={status !== 'playing' && status !== 'paused'}
-                  className="text-[10px] sm:text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                  className="text-[10px] sm:text-xs px-2.5 py-1.5 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 hover:from-orange-100 hover:to-orange-200 dark:hover:from-orange-900/30 dark:hover:to-orange-800/30 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1.5 font-medium text-gray-700 dark:text-gray-300 hover:text-orange-700 dark:hover:text-orange-300 shadow-sm hover:shadow-md"
                   title="Restart puzzle (R)"
                 >
                   <Icons.Refresh />
                   <span className="hidden sm:inline">Restart</span>
                 </button>
               </div>
-              <div className="grid grid-cols-2 gap-1 sm:gap-1.5">
-                {['Easy', 'Medium', 'Hard', 'Daily'].map(d => (
-                  <button key={d} onClick={() => { if (soundEnabled) SoundManager.play('startGame'); startNewGame(d); }} disabled={loading} className={`py-1 sm:py-1.5 px-2 rounded text-[11px] font-medium transition-colors ${difficulty === d ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'} disabled:opacity-50`}>{d}</button>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { name: 'Easy', color: 'from-green-500 to-emerald-600', hoverColor: 'hover:from-green-400 hover:to-emerald-500', activeRing: 'ring-green-300' },
+                  { name: 'Medium', color: 'from-yellow-500 to-orange-500', hoverColor: 'hover:from-yellow-400 hover:to-orange-400', activeRing: 'ring-yellow-300' },
+                  { name: 'Hard', color: 'from-red-500 to-rose-600', hoverColor: 'hover:from-red-400 hover:to-rose-500', activeRing: 'ring-red-300' },
+                  { name: 'Daily', color: 'from-blue-500 to-indigo-600', hoverColor: 'hover:from-blue-400 hover:to-indigo-500', activeRing: 'ring-blue-300' }
+                ].map(d => (
+                  <button 
+                    key={d.name} 
+                    onClick={() => { if (soundEnabled) SoundManager.play('startGame'); startNewGame(d.name); }} 
+                    disabled={loading} 
+                    className={`py-2 sm:py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all transform hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-wait disabled:hover:scale-100 ${
+                      difficulty === d.name 
+                        ? `bg-gradient-to-br ${d.color} text-white shadow-lg ring-2 ${d.activeRing}` 
+                        : `bg-gradient-to-br ${d.color} ${d.hoverColor} text-white shadow-md opacity-80 hover:opacity-100`
+                    }`}
+                  >
+                    {d.name}
+                  </button>
                 ))}
               </div>
             </div>
 
             {/* Settings */}
-            <div className="bg-white dark:bg-gray-800 p-2 sm:p-2.5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-              <h3 className="text-[9px] sm:text-[10px] font-bold uppercase text-gray-500 mb-1.5">Settings</h3>
-              <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 p-1.5 rounded transition-colors">
-                <input 
-                  type="checkbox" 
-                  checked={showConflicts} 
-                  onChange={(e) => setShowConflicts(e.target.checked)}
-                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                />
-                <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">Highlight Conflicts</span>
+            <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 p-3 sm:p-4 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+              <h3 className="text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-200 mb-2 flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Settings
+              </h3>
+              <label className="flex items-center justify-between cursor-pointer bg-gray-50 dark:bg-gray-700/50 p-2.5 rounded-lg transition-all hover:bg-gray-100 dark:hover:bg-gray-700 group">
+                <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-medium">Highlight Conflicts</span>
+                <div className="relative">
+                  <input 
+                    type="checkbox" 
+                    checked={showConflicts} 
+                    onChange={(e) => setShowConflicts(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                </div>
               </label>
             </div>
 
-            <div className="grid grid-cols-1 gap-1.5">
-              <button onClick={handleOpenLeaderboard} className="py-1.5 sm:py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded shadow-md text-xs font-bold hover:from-yellow-600 hover:to-orange-600 transition-colors transform hover:-translate-y-0.5">🏆 Leaderboard</button>
-            </div>
+            {/* Leaderboard Button */}
+            <button 
+              onClick={handleOpenLeaderboard} 
+              className="w-full py-3 sm:py-3.5 bg-gradient-to-r from-yellow-500 via-amber-500 to-orange-500 hover:from-yellow-400 hover:via-amber-400 hover:to-orange-400 text-white rounded-xl shadow-lg text-sm font-bold transition-all transform hover:scale-[1.02] hover:shadow-xl flex items-center justify-center gap-2 relative overflow-hidden group"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+              <span className="text-lg relative z-10">🏆</span>
+              <span className="relative z-10">Leaderboard</span>
+            </button>
           </div>
         </div>
       </div>
