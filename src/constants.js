@@ -873,7 +873,7 @@ const getThemeAssetSet = (visualId, audioId) => {
   // Optional filesystem-based assets (user-provided)
   // Use BASE_PATH from config for subdirectory deployments (e.g., GitHub Pages)
   const basePath = (window.CONFIG && window.CONFIG.BASE_PATH) || '';
-  const assetBase = `${basePath}/assets/themes/${visualId}/${audioId}`.replace(/^\/\//, '/');
+  const assetBase = `${basePath}/public/assets/themes/${visualId}/${audioId}`.replace(/^\/\//, '/');
   const assetPaths = {
     base: assetBase,
     bgJpg: `${assetBase}/background.jpg`,

@@ -3,13 +3,13 @@
 Short, actionable guide to get an AI coding agent productive in this repo.
 
 **Big picture**
-- Frontend: [index.html](index.html) is the HTML shell. The app uses a **modular architecture** with 5 source files loaded in order:
+- Frontend: [public/index.html](public/index.html) is the HTML shell. The app uses a **modular architecture** with 5 source files loaded in order:
   - [src/constants.js](src/constants.js) - Game constants, themes, sound packs, campaign data
   - [src/utils.js](src/utils.js) - Validation, formatting, Sudoku helpers
   - [src/sound.js](src/sound.js) - WebAudio SoundManager with 8 procedural sound packs
   - [src/services.js](src/services.js) - API service layer, storage, data management
   - [src/app.jsx](src/app.jsx) - React UI components (compiled in-browser with Babel)
-- Backend: [apps_script/Code.gs](apps_script/Code.gs) — Google Apps Script (GAS) Web App. All API traffic uses `doGet(e)` with an `action` query parameter.
+- Backend: [backend/gas/Code.gs](backend/gas/Code.gs) — Google Apps Script (GAS) Web App. All API traffic uses `doGet(e)` with an `action` query parameter.
 - Data store: Google Sheets (sheets: `Leaderboard`, `Chat`, `Logs`, `Users`) accessed via `SHEET_ID` in `Code.gs`.
 
 **Key repo conventions & gotchas (must-know)**
@@ -23,15 +23,15 @@ Short, actionable guide to get an AI coding agent productive in this repo.
 - Local fallback: [src/utils.js](src/utils.js) contains `generateLocalBoard()` for offline puzzle generation. [src/services.js](src/services.js) contains StorageService with 18 methods for localStorage management.
 
 **Important code locations**
-- API router & helpers: [apps_script/Code.gs](apps_script/Code.gs)
+- API router & helpers: [backend/gas/Code.gs](backend/gas/Code.gs)
 - Frontend app & GAS client: [src/app.jsx](src/app.jsx)
 - Constants & configuration: [src/constants.js](src/constants.js) - THEMES, SOUND_PACKS, CAMPAIGN_LEVELS
 - Utilities & helpers: [src/utils.js](src/utils.js) - validation, formatting, Sudoku logic
 - Sound system: [src/sound.js](src/sound.js) - SoundManager with 8 procedural packs
 - Service layer: [src/services.js](src/services.js) - API, storage, leaderboard, chat, unlocks
-- HTML shell & runtime config load: [index.html](index.html)
+- HTML shell & runtime config load: [public/index.html](public/index.html)
 - Config template: [config/config.example.js](config/config.example.js) and [config/README.md](config/README.md)
-- Deployment & troubleshooting: [docs/DEPLOYMENT_CHECKLIST.md](docs/DEPLOYMENT_CHECKLIST.md), [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
+- Deployment & troubleshooting: [docs/deployment/checklist.md](docs/deployment/checklist.md), [docs/deployment/troubleshooting.md](docs/deployment/troubleshooting.md)
 
 **Developer workflows (explicit commands & checks)**
 - Quick backend health check (replace with your GAS_URL):
@@ -40,11 +40,11 @@ Short, actionable guide to get an AI coding agent productive in this repo.
   curl "$GAS_URL?action=generateSudoku&difficulty=Easy"
   ```
 - Edit/deploy GAS:
-  1. Paste `apps_script/Code.gs` into a new Apps Script project.
+  1. Paste `backend/gas/Code.gs` into a new Apps Script project.
   2. Run `setupSheets_()` once to create `Leaderboard`, `Chat`, `Logs`.
   3. Deploy → Web App, execute as owner, set Who has access = Anyone (even anonymous).
   4. Copy the deployment URL into `config/config.local.js` as `CONFIG.GAS_URL`.
-- Frontend local testing: serve the repo (simple Python/Node static server) and open `index.html`. The app loads `src/app.jsx` via in-browser Babel compilation.
+- Frontend local testing: serve the repo (simple Python/Node static server) and open `public/index.html`. The app loads `src/app.jsx` via in-browser Babel compilation.
 
 **Patterns & conventions to preserve when coding**
 - Keep `doGet(e)` action names and `runGasFn` mapping in sync. Example: adding `action=foo` requires a `runGasFn` mapping entry in [src/services.js](src/services.js) and handler in `Code.gs`.

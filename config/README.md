@@ -48,8 +48,8 @@ If deploying to a subdirectory (e.g., GitHub Pages at `username.github.io/Sudoku
    ```
 
 3. **This fixes asset paths for themes and backgrounds**
-   - Without `BASE_PATH`: `/assets/themes/...` → ❌ Broken on subdirectory deployments
-   - With `BASE_PATH`: `/Sudoku-Labs/assets/themes/...` → ✅ Works everywhere
+   - Without `BASE_PATH`: `/public/assets/themes/...` → ❌ Broken on subdirectory deployments
+   - With `BASE_PATH`: `/Sudoku-Labs/public/assets/themes/...` → ✅ Works everywhere
 
 ### For End Users / Root Domain Deployment
 

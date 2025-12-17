@@ -41,29 +41,31 @@ Just visit the live game: **[Play Now](https://edmund-alexander.github.io/Sudoku
    
 3. **Open in browser**
    ```bash
-   # Open index.html in your browser
-   # or use a simple HTTP server
+   # Serve the public directory
    python -m http.server 8000
+   # Then visit: http://localhost:8000/public/
    ```
 
 4. **For full functionality** (leaderboard, chat), you'll need to:
-   - Deploy the Google Apps Script backend (see [Deployment Guide](docs/DEPLOYMENT_CHECKLIST.md))
+   - Deploy the Google Apps Script backend (see [Deployment Guide](docs/deployment/checklist.md))
    - Update `config/config.local.js` with your deployment URL
 
 ## 📚 Documentation
 
-- **[Architecture](docs/ARCHITECTURE.md)** - System design and component overview
-- **[Configuration](docs/CONFIGURATION.md)** - How to configure the application
-- **[Deployment Checklist](docs/DEPLOYMENT_CHECKLIST.md)** - Complete deployment guide
-- **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
-- **[Wiki](../../wiki)** - Additional guides and resources
+- **[Documentation Hub](docs/README.md)** - Complete documentation index
+- **[Architecture](docs/technical/architecture.md)** - System design and component overview
+- **[Configuration](docs/technical/configuration.md)** - How to configure the application
+- **[Deployment Checklist](docs/deployment/checklist.md)** - Complete deployment guide
+- **[GitHub Pages Setup](docs/deployment/github-pages.md)** - Deploy to GitHub Pages
+- **[Troubleshooting](docs/deployment/troubleshooting.md)** - Common issues and solutions
+- **[Wiki](docs/wiki/Home.md)** - User guides and resources
 
 ## 🏗️ Architecture
 
 ```
 GitHub Pages (Frontend)           Google Apps Script (Backend)
      ↓                                    ↓
-  index.html                           Code.gs
+public/index.html                    backend/gas/Code.gs
      ↓                                (REST API)
   src/                                    ↓
   ├── constants.js                  Google Sheets
@@ -85,25 +87,36 @@ GitHub Pages (Frontend)           Google Apps Script (Backend)
 
 ```
 Sudoku-Labs/
-├── apps_script/
-│   └── Code.gs              # Backend API
-├── config/
-│   ├── config.example.js    # Configuration template
-│   └── config.local.js      # Your config (gitignored)
-├── docs/                    # Documentation
-├── src/
-│   ├── constants.js         # Game constants (themes, sound packs, campaign)
-│   ├── utils.js             # Utility functions (validation, formatting, helpers)
-│   ├── sound.js             # SoundManager and sound pack handlers
-│   ├── services.js          # API service layer (storage, leaderboard, chat)
-│   └── app.jsx              # React UI components
-├── index.html               # Main HTML file
-└── diagnostic.sh            # API health check script
+├── public/                  # Web-served files
+│   ├── index.html          # Main HTML file
+│   ├── favicon.svg         # Site icon
+│   └── assets/             # Theme backgrounds and images
+├── src/                    # Source code
+│   ├── constants.js        # Game constants (themes, sound packs)
+│   ├── utils.js            # Utility functions
+│   ├── sound.js            # SoundManager
+│   ├── services.js         # API service layer
+│   └── app.jsx             # React UI components
+├── backend/                # Backend code
+│   └── gas/
+│       └── Code.gs         # Google Apps Script API
+├── config/                 # Configuration
+│   ├── config.example.js   # Configuration template
+│   └── config.local.js     # Your config (gitignored)
+├── docs/                   # Documentation
+│   ├── deployment/         # Deployment guides
+│   ├── development/        # Dev guides
+│   ├── technical/          # Technical docs
+│   └── wiki/               # User documentation
+├── scripts/                # Utility scripts
+│   ├── setup/             # Setup scripts
+│   └── dev/               # Development tools
+└── README.md              # This file
 ```
 
 ### Running Locally
 
-The app runs entirely in the browser with in-browser Babel compilation. Simply open `index.html` or serve it with any HTTP server.
+The app runs entirely in the browser with in-browser Babel compilation. Simply serve the root directory with any HTTP server.
 
 **Without backend:**
 - Sudoku generation works (client-side)
@@ -120,7 +133,7 @@ The app runs entirely in the browser with in-browser Babel compilation. Simply o
 export GAS_URL="https://script.google.com/macros/s/YOUR_ID/exec"
 
 # Run diagnostics
-./diagnostic.sh
+./scripts/dev/diagnostic.sh
 ```
 
 ## 📝 Configuration
@@ -130,23 +143,25 @@ Configuration is managed through `config/config.local.js` (gitignored):
 ```javascript
 const CONFIG = {
   GAS_URL: 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec',
+  BASE_PATH: '', // Set to '/Sudoku-Labs' for GitHub Pages
 };
 ```
 
-See [Configuration Guide](docs/CONFIGURATION.md) for details.
+See [Configuration Guide](docs/technical/configuration.md) for details.
 
 ## 🚢 Deployment
 
 ### Frontend (GitHub Pages)
 
-1. Push `index.html` and `src/app.jsx` to your repository
-2. Enable GitHub Pages in repository settings
+1. Push changes to your repository
+2. Enable GitHub Pages in repository settings (Source: main branch, / root)
 3. Your site will be live at `https://[username].github.io/[repo]/`
+4. See [GitHub Pages Setup](docs/deployment/github-pages.md) for detailed instructions
 
 ### Backend (Google Apps Script)
 
 1. Create a new Apps Script project at [script.google.com](https://script.google.com)
-2. Copy code from `apps_script/Code.gs`
+2. Copy code from `backend/gas/Code.gs`
 3. Deploy as Web App with "Anyone" access
 4. Copy deployment URL to `config/config.local.js`
 
