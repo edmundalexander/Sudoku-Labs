@@ -871,7 +871,9 @@ const getThemeAssetSet = (visualId, audioId) => {
   const decorSet = DECOR_SETS[combo.decor] || DECOR_SETS.none;
   
   // Optional filesystem-based assets (user-provided)
-  const assetBase = `assets/themes/${visualId}/${audioId}`;
+  // Use BASE_PATH from config for subdirectory deployments (e.g., GitHub Pages)
+  const basePath = (window.CONFIG && window.CONFIG.BASE_PATH) || '';
+  const assetBase = `${basePath}/assets/themes/${visualId}/${audioId}`.replace(/^\/\//, '/');
   const assetPaths = {
     base: assetBase,
     bgJpg: `${assetBase}/background.jpg`,
