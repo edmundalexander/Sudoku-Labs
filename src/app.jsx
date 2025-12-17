@@ -332,7 +332,7 @@ console.log('%c   window.runDebugTests() - Run diagnostic tests', 'color: gray; 
 console.log('%c   window.clearAllData() - Clear all local data', 'color: gray; font-size: 11px');
 console.log('%c   window.grantTestUnlocks() - Unlock all themes/sounds', 'color: gray; font-size: 11px');
 
-const Cell = memo(({ data, isSelected, onClick, isCompletedBox }) => {
+const Cell = memo(({ data, isSelected, onClick, isCompletedBox, isConflicting = false }) => {
   const { row, col, value, isFixed, isError, notes, isHinted } = data;
   const isRightBorder = (col + 1) % 3 === 0 && col !== 8;
   const isBottomBorder = (row + 1) % 3 === 0 && row !== 8;
@@ -345,6 +345,7 @@ const Cell = memo(({ data, isSelected, onClick, isCompletedBox }) => {
   if (isSelected) bgClass = "bg-blue-200 dark:bg-blue-900";
   else if (isError) bgClass = "bg-red-100 dark:bg-red-900 animate-shake";
   else if (isHinted) bgClass = "bg-yellow-100 dark:bg-yellow-900";
+  else if (isConflicting) bgClass = "bg-orange-100 dark:bg-orange-900/50 ring-1 ring-orange-300 dark:ring-orange-700";
   else if (isFixed) bgClass = "bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-bold";
   else bgClass = "bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400";
   if (isCompletedBox && !isSelected && !isError) {
@@ -373,7 +374,7 @@ const Cell = memo(({ data, isSelected, onClick, isCompletedBox }) => {
   );
 });
 
-const SudokuBoard = ({ board, selectedId, onCellClick, completedBoxes, boardTexture }) => {
+const SudokuBoard = ({ board, selectedId, onCellClick, completedBoxes, boardTexture, conflictingCells = new Set() }) => {
   // Generate texture background style
   const getTextureStyle = () => {
     if (!boardTexture || boardTexture.pattern === 'none') return {};
@@ -411,8 +412,9 @@ const SudokuBoard = ({ board, selectedId, onCellClick, completedBoxes, boardText
         {board.map((cell) => {
           const boxIdx = Math.floor(cell.row / 3) * 3 + Math.floor(cell.col / 3);
           const isCompleted = completedBoxes.includes(boxIdx);
+          const isConflicting = conflictingCells.has(cell.id);
           return (
-            <Cell key={cell.id} data={cell} isSelected={selectedId === cell.id} onClick={() => onCellClick(cell.id)} isCompletedBox={isCompleted} />
+            <Cell key={cell.id} data={cell} isSelected={selectedId === cell.id} onClick={() => onCellClick(cell.id)} isCompletedBox={isCompleted} isConflicting={isConflicting} />
           );
         })}
       </div>
@@ -459,7 +461,11 @@ const Icons = {
       />
     </svg>
   ),
-  Music: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 9.75V4.5l10.5-2.25v5.25M9 9.75L19.5 7.5M9 9.75v7.875A2.625 2.625 0 014.5 20.25 2.625 2.625 0 012 17.625 2.625 2.625 0 014.5 15c.986 0 1.84.533 2.304 1.32M19.5 7.5v9.375A2.625 2.625 0 0115 19.5a2.625 2.625 0 01-2.5-2.625A2.625 2.625 0 0115 14.25c.986 0 1.84.533 2.304 1.32" /></svg>
+  Music: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 9.75V4.5l10.5-2.25v5.25M9 9.75L19.5 7.5M9 9.75v7.875A2.625 2.625 0 014.5 20.25 2.625 2.625 0 012 17.625 2.625 2.625 0 014.5 15c.986 0 1.84.533 2.304 1.32M19.5 7.5v9.375A2.625 2.625 0 0115 19.5a2.625 2.625 0 01-2.5-2.625A2.625 2.625 0 0115 14.25c.986 0 1.84.533 2.304 1.32" /></svg>,
+  Pause: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" /></svg>,
+  Lightbulb: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" /></svg>,
+  HelpCircle: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" /></svg>,
+  Refresh: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
 };
 
 const CHAT_POLL_INTERVAL = 5000;
@@ -1381,6 +1387,11 @@ const App = () => {
   const [pendingActiveSoundPackId, setPendingActiveSoundPackId] = useState(null);
   const [awardsDirty, setAwardsDirty] = useState(false);
   const [bgAssetUrl, setBgAssetUrl] = useState(null);
+  
+  // QoL improvements state
+  const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
+  const [showConflicts, setShowConflicts] = useState(true);
+  const [showRestartConfirm, setShowRestartConfirm] = useState(false);
 
   const timerRef = useRef(null);
   const chatEndRef = useRef(null);
@@ -1666,6 +1677,53 @@ const App = () => {
       const newVal = !prev; localStorage.setItem(KEYS.SOUND_ENABLED, String(newVal)); return newVal;
     });
   };
+  
+  const togglePause = () => {
+    if (soundEnabled) SoundManager.play('uiTap');
+    setStatus(prev => prev === 'playing' ? 'paused' : 'playing');
+  };
+  
+  const handleHint = () => {
+    if (selectedCell === null || status !== 'playing' || !board.length) return;
+    const currentCell = board[selectedCell];
+    if (!currentCell || currentCell.isFixed || currentCell.value !== null) return;
+    
+    if (soundEnabled) SoundManager.play('write');
+    const newBoard = JSON.parse(JSON.stringify(board));
+    const target = newBoard[selectedCell];
+    target.value = target.solution;
+    target.isHinted = true;
+    target.notes = [];
+    
+    setHistory(prev => [...prev.slice(-10), newBoard]);
+    setBoard(newBoard);
+    
+    if (newBoard.every((c) => c.value === c.solution)) {
+      if (soundEnabled) SoundManager.play('success');
+      setStatus('won');
+      StorageService.clearSavedGame();
+      handleWin(newBoard, mistakes, timer);
+    }
+  };
+  
+  const handleQuickRestart = () => {
+    if (soundEnabled) SoundManager.play('uiTap');
+    setShowRestartConfirm(true);
+  };
+  
+  const confirmRestart = () => {
+    if (soundEnabled) SoundManager.play('startGame');
+    const initialBoard = history[0];
+    if (initialBoard) {
+      setBoard(JSON.parse(JSON.stringify(initialBoard)));
+      setTimer(0);
+      setMistakes(0);
+      setHistory([initialBoard]);
+      setSelectedCell(null);
+      setStatus('playing');
+    }
+    setShowRestartConfirm(false);
+  };
 
   const startNewGame = async (diff) => {
     if (soundEnabled) SoundManager.init();
@@ -1845,8 +1903,34 @@ const App = () => {
   };
 
   useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && status === 'playing') {
+        setStatus('paused');
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [status]);
+  
+  useEffect(() => {
+    const handleGlobalKeyDown = (e) => {
+      if (e.key === 'Escape' && showKeyboardHelp) {
+        setShowKeyboardHelp(false);
+        return;
+      }
+      if ((e.key === '?' || e.key === '/') && !showKeyboardHelp && view === 'game') {
+        e.preventDefault();
+        setShowKeyboardHelp(true);
+        return;
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [showKeyboardHelp, view]);
+  
+  useEffect(() => {
     const handleKeyDown = (e) => {
-      if (status !== 'playing') return;
+      if (status !== 'playing' || showKeyboardHelp) return;
       if (e.key >= '1' && e.key <= '9') handleNumberInput(parseInt(e.key));
       else if (e.key === 'Backspace' || e.key === 'Delete') {
         if (selectedCell !== null && !board[selectedCell].isFixed) {
@@ -1857,6 +1941,9 @@ const App = () => {
       } else if (e.key === 'n' || e.key === 'N') {
         if (soundEnabled) SoundManager.play('pencil'); setMode(prev => prev === 'pen' ? 'pencil' : 'pen');
       } else if (e.key === 'z' || e.key === 'Z') { handleUndo(); }
+      else if (e.key === 'h' || e.key === 'H' || e.key === '?') { handleHint(); }
+      else if (e.key === 'p' || e.key === 'P' || e.key === ' ') { e.preventDefault(); togglePause(); }
+      else if (e.key === 'r' || e.key === 'R') { handleQuickRestart(); }
       else if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
         e.preventDefault();
         if (selectedCell === null) { if (soundEnabled) SoundManager.play('select'); setSelectedCell(0); return; }
@@ -1877,6 +1964,33 @@ const App = () => {
     const counts = Array(10).fill(9);
     board.forEach(c => { if (c.value) counts[c.value]--; });
     return counts;
+  };
+  
+  const getConflictingCells = useCallback((cellId) => {
+    if (!showConflicts || cellId === null) return new Set();
+    const cell = board[cellId];
+    if (!cell || !cell.value) return new Set();
+    
+    const conflicts = new Set();
+    const row = cell.row;
+    const col = cell.col;
+    const boxRow = Math.floor(row / 3) * 3;
+    const boxCol = Math.floor(col / 3) * 3;
+    
+    board.forEach((c, idx) => {
+      if (idx === cellId || !c.value || c.value !== cell.value) return;
+      if (c.row === row || c.col === col || 
+          (c.row >= boxRow && c.row < boxRow + 3 && c.col >= boxCol && c.col < boxCol + 3)) {
+        conflicts.add(idx);
+      }
+    });
+    
+    return conflicts;
+  }, [board, showConflicts]);
+  
+  const getProgressPercentage = () => {
+    const filled = board.filter(c => c.value !== null).length;
+    return Math.round((filled / 81) * 100);
   };
 
   const completedBoxes = useMemo(() => {
@@ -2248,6 +2362,31 @@ const App = () => {
           </div>
           <div className="flex gap-1 sm:gap-2 items-center">
             {loading && <span className="text-xs text-blue-500 animate-pulse hidden sm:inline">Generating...</span>}
+            {status === 'playing' && (
+              <button
+                onClick={togglePause}
+                className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                title="Pause (P or Space)"
+              >
+                <Icons.Pause />
+              </button>
+            )}
+            {status === 'paused' && (
+              <button
+                onClick={togglePause}
+                className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors animate-pulse"
+                title="Resume (P or Space)"
+              >
+                <Icons.Play />
+              </button>
+            )}
+            <button
+              onClick={() => setShowKeyboardHelp(true)}
+              className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              title="Keyboard Shortcuts (?)"
+            >
+              <Icons.HelpCircle />
+            </button>
             <button onClick={() => setShowUserPanel(true)} className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors relative">
               <Icons.User />
               {appUserSession && (
@@ -2275,6 +2414,7 @@ const App = () => {
               onCellClick={(id) => { if (soundEnabled) SoundManager.play('select'); setSelectedCell(id); }}
               completedBoxes={completedBoxes}
               boardTexture={activeAssetSet.texture}
+              conflictingCells={getConflictingCells(selectedCell)}
             />
           </div>
 
@@ -2304,6 +2444,10 @@ const App = () => {
                 <span className="font-bold text-sm sm:text-base">{difficulty}</span>
               </div>
               <div className="flex flex-col items-center">
+                <span className="text-[9px] sm:text-[10px] text-gray-500 uppercase font-semibold">Progress</span>
+                <span className="font-bold text-sm sm:text-base">{getProgressPercentage()}%</span>
+              </div>
+              <div className="flex flex-col items-center">
                 <span className="text-[9px] sm:text-[10px] text-gray-500 uppercase font-semibold">Mistakes</span>
                 <span className={`font-bold text-sm sm:text-base ${mistakes > 2 ? 'text-red-500' : ''}`}>{mistakes}/3</span>
               </div>
@@ -2320,6 +2464,14 @@ const App = () => {
                 className="flex-1 flex flex-col items-center p-1 sm:p-1.5 rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700"
               >
                 <Icons.Undo /><span className="text-[8px] sm:text-[9px] mt-0.5">Undo</span>
+              </button>
+              <button
+                onClick={handleHint}
+                disabled={status !== 'playing' || selectedCell === null || board[selectedCell]?.isFixed}
+                className="flex-1 flex flex-col items-center p-1 sm:p-1.5 rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                title="Reveal solution (H or ?)"
+              >
+                <Icons.Lightbulb /><span className="text-[8px] sm:text-[9px] mt-0.5">Hint</span>
               </button>
               <button
                 onClick={() => {
@@ -2350,12 +2502,37 @@ const App = () => {
 
             {/* New Game */}
             <div className="bg-white dark:bg-gray-800 p-2 sm:p-2.5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-              <h3 className="text-[9px] sm:text-[10px] font-bold uppercase text-gray-500 mb-1.5">{loading ? 'Generating...' : 'New Game'}</h3>
+              <div className="flex justify-between items-center mb-1.5">
+                <h3 className="text-[9px] sm:text-[10px] font-bold uppercase text-gray-500">{loading ? 'Generating...' : 'New Game'}</h3>
+                <button
+                  onClick={handleQuickRestart}
+                  disabled={status !== 'playing' && status !== 'paused'}
+                  className="text-[10px] sm:text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                  title="Restart puzzle (R)"
+                >
+                  <Icons.Refresh />
+                  <span className="hidden sm:inline">Restart</span>
+                </button>
+              </div>
               <div className="grid grid-cols-2 gap-1 sm:gap-1.5">
                 {['Easy', 'Medium', 'Hard', 'Daily'].map(d => (
                   <button key={d} onClick={() => { if (soundEnabled) SoundManager.play('startGame'); startNewGame(d); }} disabled={loading} className={`py-1 sm:py-1.5 px-2 rounded text-[11px] font-medium transition-colors ${difficulty === d ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'} disabled:opacity-50`}>{d}</button>
                 ))}
               </div>
+            </div>
+
+            {/* Settings */}
+            <div className="bg-white dark:bg-gray-800 p-2 sm:p-2.5 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+              <h3 className="text-[9px] sm:text-[10px] font-bold uppercase text-gray-500 mb-1.5">Settings</h3>
+              <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 p-1.5 rounded transition-colors">
+                <input 
+                  type="checkbox" 
+                  checked={showConflicts} 
+                  onChange={(e) => setShowConflicts(e.target.checked)}
+                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                />
+                <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">Highlight Conflicts</span>
+              </label>
             </div>
 
             <div className="grid grid-cols-1 gap-1.5">
@@ -2364,6 +2541,137 @@ const App = () => {
           </div>
         </div>
       </div>
+
+      {/* Keyboard Shortcuts Help Modal */}
+      {showKeyboardHelp && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-lg animate-pop relative">
+            <button
+              onClick={() => setShowKeyboardHelp(false)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              <Icons.X />
+            </button>
+            
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6 flex items-center gap-2">
+              <Icons.HelpCircle />
+              Keyboard Shortcuts
+            </h2>
+            
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <kbd className="px-2 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-xs font-mono">1-9</kbd>
+                  </div>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">Enter number</p>
+                </div>
+                
+                <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <kbd className="px-2 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-xs font-mono">N</kbd>
+                  </div>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">Toggle notes</p>
+                </div>
+                
+                <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <kbd className="px-2 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-xs font-mono">Z</kbd>
+                  </div>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">Undo</p>
+                </div>
+                
+                <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <kbd className="px-2 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-xs font-mono">Del</kbd>
+                  </div>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">Erase cell</p>
+                </div>
+                
+                <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <kbd className="px-2 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-xs font-mono">H</kbd>
+                    <span className="text-gray-400">/</span>
+                    <kbd className="px-2 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-xs font-mono">?</kbd>
+                  </div>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">Get hint</p>
+                </div>
+                
+                <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <kbd className="px-2 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-xs font-mono">P</kbd>
+                    <span className="text-gray-400">/</span>
+                    <kbd className="px-2 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-xs font-mono">Space</kbd>
+                  </div>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">Pause/Resume</p>
+                </div>
+                
+                <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <kbd className="px-2 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-xs font-mono">R</kbd>
+                  </div>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">Quick restart</p>
+                </div>
+                
+                <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <kbd className="px-2 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-xs font-mono">Esc</kbd>
+                  </div>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">Close dialogs</p>
+                </div>
+              </div>
+              
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
+                <p className="text-xs text-blue-800 dark:text-blue-300 font-medium mb-2">Navigation</p>
+                <div className="flex items-center gap-2">
+                  <kbd className="px-2 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-xs font-mono">←</kbd>
+                  <kbd className="px-2 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-xs font-mono">↑</kbd>
+                  <kbd className="px-2 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-xs font-mono">→</kbd>
+                  <kbd className="px-2 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded text-xs font-mono">↓</kbd>
+                  <span className="text-xs text-gray-600 dark:text-gray-400 ml-2">Move between cells</span>
+                </div>
+              </div>
+            </div>
+            
+            <button
+              onClick={() => setShowKeyboardHelp(false)}
+              className="mt-6 w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold transition-colors"
+            >
+              Got it!
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Restart Confirmation Modal */}
+      {showRestartConfirm && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-sm animate-pop relative">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 mx-auto mb-4 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center">
+                <Icons.Refresh />
+              </div>
+              <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-2">Restart Puzzle?</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">All your progress will be lost. The puzzle will reset to its initial state.</p>
+            </div>
+            
+            <div className="space-y-2">
+              <button
+                onClick={confirmRestart}
+                className="w-full py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-bold transition-colors"
+              >
+                Yes, Restart Puzzle
+              </button>
+              <button
+                onClick={() => setShowRestartConfirm(false)}
+                className="w-full py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg font-bold transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2">
         {chatNotification && !isChatOpen && (
