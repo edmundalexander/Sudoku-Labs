@@ -21,12 +21,10 @@ jobs:
 
       - name: Assemble Build Directory 📦
         run: |
-          mkdir -p build/public/assets build/config build/src build/backend build/scripts
-          cp public/index.html public/favicon.svg build/public/
+          mkdir -p build/public/assets build/config build/src
+          cp public/index.html public/favicon.svg build/
           cp -r public/assets/. build/public/assets/
           cp -r src/. build/src/
-          cp -r backend/. build/backend/
-          cp -r scripts/. build/scripts/
           cp config/config.example.js config/config.production.example.js build/config/
 
       - name: Inject GAS_URL Secret 🤫
