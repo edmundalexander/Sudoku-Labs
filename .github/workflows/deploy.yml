@@ -21,15 +21,23 @@ jobs:
 
       - name: Assemble Build Directory 📦
         run: |
-          mkdir -p build/config build/src build/docs
-          cp index.html favicon.svg build/
+          mkdir -p build/public/assets build/config build/src build/backend build/scripts
+          cp public/index.html public/favicon.svg build/public/
+          cp -r public/assets/. build/public/assets/
           cp -r src/. build/src/
-          cp -r docs/. build/docs/
-          cp config/config.example.js build/config/
+          cp -r backend/. build/backend/
+          cp -r scripts/. build/scripts/
+          cp config/config.example.js config/config.production.example.js build/config/
 
       - name: Inject GAS_URL Secret 🤫
         run: |
-          echo "window.CONFIG = { GAS_URL: '${{ secrets.GAS_URL }}' };" > build/config/config.local.js
+          cat > build/config/config.local.js << 'EOF'
+          const CONFIG = {
+            GAS_URL: '${{ secrets.GAS_URL }}',
+            BASE_PATH: '/Sudoku-Labs',
+          };
+          window.CONFIG = CONFIG;
+          EOF
         env:
           GAS_URL: ${{ secrets.GAS_URL }}
 
