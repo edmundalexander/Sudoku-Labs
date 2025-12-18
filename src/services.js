@@ -390,12 +390,14 @@ const StorageService = {
             parsed.length > 0 &&
             typeof parsed[0] === "string"
           )
-            return parsed[0];
+            return THEMES && THEMES[parsed[0]] ? parsed[0] : "default";
         } catch (e) {
           /* fallthrough */
         }
       }
-      return typeof raw === "string" && raw.trim() ? raw.trim() : "default";
+      const val =
+        typeof raw === "string" && raw.trim() ? raw.trim() : "default";
+      return THEMES && THEMES[val] ? val : "default";
     } catch (e) {
       return "default";
     }
@@ -423,7 +425,15 @@ const StorageService = {
           value = "default";
         }
       }
-      localStorage.setItem(KEYS.ACTIVE_THEME, value);
+      // Ensure the value is a valid visual theme id
+      const final =
+        typeof value === "string" &&
+        value.trim() &&
+        THEMES &&
+        THEMES[value.trim()]
+          ? value.trim()
+          : "default";
+      localStorage.setItem(KEYS.ACTIVE_THEME, final);
     } catch (e) {}
   },
 
@@ -467,14 +477,18 @@ const StorageService = {
             parsed.length > 0 &&
             typeof parsed[0] === "string"
           )
-            return parsed[0];
+            return SOUND_PACKS && SOUND_PACKS[parsed[0]]
+              ? parsed[0]
+              : "classic";
         } catch (e) {
           /* fallthrough */
         }
       }
       // If the value looks like a JSON object or array-as-string, fall back
       if (raw === "null" || raw === "undefined") return "classic";
-      return typeof raw === "string" && raw.trim() ? raw.trim() : "classic";
+      const val =
+        typeof raw === "string" && raw.trim() ? raw.trim() : "classic";
+      return SOUND_PACKS && SOUND_PACKS[val] ? val : "classic";
     } catch (e) {
       return "classic";
     }
@@ -504,7 +518,14 @@ const StorageService = {
           value = "classic";
         }
       }
-      localStorage.setItem(KEYS.ACTIVE_SOUND_PACK, value);
+      const final =
+        typeof value === "string" &&
+        value.trim() &&
+        SOUND_PACKS &&
+        SOUND_PACKS[value.trim()]
+          ? value.trim()
+          : "classic";
+      localStorage.setItem(KEYS.ACTIVE_SOUND_PACK, final);
     } catch (e) {}
   },
 };

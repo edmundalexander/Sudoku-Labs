@@ -2730,12 +2730,12 @@ const App = () => {
         const remoteActiveTheme =
           typeof remote.state.activeTheme === "string" &&
           remote.state.activeTheme.trim()
-            ? remote.state.activeTheme.trim()
+            ? sanitizeThemeId(remote.state.activeTheme.trim())
             : null;
         const remoteActivePack =
           typeof remote.state.activeSoundPack === "string" &&
           remote.state.activeSoundPack.trim()
-            ? remote.state.activeSoundPack.trim()
+            ? sanitizeSoundPackId(remote.state.activeSoundPack.trim())
             : null;
 
         const activeTheme = themeTouchedRef.current
@@ -2750,12 +2750,14 @@ const App = () => {
         StorageService.saveUnlockedSoundPacks(finalPacks);
         setUnlockedSoundPacks(finalPacks);
         if (!themeTouchedRef.current) {
-          StorageService.saveActiveTheme(activeTheme);
-          setActiveThemeId(activeTheme);
+          const finalTheme = sanitizeThemeId(activeTheme);
+          StorageService.saveActiveTheme(finalTheme);
+          setActiveThemeId(finalTheme);
         }
         if (!soundPackTouchedRef.current) {
-          StorageService.saveActiveSoundPack(activePack);
-          setActiveSoundPackId(activePack);
+          const finalPack = sanitizeSoundPackId(activePack);
+          StorageService.saveActiveSoundPack(finalPack);
+          setActiveSoundPackId(finalPack);
         }
         StorageService.saveGameStats(mergedStats);
 
