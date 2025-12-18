@@ -1253,13 +1253,49 @@ const UserPanel = ({ soundEnabled, onClose, appUserSession }) => {
   const [localUserSession, setLocalUserSession] = useState(
     appUserSession || StorageService.getUserSession()
   );
+  const profileFetchedRef = useRef(false);
 
   // Update localUserSession whenever appUserSession changes (from parent)
   useEffect(() => {
     if (appUserSession) {
       setLocalUserSession(appUserSession);
+      profileFetchedRef.current = false; // reset fetch flag when session changes
     }
   }, [appUserSession]);
+
+  // When showing the user's own panel, refresh the authoritative profile from backend
+  useEffect(() => {
+    const refreshLocalProfile = async () => {
+      if (!localUserSession || profileFetchedRef.current) return;
+      if (!isGasEnvironment()) return;
+      try {
+        const res = await runGasFn("getUserProfile", {
+          userId: localUserSession.userId || localUserSession.username,
+        });
+        if (res && res.success && res.user) {
+          // Normalize numeric fields to numbers
+          const normalized = {
+            ...res.user,
+            totalGames: Number(res.user.totalGames) || 0,
+            totalWins: Number(res.user.totalWins) || 0,
+            easyWins: Number(res.user.easyWins) || 0,
+            mediumWins: Number(res.user.mediumWins) || 0,
+            hardWins: Number(res.user.hardWins) || 0,
+            perfectWins: Number(res.user.perfectWins) || 0,
+            fastWins: Number(res.user.fastWins) || 0,
+          };
+          StorageService.setUserSession(normalized);
+          setLocalUserSession(normalized);
+        }
+      } catch (err) {
+        console.error("Failed to refresh local profile:", err);
+      } finally {
+        profileFetchedRef.current = true;
+      }
+    };
+
+    refreshLocalProfile();
+  }, [localUserSession]);
 
   const handleLogin = async () => {
     if (!username || !password) {
@@ -1374,29 +1410,29 @@ const UserPanel = ({ soundEnabled, onClose, appUserSession }) => {
     // Merge local stats with session stats (prefer higher values)
     // Note: localStats only tracks wins, session tracks both games and wins
     const mergedStats = {
-      totalGames: localUserSession.totalGames || 0, // Only from session (games played includes losses)
+      totalGames: Number(localUserSession.totalGames) || 0, // Coerce to number
       totalWins: Math.max(
-        localUserSession.totalWins || 0,
+        Number(localUserSession.totalWins) || 0,
         localStats.totalWins || 0
       ),
       easyWins: Math.max(
-        localUserSession.easyWins || 0,
+        Number(localUserSession.easyWins) || 0,
         localStats.easyWins || 0
       ),
       mediumWins: Math.max(
-        localUserSession.mediumWins || 0,
+        Number(localUserSession.mediumWins) || 0,
         localStats.mediumWins || 0
       ),
       hardWins: Math.max(
-        localUserSession.hardWins || 0,
+        Number(localUserSession.hardWins) || 0,
         localStats.hardWins || 0
       ),
       perfectWins: Math.max(
-        localUserSession.perfectWins || 0,
+        Number(localUserSession.perfectWins) || 0,
         localStats.perfectWins || 0
       ),
       fastWins: Math.max(
-        localUserSession.fastWins || 0,
+        Number(localUserSession.fastWins) || 0,
         localStats.fastWins || 0
       ),
     };
