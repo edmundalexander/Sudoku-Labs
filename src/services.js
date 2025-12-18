@@ -59,7 +59,9 @@ const runGasFn = async (fnName, ...args) => {
       getUserProfile: { action: 'getUserProfile', method: 'GET' },
       updateUserProfile: { action: 'updateUserProfile', method: 'GET' },
       getUserState: { action: 'getUserState', method: 'GET' },
-      saveUserState: { action: 'saveUserState', method: 'GET' }
+      saveUserState: { action: 'saveUserState', method: 'GET' },
+      getUserBadges: { action: 'getUserBadges', method: 'GET' },
+      awardBadge: { action: 'awardBadge', method: 'GET' }
     };
 
     const mapping = actionMap[fnName];

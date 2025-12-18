@@ -77,6 +77,12 @@ function doGet(e) {
       case 'saveUserState':
         return makeJsonResponse(saveUserState(e.parameter));
       
+      case 'getUserBadges':
+        return makeJsonResponse(getUserBadges(e.parameter));
+      
+      case 'awardBadge':
+        return makeJsonResponse(awardBadge(e.parameter));
+      
       default:
         return makeJsonResponse({ error: 'Unknown action: ' + action });
     }
@@ -349,7 +355,7 @@ function registerUser(data) {
     // Create new user row with all columns in order:
     // UserID | Username | PasswordHash | CreatedAt | DisplayName | TotalGames | TotalWins | 
     // EasyWins | MediumWins | HardWins | PerfectWins | FastWins |
-    // UnlockedThemes | ActiveTheme | UnlockedSoundPacks | ActiveSoundPack | GameStats
+    // UnlockedThemes | ActiveTheme | UnlockedSoundPacks | ActiveSoundPack | GameStats | Badges | Unlocks
     const newUserRow = [
       userId,           // UserID
       username,         // Username  
@@ -367,7 +373,9 @@ function registerUser(data) {
       'default',        // ActiveTheme
       '',               // UnlockedSoundPacks (empty array as string)
       'classic',        // ActiveSoundPack
-      '{}'              // GameStats (empty object as JSON string)
+      '{}',             // GameStats (empty object as JSON string)
+      '[]',             // Badges (empty array as JSON string)
+      '{}'              // Unlocks (empty object as JSON string)
     ];
     sheet.appendRow(newUserRow);
     
@@ -788,7 +796,7 @@ function setupSheets_() {
     Leaderboard: ['Name', 'Time (seconds)', 'Difficulty', 'Date'],
     Chat: ['ID', 'Sender', 'Text', 'Timestamp', 'Status'],
     Logs: ['Timestamp', 'Type', 'Message', 'UserAgent', 'Count'],
-    Users: ['UserID', 'Username', 'PasswordHash', 'CreatedAt', 'DisplayName', 'TotalGames', 'TotalWins', 'EasyWins', 'MediumWins', 'HardWins', 'PerfectWins', 'FastWins', 'UnlockedThemes', 'ActiveTheme', 'UnlockedSoundPacks', 'ActiveSoundPack', 'GameStats']
+    Users: ['UserID', 'Username', 'PasswordHash', 'CreatedAt', 'DisplayName', 'TotalGames', 'TotalWins', 'EasyWins', 'MediumWins', 'HardWins', 'PerfectWins', 'FastWins', 'UnlockedThemes', 'ActiveTheme', 'UnlockedSoundPacks', 'ActiveSoundPack', 'GameStats', 'Badges', 'Unlocks']
   };
 
   Object.entries(definitions).forEach(([name, headers]) => {
@@ -807,7 +815,7 @@ function ensureUsersSheetHeaders_() {
   const sheet = getSpreadsheet_().getSheetByName('Users');
   if (!sheet) return;
 
-  const required = ['UserID', 'Username', 'PasswordHash', 'CreatedAt', 'DisplayName', 'TotalGames', 'TotalWins', 'EasyWins', 'MediumWins', 'HardWins', 'PerfectWins', 'FastWins', 'UnlockedThemes', 'ActiveTheme', 'UnlockedSoundPacks', 'ActiveSoundPack', 'GameStats'];
+  const required = ['UserID', 'Username', 'PasswordHash', 'CreatedAt', 'DisplayName', 'TotalGames', 'TotalWins', 'EasyWins', 'MediumWins', 'HardWins', 'PerfectWins', 'FastWins', 'UnlockedThemes', 'ActiveTheme', 'UnlockedSoundPacks', 'ActiveSoundPack', 'GameStats', 'Badges', 'Unlocks'];
   ensureSheetHeaders_(sheet, required);
 }
 
@@ -879,4 +887,75 @@ function sanitizeInput_(str, maxLength) {
 function sanitizeOutput_(val) {
   if (typeof val === 'string') return val;
   return String(val || '');
+}
+
+// ============================================================================
+// BADGE SYSTEM
+// ============================================================================
+
+/**
+ * Get user badges
+ * @param {Object} data - Request data with userId
+ * @returns {Object} Success response with badges array
+ */
+function getUserBadges(data) {
+  if (!data || !data.userId) {
+    return { success: false, error: 'User ID required' };
+  }
+
+  const userId = sanitizeInput_(data.userId, 50);
+  ensureUsersSheetHeaders_();
+
+  const rowInfo = getUserRowById_(userId);
+  if (!rowInfo) return { success: false, error: 'User not found' };
+
+  const { row, map } = rowInfo;
+  const badgesRaw = row[map['Badges']] || '[]';
+  const badges = safeParseJson_(badgesRaw, []);
+
+  return {
+    success: true,
+    badges: Array.isArray(badges) ? badges : []
+  };
+}
+
+/**
+ * Award a badge to a user
+ * @param {Object} data - Request data with userId and badge
+ * @returns {Object} Success response
+ */
+function awardBadge(data) {
+  if (!data || !data.userId || !data.badge) {
+    return { success: false, error: 'User ID and badge required' };
+  }
+
+  const userId = sanitizeInput_(data.userId, 50);
+  const badgeId = sanitizeInput_(data.badge, 50);
+  ensureUsersSheetHeaders_();
+
+  const rowInfo = getUserRowById_(userId);
+  if (!rowInfo) return { success: false, error: 'User not found' };
+
+  const { rowIndex, row, map, sheet } = rowInfo;
+  const badgesRaw = row[map['Badges']] || '[]';
+  const badges = safeParseJson_(badgesRaw, []);
+
+  // Check if badge already exists
+  if (Array.isArray(badges) && badges.some(b => b.id === badgeId)) {
+    return { success: true, message: 'Badge already awarded' };
+  }
+
+  // Add badge with timestamp
+  const newBadge = {
+    id: badgeId,
+    awardedAt: new Date().toISOString()
+  };
+
+  const updatedBadges = Array.isArray(badges) ? [...badges, newBadge] : [newBadge];
+
+  if (map['Badges'] !== undefined) {
+    sheet.getRange(rowIndex, map['Badges'] + 1).setValue(JSON.stringify(updatedBadges).substring(0, 5000));
+  }
+
+  return { success: true, badge: newBadge };
 }
