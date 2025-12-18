@@ -53,6 +53,7 @@
         function bootLog(msg){
           try{ const el = document.getElementById('boot-log'); if(!el) return; const d = document.createElement('div'); d.className='msg'; d.textContent = (new Date()).toLocaleTimeString()+ ' - ' + msg; el.insertBefore(d, el.firstChild); }
           catch(e){console.warn('bootLog failed',e)}
+          }
         window.bootLog = bootLog;
         window.addEventListener('error', function(ev){ bootLog('ERROR: '+ (ev.message || ev.error || ev.type)); });
         window.addEventListener('unhandledrejection', function(ev){ bootLog('UNHANDLED REJECTION: '+ (ev.reason && ev.reason.message) ); });
