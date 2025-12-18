@@ -2763,7 +2763,11 @@ const App = () => {
       } catch (err) {
         console.error("Failed to sync game stats:", err);
         // Surface backend hint to the user if it's a network/CORS error
-        if (err && err.message && /CORS|Failed to reach GAS backend|Failed to fetch/i.test(err.message)) {
+        if (
+          err &&
+          err.message &&
+          /CORS|Failed to reach GAS backend|Failed to fetch/i.test(err.message)
+        ) {
           setBackendError(err.message);
         }
       }
@@ -4254,8 +4258,13 @@ const App = () => {
           <div className="bg-red-600 text-white px-4 py-2 rounded-lg shadow-md flex items-start gap-3 max-w-3xl">
             <div className="flex-1 text-sm">
               <div className="font-semibold">Backend connectivity issue</div>
-              <div className="mt-1 text-xs opacity-90">{backendError.split('\n')[0]}</div>
-              <div className="mt-1 text-xs opacity-70">Check deployment (Anyone access) and CORS headers — run <code>curl -I "$GAS_URL?action=ping"</code></div>
+              <div className="mt-1 text-xs opacity-90">
+                {backendError.split("\n")[0]}
+              </div>
+              <div className="mt-1 text-xs opacity-70">
+                Check deployment (Anyone access) and CORS headers — run{" "}
+                <code>curl -I "$GAS_URL?action=ping"</code>
+              </div>
             </div>
             <div>
               <button
