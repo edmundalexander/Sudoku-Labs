@@ -65,22 +65,36 @@ const AdminConsole = ({ onClose, sessionToken }) => {
 
   const loadSystemStats = async () => {
     try {
+      if (!CONFIG.GAS_URL) {
+        console.error('❌ GAS_URL not configured');
+        setMessage({ type: 'error', text: 'Backend URL not configured in config.local.js' });
+        return;
+      }
       const response = await fetch(`${CONFIG.GAS_URL}?action=getAdminStats&token=${sessionToken}`);
       const data = await response.json();
       if (data.success) {
         setSystemStats(data.stats);
+      } else {
+        console.error('Failed to load stats:', data.error);
+        setMessage({ type: 'error', text: data.error || 'Failed to load stats' });
       }
     } catch (err) {
       console.error('Failed to load system stats:', err);
+      setMessage({ type: 'error', text: `Connection error: ${err.message}` });
     }
   };
 
   const loadChatHistory = async () => {
     try {
+      if (!CONFIG.GAS_URL) {
+        return; // Already shown error in loadSystemStats
+      }
       const response = await fetch(`${CONFIG.GAS_URL}?action=getAdminChatHistory&token=${sessionToken}`);
       const data = await response.json();
       if (data.success) {
         setChatHistory(data.messages || []);
+      } else {
+        console.error('Failed to load chat:', data.error);
       }
     } catch (err) {
       console.error('Failed to load chat history:', err);
@@ -89,12 +103,17 @@ const AdminConsole = ({ onClose, sessionToken }) => {
 
   const loadUsers = async () => {
     try {
+      if (!CONFIG.GAS_URL) {
+        return; // Already shown error in loadSystemStats
+      }
       const response = await fetch(`${CONFIG.GAS_URL}?action=getAdminUsers&token=${sessionToken}`);
       const data = await response.json();
       if (data.success) {
         setUsers(data.users || []);
         setBannedUsers(new Set(data.bannedUsers || []));
         setMutedUsers(new Set(data.mutedUsers || []));
+      } else {
+        console.error('Failed to load users:', data.error);
       }
     } catch (err) {
       console.error('Failed to load users:', err);
@@ -630,19 +649,31 @@ const AdminConsole = ({ onClose, sessionToken }) => {
                   <h3 className="text-lg font-bold mb-3">Database Actions</h3>
                   <div className="grid grid-cols-2 gap-3">
                     <button
-                      onClick={() => {
+                      onClick={async () => {
+                        if (!CONFIG.GAS_URL) {
+                          setMessage({ type: 'error', text: 'Backend URL not configured' });
+                          return;
+                        }
                         if (confirm('Clear all chat messages? This cannot be undone!')) {
-                          fetch(`${CONFIG.GAS_URL}?action=clearAllChat&token=${sessionToken}`)
-                            .then(r => r.json())
-                            .then(data => {
-                              if (data.success) {
-                                setMessage({ type: 'success', text: 'Chat cleared' });
-                                loadChatHistory();
-                              }
-                            });
+                          setLoading(true);
+                          try {
+                            const response = await fetch(`${CONFIG.GAS_URL}?action=clearAllChat&token=${sessionToken}`);
+                            const data = await response.json();
+                            if (data.success) {
+                              setMessage({ type: 'success', text: 'Chat cleared successfully' });
+                              loadChatHistory();
+                            } else {
+                              setMessage({ type: 'error', text: data.error || 'Failed to clear chat' });
+                            }
+                          } catch (err) {
+                            setMessage({ type: 'error', text: `Error: ${err.message}` });
+                          } finally {
+                            setLoading(false);
+                          }
                         }
                       }}
-                      className="px-4 py-3 bg-red-600 hover:bg-red-700 rounded-lg text-left"
+                      disabled={loading}
+                      className="px-4 py-3 bg-red-600 hover:bg-red-700 disabled:opacity-50 rounded-lg text-left"
                     >
                       <div className="font-bold">Clear All Chat</div>
                       <div className="text-xs text-red-200">⚠️ Permanent action</div>
