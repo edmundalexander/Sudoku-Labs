@@ -26,10 +26,7 @@
   "remoteEnv": {
     "COPILOT_INSTRUCTIONS": "${containerWorkspaceFolder}/.github/copilot-instructions.md"
   },
-  "postCreateCommand": "echo 'Please review ${containerWorkspaceFolder}/.github/copilot-instructions.md before making changes'",
-  "mounts": [
-    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/root/.ssh,readonly"
-  ],
+  "postCreateCommand": "npm install 2>/dev/null || true",
   "forwardPorts": [
     8000,
     8080
