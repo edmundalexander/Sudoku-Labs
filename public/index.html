@@ -46,8 +46,14 @@
             : "./";
         const tail = document.getElementById("tailwind-css");
         const acc = document.getElementById("accessibility-css");
-        if (tail) tail.href = basePath + "styles.css";
-        if (acc) acc.href = basePath + "styles-accessibility.css";
+        if (tail) {
+          tail.href = basePath + "styles.css";
+          tail.onerror = function(){ tail.remove(); };
+        }
+        if (acc) {
+          acc.href = basePath + "styles-accessibility.css";
+          acc.onerror = function(){ acc.remove(); };
+        }
       })();
     </script>
     <!-- React -->
@@ -235,14 +241,31 @@
 
     <!-- Configuration files (load conditionally to avoid conflicts) -->
     <script>
-      // Only load production config if we're on GitHub Pages
-      if (!isGitHubPages) {
-        loadScript("config/config.local.js");
-        loadScript("config/admin.local.js");
-      } else {
-        // Production: only load production config
-        loadScript("config/config.local.js");
-      }
+      (function () {
+        // Attempt to fetch config files before injecting them as <script>
+        // This prevents loading HTML 404 pages as JS and causing Unexpected '<'
+        async function tryLoad(p) {
+          const url = pathPrefix + p;
+          try {
+            const res = await fetch(url, { method: "GET", cache: "no-cache" });
+            if (!res.ok) return;
+            const ct = (res.headers.get("content-type") || "").toLowerCase();
+            if (ct.includes("text/html")) return; // don't load HTML
+            loadScript(p);
+          } catch (e) {
+            // ignore network errors
+          }
+        }
+
+        (async function loadConfigs() {
+          if (!isGitHubPages) {
+            await tryLoad("config/config.local.js");
+            await tryLoad("config/admin.local.js");
+          } else {
+            await tryLoad("config/config.local.js");
+          }
+        })();
+      })();
     </script>
 
     <!-- Load modular JavaScript files (plain JS, loaded before React components) -->

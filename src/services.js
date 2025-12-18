@@ -11,10 +11,13 @@
 // CONFIGURATION
 // ============================================================================
 
-// GAS Backend API URL - Configure via config/config.local.js
-const DEFAULT_GAS_URL = "";
-const GAS_URL =
-  (typeof CONFIG !== "undefined" && CONFIG.GAS_URL) || DEFAULT_GAS_URL;
+(function () {
+  'use strict';
+
+  // GAS Backend API URL - Configure via config/config.local.js
+  const DEFAULT_GAS_URL = "";
+  const GAS_URL =
+    (typeof CONFIG !== "undefined" && CONFIG.GAS_URL) || DEFAULT_GAS_URL;
 
 /**
  * Check if GAS backend is properly configured
@@ -1049,3 +1052,5 @@ if (typeof window !== "undefined") {
   window.isUserAuthenticated =
     window.isUserAuthenticated || isUserAuthenticated;
 }
+
+})();
