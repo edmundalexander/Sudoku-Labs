@@ -171,7 +171,7 @@
         window.location.hostname === "localhost" ||
         window.location.hostname === "127.0.0.1" ||
         window.location.hostname === "";
-      
+
       // When serving from public/ directory locally, src/ is one level up
       // We can detect this by checking if we can access /index.html (we're in public/)
       const pathPrefix = isLocalhost ? "../" : "./";
