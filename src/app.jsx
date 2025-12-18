@@ -939,6 +939,46 @@ const UserPanel = ({ soundEnabled, onClose, appUserSession }) => {
             </div>
           </div>
 
+          {/* Badges Section */}
+          <div className="bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 p-4 rounded-xl mb-4 border border-amber-200 dark:border-amber-800">
+            <h3 className="text-xs font-bold uppercase text-amber-700 dark:text-amber-400 mb-3 flex items-center gap-2">
+              <span className="text-lg">🏅</span> Badge Collection
+            </h3>
+            {(() => {
+              const userBadges = BadgeService.getUserBadges();
+              if (userBadges.length === 0) {
+                return (
+                  <p className="text-xs text-center text-gray-500 dark:text-gray-400 py-2">
+                    No badges yet. Keep playing to earn achievements!
+                  </p>
+                );
+              }
+              return (
+                <div className="grid grid-cols-4 gap-2">
+                  {userBadges.slice(0, 8).map(badge => {
+                    const badgeDef = BADGES[badge.id];
+                    if (!badgeDef) return null;
+                    return (
+                      <div 
+                        key={badge.id}
+                        className="flex flex-col items-center p-2 bg-white dark:bg-gray-800 rounded-lg border border-amber-300 dark:border-amber-700 hover:scale-105 transition-transform"
+                        title={`${badgeDef.name}: ${badgeDef.description}`}
+                      >
+                        <span className="text-2xl">{badgeDef.icon}</span>
+                        <span className="text-[8px] text-gray-600 dark:text-gray-400 text-center mt-1 truncate w-full">{badgeDef.name}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+            {BadgeService.getUserBadges().length > 8 && (
+              <p className="text-[10px] text-center text-amber-600 dark:text-amber-400 mt-2">
+                +{BadgeService.getUserBadges().length - 8} more badges
+              </p>
+            )}
+          </div>
+
           <button
             onClick={handleLogout}
             className="w-full py-2.5 sm:py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold text-sm sm:text-base transition-colors flex items-center justify-center gap-2"
@@ -1242,6 +1282,16 @@ const ProfileViewModal = ({ profile, onClose, soundEnabled, loading }) => {
               <span className="font-bold text-sm text-gray-800 dark:text-white">{profile.fastWins}</span>
             </div>
           </div>
+        </div>
+
+        {/* Badges Section - Note: For other users, shows a coming soon message as we don't fetch their badges */}
+        <div className="bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 p-4 rounded-xl mb-4 border border-amber-200 dark:border-amber-800">
+          <h3 className="text-xs font-bold uppercase text-amber-700 dark:text-amber-400 mb-3 flex items-center gap-2">
+            <span className="text-lg">🏅</span> Badges
+          </h3>
+          <p className="text-xs text-center text-gray-500 dark:text-gray-400 py-2">
+            Badge display for other users coming soon!
+          </p>
         </div>
 
         <button
