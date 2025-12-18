@@ -1375,8 +1375,10 @@ const App = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showModal, setShowModal] = useState('none');
+  const [initialFilledCount, setInitialFilledCount] = useState(0);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatInput, setChatInput] = useState('');
+  const [isChatInputFocused, setIsChatInputFocused] = useState(false);
   const [userStatus, setUserStatus] = useState(StorageService.getUserStatus());
   const [chatMessages, setChatMessages] = useState([]);
   const [chatNotification, setChatNotification] = useState(null);
@@ -1643,6 +1645,8 @@ const App = () => {
         setStatus('paused'); 
         setHistory(saved.history || [saved.board]); 
         setMode(saved.mode || 'pen');
+        // Restore initialFilledCount or recalculate from fixed cells
+        setInitialFilledCount(saved.initialFilledCount || saved.board.filter(c => c.isFixed).length);
         setView('game');
       }
     } catch (err) {
@@ -1666,9 +1670,9 @@ const App = () => {
 
   useEffect(() => {
     if (status === 'playing' || status === 'paused') {
-      StorageService.saveGame({ board, difficulty, status, timer, mistakes, history, historyIndex: history.length - 1, selectedCell, mode });
+      StorageService.saveGame({ board, difficulty, status, timer, mistakes, history, historyIndex: history.length - 1, selectedCell, mode, initialFilledCount });
     }
-  }, [board, timer, status, difficulty, mistakes, history, selectedCell, mode]);
+  }, [board, timer, status, difficulty, mistakes, history, selectedCell, mode, initialFilledCount]);
 
   useEffect(() => {
     // Only poll chat when backend is configured
@@ -1783,6 +1787,10 @@ const App = () => {
         // Fallback to local generator for dev when GAS isn't configured
         newBoard = generateLocalBoard(diff);
       }
+
+      // Count initially filled cells (pre-filled by the puzzle)
+      const filledCount = newBoard.filter(c => c.value !== null).length;
+      setInitialFilledCount(filledCount);
 
       setBoard(newBoard); setDifficulty(diff); setStatus('playing');
       setTimer(0); setMistakes(0); setHistory([newBoard]); setSelectedCell(null);
@@ -1986,6 +1994,8 @@ const App = () => {
   
   useEffect(() => {
     const handleKeyDown = (e) => {
+      // Don't process game shortcuts when chat input is focused
+      if (isChatInputFocused) return;
       if (status !== 'playing' || showKeyboardHelp) return;
       if (e.key >= '1' && e.key <= '9') handleNumberInput(parseInt(e.key));
       else if (e.key === 'Backspace' || e.key === 'Delete') {
@@ -2011,7 +2021,7 @@ const App = () => {
         if (selectedCell === null) { if (soundEnabled) SoundManager.play('select'); setSelectedCell(0); return; }
         if (soundEnabled) SoundManager.play('select');
         const row = Math.floor(selectedCell / 9);
-        const col = selectedCell % 9;
+        const col = selectedCell % 9);
         let nextRow = row, nextCol = col;
         
         if (e.key === 'ArrowRight') nextCol = Math.min(8, col + 1);
@@ -2024,7 +2034,7 @@ const App = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedCell, status, board, mode, handleNumberInput, soundEnabled]);
+  }, [selectedCell, status, board, mode, handleNumberInput, soundEnabled, isChatInputFocused]);
 
   const getRemainingNumbers = () => {
     const counts = Array(10).fill(9);
@@ -2060,8 +2070,10 @@ const App = () => {
   }, [board, showConflicts]);
   
   const getProgressPercentage = () => {
-    const filled = board.filter(c => c.value !== null).length;
-    return Math.round((filled / 81) * 100);
+    const currentFilled = board.filter(c => c.value !== null).length;
+    const userFilled = currentFilled - initialFilledCount;
+    const totalToFill = 81 - initialFilledCount;
+    return Math.round((userFilled / totalToFill) * 100);
   };
 
   const completedBoxes = useMemo(() => {
@@ -2228,6 +2240,21 @@ const App = () => {
       decor: []
     };
   }, [activeThemeId, activeSoundPackId]);
+
+  // Get theme-adaptive chat button colors
+  const getChatButtonColors = useMemo(() => {
+    const themeColorMap = {
+      default: { bg: 'bg-blue-600', hover: 'hover:bg-blue-700', text: 'text-white' },
+      ocean: { bg: 'bg-cyan-600', hover: 'hover:bg-cyan-700', text: 'text-white' },
+      forest: { bg: 'bg-green-600', hover: 'hover:bg-green-700', text: 'text-white' },
+      sunset: { bg: 'bg-orange-600', hover: 'hover:bg-orange-700', text: 'text-white' },
+      midnight: { bg: 'bg-indigo-600', hover: 'hover:bg-indigo-700', text: 'text-white' },
+      sakura: { bg: 'bg-pink-600', hover: 'hover:bg-pink-700', text: 'text-white' },
+      volcano: { bg: 'bg-red-600', hover: 'hover:bg-red-700', text: 'text-white' },
+      arctic: { bg: 'bg-blue-500', hover: 'hover:bg-blue-600', text: 'text-white' }
+    };
+    return themeColorMap[activeThemeId] || themeColorMap.default;
+  }, [activeThemeId]);
 
   // Probe filesystem backgrounds in order (png -> svg -> jpg) and pick the first that loads
   useEffect(() => {
@@ -2968,7 +2995,16 @@ const App = () => {
                   className="p-2.5 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 text-lg shadow-sm"
                   onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); setShowEmojiPicker((v) => !v); }}
                 >😀</button>
-                <input className="flex-1 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 sm:px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-shadow placeholder:text-gray-500 dark:placeholder:text-gray-500" placeholder="Type a message..." maxLength={140} value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleChatSend(chatInput); }} />
+                <input 
+                  className="flex-1 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 sm:px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-shadow placeholder:text-gray-500 dark:placeholder:text-gray-500" 
+                  placeholder="Type a message..." 
+                  maxLength={140} 
+                  value={chatInput} 
+                  onChange={e => setChatInput(e.target.value)} 
+                  onFocus={() => setIsChatInputFocused(true)}
+                  onBlur={() => setIsChatInputFocused(false)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleChatSend(chatInput); }} 
+                />
                 <button className="p-2 sm:p-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex-shrink-0 shadow-md" onClick={() => handleChatSend(chatInput)}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M3.105 2.289a.75.75 0 00-.826.95l1.414 4.925A1.5 1.5 0 005.135 9.25h6.115a.75.75 0 010 1.5H5.135a1.5 1.5 0 00-1.442 1.086l-1.414 4.926a.75.75 0 00.826.95 28.896 28.896 0 0015.293-7.154.75.75 0 000-1.115A28.897 28.897 0 003.105 2.289z" /></svg></button>
 
                 {showEmojiPicker && (
@@ -2999,7 +3035,14 @@ const App = () => {
             </div>
           </div>
         )}
-        <button onClick={toggleChat} className={`p-3 sm:p-4 rounded-full shadow-xl transition-all hover:scale-105 flex items-center justify-center relative ${isChatOpen ? 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
+        <button 
+          onClick={toggleChat} 
+          className={`p-3 sm:p-4 rounded-full shadow-xl transition-all hover:scale-105 flex items-center justify-center relative ${
+            isChatOpen 
+              ? 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200' 
+              : `${getChatButtonColors.bg} ${getChatButtonColors.text} ${getChatButtonColors.hover}`
+          }`}
+        >
           {isChatOpen ? <Icons.X /> : <Icons.Chat />}
           {chatNotification && !isChatOpen && <span className="absolute -top-1 -right-1 flex h-3 w-3"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span></span>}
         </button>
