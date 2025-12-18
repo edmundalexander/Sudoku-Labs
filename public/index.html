@@ -297,9 +297,15 @@
             loadScript("src/admin-access.js");
           }
           function check() {
-            if (window.StorageService && typeof window.StorageService.getUserSession === "function") {
+            const hasServices = window.StorageService && typeof window.StorageService.getUserSession === "function";
+            const hasBabel = typeof window.Babel !== 'undefined' || typeof Babel !== 'undefined';
+            if (hasServices && hasBabel) {
               loadAppScripts();
               return;
+            }
+            if (hasServices && !hasBabel) {
+              // Wait for Babel to initialize so external text/babel scripts are compiled
+              window.bootLog && window.bootLog('Waiting for Babel to compile JSX');
             }
             tries++;
             if (tries > maxTries) {
