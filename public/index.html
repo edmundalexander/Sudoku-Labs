@@ -64,83 +64,52 @@
     <!-- Inline shim: define minimal legacy globals if services.js fails to load -->
     <script>
       (function () {
-        // Declare legacy var globals to avoid ReferenceError in app.jsx
-        // If the real services load, they will overwrite these globals.
+        // Provide a minimal `window.StorageService` stub to avoid runtime crashes
+        // Do not declare `var StorageService` here to avoid duplicate-declaration errors
         try {
           if (typeof window !== "undefined") {
-            // If services already attached, copy to vars
-            if (window.StorageService) {
-              try {
-                var StorageService = window.StorageService;
-              } catch (e) {}
-            } else {
-              // Minimal stub to avoid crashes; returns safe defaults
-              try {
-                var StorageService = (window.StorageService = {
-                  isAvailable: function () {
-                    return false;
-                  },
-                  getUserSession: function () {
-                    return null;
-                  },
-                  getUserId: function () {
-                    return "guest";
-                  },
-                  getUnlockedThemes: function () {
-                    return ["default"];
-                  },
-                  getUnlockedSoundPacks: function () {
-                    return ["classic"];
-                  },
-                  getActiveTheme: function () {
-                    return "default";
-                  },
-                  getActiveSoundPack: function () {
-                    return "classic";
-                  },
-                  isUserAuthenticated: function () {
-                    return false;
-                  },
-                  saveUserSession: function () {},
-                  setUserSession: function () {},
-                  saveUnlockedThemes: function () {},
-                  saveUnlockedSoundPacks: function () {},
-                  getGameStats: function () {
-                    return {};
-                  },
-                  saveGameStats: function () {},
-                });
-              } catch (err) {
-                // ignore shim errors
-              }
+            if (!window.StorageService) {
+              window.StorageService = {
+                isAvailable: function () {
+                  return false;
+                },
+                getUserSession: function () {
+                  return null;
+                },
+                getUserId: function () {
+                  return "guest";
+                },
+                getUnlockedThemes: function () {
+                  return ["default"];
+                },
+                getUnlockedSoundPacks: function () {
+                  return ["classic"];
+                },
+                getActiveTheme: function () {
+                  return "default";
+                },
+                getActiveSoundPack: function () {
+                  return "classic";
+                },
+                isUserAuthenticated: function () {
+                  return false;
+                },
+                saveUserSession: function () {},
+                setUserSession: function () {},
+                saveUnlockedThemes: function () {},
+                saveUnlockedSoundPacks: function () {},
+                getGameStats: function () {
+                  return {};
+                },
+                saveGameStats: function () {},
+              };
             }
-      <!-- Load React app (JSX) only after services have initialized to avoid race conditions -->
-      <script>
-        (function waitForServicesAndLoadApp(){
-          var maxTries = 50;
-          var interval = 100; // ms
-          var tries = 0;
-          function loadAppScripts(){
-            loadScript('src/app.jsx', { 'type': 'text/babel', 'data-presets': 'env,react' });
-            loadScript('src/admin.jsx', { 'type': 'text/babel', 'data-presets': 'env,react' });
-            loadScript('src/admin-access.js');
           }
-          function check(){
-            if (window.StorageService && typeof window.StorageService.getUserSession === 'function'){
-              loadAppScripts();
-              return;
-            }
-            tries++;
-            if (tries > maxTries){
-              // Fallback: still attempt to load app scripts
-              loadAppScripts();
-              return;
-            }
-            setTimeout(check, interval);
-          }
-          check();
-        })();
-      </script>
+        } catch (err) {
+          // ignore shim errors
+        }
+      })();
+    </script>
     <!-- Prevent dark mode flash: Check localStorage and apply dark class ASAP -->
     <script>
       (function () {
@@ -236,6 +205,34 @@
       }
     </script>
 
+      <!-- Load React app (JSX) only after services have initialized to avoid race conditions -->
+      <script>
+        (function waitForServicesAndLoadApp() {
+          var maxTries = 50;
+          var interval = 100; // ms
+          var tries = 0;
+          function loadAppScripts() {
+            loadScript("src/app.jsx", { type: "text/babel", "data-presets": "env,react" });
+            loadScript("src/admin.jsx", { type: "text/babel", "data-presets": "env,react" });
+            loadScript("src/admin-access.js");
+          }
+          function check() {
+            if (window.StorageService && typeof window.StorageService.getUserSession === "function") {
+              loadAppScripts();
+              return;
+            }
+            tries++;
+            if (tries > maxTries) {
+              // Fallback: still attempt to load app scripts
+              loadAppScripts();
+              return;
+            }
+            setTimeout(check, interval);
+          }
+          check();
+        })();
+      </script>
+
     <!-- Configuration files (load conditionally to avoid conflicts) -->
     <script>
       // Only load production config if we're on GitHub Pages
@@ -263,23 +260,6 @@
       loadScript("src/services.js");
     </script>
 
-    <!-- Load React app (JSX, compiled in-browser by Babel) -->
-    <script>
-      loadScript("src/app.jsx", {
-        type: "text/babel",
-        "data-presets": "env,react",
-      });
-    </script>
-
-    <!-- Load admin console (JSX, optional - only works if admin.local.js is loaded) -->
-    <script>
-      loadScript("src/admin.jsx", {
-        type: "text/babel",
-        "data-presets": "env,react",
-      });
-    </script>
-    <script>
-      loadScript("src/admin-access.js");
-    </script>
+    <!-- React app and admin console are loaded by the deferred loader above -->
   </body>
 </html>
