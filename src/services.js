@@ -1046,21 +1046,3 @@ if (typeof getChatMessages === 'undefined') getChatMessages = window.getChatMess
 if (typeof postChatMessage === 'undefined') postChatMessage = window.postChatMessage;
 if (typeof isUserAuthenticated === 'undefined') isUserAuthenticated = window.isUserAuthenticated;
 
-// Legacy global bindings for older codepaths that reference bare identifiers
-// (some build/runtime environments expect `var` globals instead of only
-// properties on `window`). Declaring these with `var` ensures they become
-// actual global variables accessible as plain identifiers.
-/* eslint-disable no-var */
-var StorageService = window.StorageService;
-var runGasFn = window.runGasFn;
-var logError = window.logError;
-var LeaderboardService = window.LeaderboardService;
-var ChatService = window.ChatService;
-var UnlockService = window.UnlockService;
-var BadgeService = window.BadgeService;
-var getLeaderboard = window.getLeaderboard;
-var saveScore = window.saveScore;
-var getChatMessages = window.getChatMessages;
-var postChatMessage = window.postChatMessage;
-var isUserAuthenticated = window.isUserAuthenticated;
-/* eslint-enable no-var */
