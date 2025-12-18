@@ -101,7 +101,16 @@ const runGasFn = async (fnName, ...args) => {
     return await response.json();
   } catch (error) {
     console.error("GAS API Error:", error);
-    throw error;
+    // Provide a clearer error message for CORS / deployment problems
+    const guidance =
+      "Failed to reach GAS backend. This is commonly caused by CORS or a web app deployment access level.\n" +
+      "Ensure your Apps Script Web App is deployed as 'Anyone (even anonymous)' and that CONFIG.GAS_URL is the published deployment URL.\n" +
+      "Quick check (run in terminal): curl -I \"$GAS_URL?action=ping\" — should return HTTP 200, not a 302 redirect.\n" +
+      "If you see a CORS error in the browser ('No Access-Control-Allow-Origin header'), redeploy the web app and verify access settings.";
+
+    const wrapped = new Error(`${error.message || error} — ${guidance}`);
+    wrapped.original = error;
+    throw wrapped;
   }
 };
 

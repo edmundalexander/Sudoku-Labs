@@ -2762,15 +2762,22 @@ const App = () => {
         }
       } catch (err) {
         console.error("Failed to sync game stats:", err);
+        // Surface backend hint to the user if it's a network/CORS error
+        if (err && err.message && /CORS|Failed to reach GAS backend|Failed to fetch/i.test(err.message)) {
+          setBackendError(err.message);
+        }
       }
     }
   };
 
   // Hydrate local unlocks and selections from backend, merging with local progress
+  const [backendError, setBackendError] = useState(null);
+
   const hydrateUserState = useCallback(
     async (user) => {
       if (!user?.userId || !isGasEnvironment()) return;
       try {
+        setBackendError(null);
         const remote = await runGasFn("getUserState", { userId: user.userId });
         if (!remote || !remote.success || !remote.state) return;
 
@@ -4241,6 +4248,26 @@ const App = () => {
     <div
       className={`min-h-screen flex flex-col items-center p-2 sm:p-4 transition-colors duration-300 text-gray-900 dark:text-gray-100 ${activeAssetSet.background} relative overflow-x-hidden`}
     >
+      {/* Backend connectivity/CORS banner */}
+      {backendError && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
+          <div className="bg-red-600 text-white px-4 py-2 rounded-lg shadow-md flex items-start gap-3 max-w-3xl">
+            <div className="flex-1 text-sm">
+              <div className="font-semibold">Backend connectivity issue</div>
+              <div className="mt-1 text-xs opacity-90">{backendError.split('\n')[0]}</div>
+              <div className="mt-1 text-xs opacity-70">Check deployment (Anyone access) and CORS headers — run <code>curl -I "$GAS_URL?action=ping"</code></div>
+            </div>
+            <div>
+              <button
+                onClick={() => setBackendError(null)}
+                className="text-sm font-semibold underline"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* SVG Background Pattern Layer (theme-specific) */}
       {activeAssetSet.svgBackground && (
         <div
