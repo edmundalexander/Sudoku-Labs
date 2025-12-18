@@ -154,6 +154,7 @@
       // Wait for StorageService to be defined before loading app.jsx
       (function waitForServicesAndLoadApp() {
         if (window.StorageService) {
+          console.log("Attempting to load app.jsx");
           loadScript('src/app.jsx', { 'type': 'text/babel', 'data-presets': 'env,react' });
         } else {
           setTimeout(waitForServicesAndLoadApp, 20);
