@@ -54,9 +54,11 @@ The script will:
 - One-time installation
 
 **b) Authenticate with Google**
-- Opens browser for OAuth
+- Opens browser for OAuth (local environment)
+- Or provides URL + code flow (remote environments like Codespaces)
 - One-time authentication
 - Credentials stored securely locally
+- **Codespaces/Gitpod**: Automatically uses manual auth flow
 
 **c) Configure Your Project**
 - Enter your GAS Script ID
@@ -188,6 +190,25 @@ clasp login
 
 Then run setup script again.
 
+### "Browser won't open" or "Running in GitHub Codespaces"
+
+**Solution**: The script automatically detects remote environments and uses manual auth flow
+
+If you need to force manual auth:
+```bash
+clasp login --no-localhost
+```
+
+This will:
+1. Display a URL
+2. You copy and open it in your browser
+3. Authorize and get a code
+4. Paste the code back in terminal
+
+**For Codespaces users**: The script handles this automatically!
+
+### "No credentials found" after successful login
+
 ### "Could not find script ID"
 
 **Solution**: Get your Script ID
@@ -288,6 +309,9 @@ Then follow instructions in `docs/ADMIN_QUICKSTART.md`
 
 ### Q: Does this work on Windows?
 **A**: Yes, but you need bash (Git Bash, WSL, or similar).
+
+### Q: Does this work in GitHub Codespaces or Gitpod?
+**A**: Yes! The script automatically detects remote environments and uses the manual auth flow (`clasp login --no-localhost`). You'll copy a URL, authorize in your browser, and paste the code back.
 
 ### Q: What if I don't have Node.js?
 **A**: Use the manual setup: `bash scripts/setup-admin.sh`

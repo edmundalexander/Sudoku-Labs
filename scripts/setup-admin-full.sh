@@ -76,17 +76,41 @@ echo ""
 
 echo "🔐 Checking Google authentication..."
 
+# Detect if running in GitHub Codespaces or similar remote environment
+if [ -n "$CODESPACES" ] || [ -n "$GITPOD_WORKSPACE_ID" ] || [ -n "$REMOTE_CONTAINERS" ]; then
+    REMOTE_ENV=true
+    echo "   Detected remote environment (Codespaces/Gitpod)"
+else
+    REMOTE_ENV=false
+fi
+
 # Always try to check status more thoroughly
 CLASP_STATUS_OUTPUT=$(clasp login --status 2>&1)
 
 if echo "$CLASP_STATUS_OUTPUT" | grep -qi "not.*logged.*in\|no.*credentials"; then
     echo ""
     echo "You need to authenticate with Google to manage Apps Script."
-    echo "This is a one-time setup that will open a browser window."
-    echo ""
-    read -p "Press Enter to authenticate with Google..."
     
-    clasp login
+    if [ "$REMOTE_ENV" = true ]; then
+        echo "🌐 Remote environment detected - using manual auth flow"
+        echo ""
+        echo "Steps:"
+        echo "  1. A URL will be displayed"
+        echo "  2. Copy the URL and open it in your browser"
+        echo "  3. Sign in and authorize"
+        echo "  4. Copy the authorization code"
+        echo "  5. Paste it back here"
+        echo ""
+        read -p "Press Enter to continue..."
+        
+        clasp login --no-localhost
+    else
+        echo "This is a one-time setup that will open a browser window."
+        echo ""
+        read -p "Press Enter to authenticate with Google..."
+        
+        clasp login
+    fi
     
     if [ $? -ne 0 ]; then
         echo ""
@@ -98,6 +122,9 @@ if echo "$CLASP_STATUS_OUTPUT" | grep -qi "not.*logged.*in\|no.*credentials"; th
 else
     echo "✅ Already authenticated with Google"
     echo "   If you encounter issues, try: clasp logout && clasp login"
+    if [ "$REMOTE_ENV" = true ]; then
+        echo "   (Use --no-localhost flag in remote environments)"
+    fi
 fi
 
 echo ""
