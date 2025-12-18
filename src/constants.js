@@ -988,6 +988,203 @@ window.THEMES = THEMES;
 window.SOUND_PACKS = SOUND_PACKS;
 window.EMOJI_CATEGORIES = EMOJI_CATEGORIES;
 
+// ============================================================================
+// BADGE SYSTEM
+// ============================================================================
+
+/**
+ * Badge definitions for achievements and milestones
+ * Each badge has: id, name, description, icon, category, and criteria
+ */
+const BADGES = Object.freeze({
+  // ===== MILESTONE BADGES =====
+  first_win: {
+    id: 'first_win',
+    name: 'First Victory',
+    description: 'Complete your first puzzle',
+    icon: '🎯',
+    category: 'milestone',
+    rarity: 'common'
+  },
+  
+  wins_10: {
+    id: 'wins_10',
+    name: 'Decade Master',
+    description: 'Win 10 puzzles',
+    icon: '🏆',
+    category: 'milestone',
+    rarity: 'common'
+  },
+  
+  wins_25: {
+    id: 'wins_25',
+    name: 'Quarter Century',
+    description: 'Win 25 puzzles',
+    icon: '🎖️',
+    category: 'milestone',
+    rarity: 'uncommon'
+  },
+  
+  wins_50: {
+    id: 'wins_50',
+    name: 'Half Century',
+    description: 'Win 50 puzzles',
+    icon: '⭐',
+    category: 'milestone',
+    rarity: 'rare'
+  },
+  
+  wins_100: {
+    id: 'wins_100',
+    name: 'Centurion',
+    description: 'Win 100 puzzles',
+    icon: '👑',
+    category: 'milestone',
+    rarity: 'epic'
+  },
+  
+  // ===== DIFFICULTY BADGES =====
+  easy_specialist: {
+    id: 'easy_specialist',
+    name: 'Easy Specialist',
+    description: 'Win 20 Easy puzzles',
+    icon: '🟢',
+    category: 'difficulty',
+    rarity: 'common'
+  },
+  
+  medium_master: {
+    id: 'medium_master',
+    name: 'Medium Master',
+    description: 'Win 20 Medium puzzles',
+    icon: '🟡',
+    category: 'difficulty',
+    rarity: 'uncommon'
+  },
+  
+  hard_hero: {
+    id: 'hard_hero',
+    name: 'Hard Hero',
+    description: 'Win 20 Hard puzzles',
+    icon: '🔴',
+    category: 'difficulty',
+    rarity: 'rare'
+  },
+  
+  // ===== ACHIEVEMENT BADGES =====
+  perfect_game: {
+    id: 'perfect_game',
+    name: 'Flawless',
+    description: 'Complete a puzzle with no mistakes',
+    icon: '✨',
+    category: 'achievement',
+    rarity: 'uncommon'
+  },
+  
+  perfect_5: {
+    id: 'perfect_5',
+    name: 'Perfectionist',
+    description: 'Complete 5 puzzles with no mistakes',
+    icon: '💎',
+    category: 'achievement',
+    rarity: 'rare'
+  },
+  
+  speed_demon: {
+    id: 'speed_demon',
+    name: 'Speed Demon',
+    description: 'Complete a puzzle in under 3 minutes',
+    icon: '⚡',
+    category: 'achievement',
+    rarity: 'uncommon'
+  },
+  
+  lightning_fast: {
+    id: 'lightning_fast',
+    name: 'Lightning Fast',
+    description: 'Complete 10 puzzles in under 3 minutes',
+    icon: '🚀',
+    category: 'achievement',
+    rarity: 'epic'
+  },
+  
+  // ===== SPECIAL BADGES =====
+  early_bird: {
+    id: 'early_bird',
+    name: 'Early Bird',
+    description: 'Play before 8 AM',
+    icon: '🌅',
+    category: 'special',
+    rarity: 'common'
+  },
+  
+  night_owl: {
+    id: 'night_owl',
+    name: 'Night Owl',
+    description: 'Play after midnight',
+    icon: '🦉',
+    category: 'special',
+    rarity: 'common'
+  },
+  
+  social_butterfly: {
+    id: 'social_butterfly',
+    name: 'Social Butterfly',
+    description: 'Send 50 chat messages',
+    icon: '🦋',
+    category: 'special',
+    rarity: 'uncommon'
+  },
+  
+  theme_collector: {
+    id: 'theme_collector',
+    name: 'Theme Collector',
+    description: 'Unlock all visual themes',
+    icon: '🎨',
+    category: 'special',
+    rarity: 'epic'
+  },
+  
+  sound_collector: {
+    id: 'sound_collector',
+    name: 'Sound Collector',
+    description: 'Unlock all sound packs',
+    icon: '🎵',
+    category: 'special',
+    rarity: 'epic'
+  },
+  
+  completionist: {
+    id: 'completionist',
+    name: 'Completionist',
+    description: 'Unlock everything and earn all other badges',
+    icon: '🏅',
+    category: 'special',
+    rarity: 'legendary'
+  }
+});
+
+/**
+ * Badge categories for organization
+ */
+const BADGE_CATEGORIES = Object.freeze({
+  milestone: { name: 'Milestones', icon: '🎯', color: 'blue' },
+  difficulty: { name: 'Difficulty Master', icon: '🎮', color: 'purple' },
+  achievement: { name: 'Achievements', icon: '⭐', color: 'yellow' },
+  special: { name: 'Special', icon: '✨', color: 'pink' }
+});
+
+/**
+ * Badge rarity levels
+ */
+const BADGE_RARITY = Object.freeze({
+  common: { name: 'Common', color: 'bg-gray-400', textColor: 'text-gray-700' },
+  uncommon: { name: 'Uncommon', color: 'bg-green-400', textColor: 'text-green-700' },
+  rare: { name: 'Rare', color: 'bg-blue-400', textColor: 'text-blue-700' },
+  epic: { name: 'Epic', color: 'bg-purple-400', textColor: 'text-purple-700' },
+  legendary: { name: 'Legendary', color: 'bg-yellow-400', textColor: 'text-yellow-700' }
+});
+
 // Combinatorial Theme System exports
 window.VISUAL_BASES = VISUAL_BASES;
 window.AUDIO_MODIFIERS = AUDIO_MODIFIERS;
@@ -998,3 +1195,8 @@ window.SVG_PATTERNS = SVG_PATTERNS;
 window.MATERIAL_ICONS = MATERIAL_ICONS;
 window.getComboKey = getComboKey;
 window.getThemeAssetSet = getThemeAssetSet;
+
+// Badge System exports
+window.BADGES = BADGES;
+window.BADGE_CATEGORIES = BADGE_CATEGORIES;
+window.BADGE_RARITY = BADGE_RARITY;

@@ -1364,7 +1364,7 @@ const OpeningScreen = ({ onStart, onResume, hasSavedGame, darkMode, toggleDarkMo
   );
 };
 
-const ClosingScreen = ({ status, time, difficulty, mistakes, onRestart, onMenu, loading, soundEnabled, newlyUnlockedThemes, newlyUnlockedSoundPacks }) => {
+const ClosingScreen = ({ status, time, difficulty, mistakes, onRestart, onMenu, loading, soundEnabled, newlyUnlockedThemes, newlyUnlockedSoundPacks, newlyAwardedBadges }) => {
   const isWin = status === 'won';
 
   useEffect(() => {
@@ -1456,6 +1456,47 @@ const ClosingScreen = ({ status, time, difficulty, mistakes, onRestart, onMenu, 
           </div>
         )}
 
+        {newlyAwardedBadges && newlyAwardedBadges.length > 0 && (
+          <div className="my-3 sm:my-4 p-3 sm:p-4 bg-gradient-to-r from-yellow-50 via-amber-50 to-yellow-50 dark:from-yellow-900/40 dark:via-amber-900/30 dark:to-yellow-900/40 rounded-xl border-2 border-yellow-400 dark:border-yellow-600 animate-pulse-glow relative overflow-hidden">
+            {/* Sparkle overlay */}
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-2 left-4 w-2 h-2 bg-amber-400 rounded-full animate-ping"></div>
+              <div className="absolute top-4 right-6 w-1.5 h-1.5 bg-yellow-400 rounded-full animate-ping" style={{animationDelay: '0.3s'}}></div>
+              <div className="absolute bottom-3 left-1/4 w-1 h-1 bg-amber-400 rounded-full animate-ping" style={{animationDelay: '0.6s'}}></div>
+            </div>
+            
+            <div className="relative">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <span className="text-2xl animate-bounce">🏅</span>
+                <p className="text-base sm:text-lg font-bold text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
+                  <Icons.Awards /> New Badge{newlyAwardedBadges.length > 1 ? 's' : ''} Earned!
+                </p>
+                <span className="text-2xl animate-bounce" style={{animationDelay: '0.2s'}}>✨</span>
+              </div>
+              <p className="text-xs text-center text-amber-600 dark:text-amber-200 mb-3">Check your profile to see all achievements!</p>
+              <div className="flex flex-wrap gap-2 justify-center">
+                {newlyAwardedBadges.map((badgeId, idx) => {
+                  const badge = BADGES[badgeId];
+                  if (!badge) return null;
+                  return (
+                    <div 
+                      key={badgeId} 
+                      className="flex items-center gap-2 bg-white dark:bg-gray-800 px-3 py-2 rounded-xl border-2 border-amber-300 dark:border-amber-700 shadow-lg transform hover:scale-105 transition-all animate-bounce-in"
+                      style={{animationDelay: `${idx * 0.1}s`}}
+                    >
+                      <span className="text-2xl drop-shadow-lg">{badge.icon}</span>
+                      <div className="text-left">
+                        <span className="text-sm font-bold text-gray-800 dark:text-white block">{badge.name}</span>
+                        <span className="text-[10px] text-gray-500 dark:text-gray-400">{badge.description}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6 sm:mb-8 text-center bg-gray-50 dark:bg-gray-700/50 p-3 sm:p-4 rounded-xl">
           <div>
             <div className="text-[10px] sm:text-xs text-gray-500 uppercase">Diff</div>
@@ -1538,6 +1579,7 @@ const App = () => {
   const [showConflicts, setShowConflicts] = useState(true);
   const [showRestartConfirm, setShowRestartConfirm] = useState(false);
   const [showUnlockNotification, setShowUnlockNotification] = useState(false);
+  const [newlyAwardedBadges, setNewlyAwardedBadges] = useState([]);
 
   const timerRef = useRef(null);
   const chatEndRef = useRef(null);
@@ -2034,6 +2076,16 @@ const App = () => {
       if (soundEnabled) setTimeout(() => SoundManager.play('unlock'), 250);
     }
 
+    // Check for badge awards
+    const newBadges = BadgeService.checkAndAwardBadges(stats, { 
+      currentTime: new Date(),
+      chatMessageCount: chatMessages.length
+    });
+    if (newBadges.length > 0) {
+      setNewlyAwardedBadges(newBadges);
+      if (soundEnabled) setTimeout(() => SoundManager.play('chestOpen'), 300);
+    }
+
     // Update user stats if authenticated
     // Note: This function is only called when the player wins, so we increment both games and wins
     // Game losses are not tracked in the current implementation
@@ -2067,6 +2119,9 @@ const App = () => {
             activeSoundPack: activeSoundPackId,
             gameStats: stats
           });
+          
+          // Sync badges with backend
+          await BadgeService.syncBadgesWithBackend();
         } catch (err) {
           console.error('Failed to update user stats:', err);
         }
@@ -2505,10 +2560,12 @@ const App = () => {
             setView('menu');
             setNewlyUnlockedThemes([]);
             setNewlyUnlockedSoundPacks([]);
+            setNewlyAwardedBadges([]);
           }}
           loading={loading} soundEnabled={soundEnabled}
           newlyUnlockedThemes={newlyUnlockedThemes}
           newlyUnlockedSoundPacks={newlyUnlockedSoundPacks}
+          newlyAwardedBadges={newlyAwardedBadges}
         />
         {showAwardsZone && (
           <AwardsZone
