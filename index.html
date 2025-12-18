@@ -208,10 +208,11 @@
       // Only try to load local config in development environments
       // In production (GitHub Pages), these files don't exist
       (async function () {
-        const isDev = window.location.hostname === "localhost" ||
-                      window.location.hostname === "127.0.0.1" ||
-                      window.location.hostname.includes("app.github.dev");
-        
+        const isDev =
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1" ||
+          window.location.hostname.includes("app.github.dev");
+
         if (isDev) {
           await loadScript("config/config.local.js");
           await loadScript("config/admin.local.js");
@@ -225,24 +226,37 @@
     <script>
       (async function loadModules() {
         try {
+          console.log("Loading modules...");
+          
           // Load in strict order - each module depends on the previous
+          console.log("Loading constants...");
           await loadScript("src/constants.js");
+          
+          console.log("Loading utils...");
           await loadScript("src/utils.js");
+          
+          console.log("Loading sound...");
           await loadScript("src/sound.js");
+          
+          console.log("Loading services...");
           await loadScript("src/services.js");
 
+          console.log("Loading React app...");
           // Load React app (JSX, compiled in-browser by Babel)
           await loadScript("src/app.jsx", {
             type: "text/babel",
             "data-presets": "env,react",
           });
 
+          console.log("Loading admin console...");
           // Load admin console (optional - only works if admin.local.js is loaded)
           await loadScript("src/admin.jsx", {
             type: "text/babel",
             "data-presets": "env,react",
           });
           await loadScript("src/admin-access.js");
+          
+          console.log("All modules loaded successfully!");
         } catch (error) {
           console.error("Failed to load application modules:", error);
           // Show error to user
