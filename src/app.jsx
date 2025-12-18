@@ -4205,14 +4205,15 @@ const App = () => {
         <div className="flex justify-between items-center px-2 sm:px-4 lg:px-0">
           <div className="flex flex-col">
             <h1
-              className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight cursor-pointer"
+              className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight cursor-pointer text-gray-900 dark:text-white"
               onClick={() => {
                 if (soundEnabled) SoundManager.play("uiTap");
                 setStatus("paused");
                 setView("menu");
               }}
             >
-              Sudoku <span className="text-blue-600">Logic</span> Lab
+              Sudoku{" "}
+              <span className="text-blue-600 dark:text-white">Logic</span> Lab
             </h1>
           </div>
           <div className="flex gap-1 sm:gap-2 items-center">
@@ -4962,7 +4963,8 @@ const App = () => {
                 <Icons.Refresh />
               </div>
               <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
-                Restart Puzzle?
+                Sudoku{" "}
+                <span className="text-blue-800 dark:text-white">Logic</span> Lab
               </h2>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 All your progress will be lost. The puzzle will reset to its
@@ -5453,7 +5455,9 @@ const App = () => {
       {/* Footer - legible over all themes */}
       <footer className="mt-6 sm:mt-8 pt-4 pb-5 text-[10px] sm:text-xs md:text-sm text-center px-3 w-full">
         <div className="mx-auto max-w-5xl rounded-2xl border border-white/30 dark:border-gray-700/60 bg-white/80 dark:bg-gray-900/75 backdrop-blur shadow-md text-gray-700 dark:text-gray-200 px-3 py-3 flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-3">
-          <span className="font-semibold">Sudoku Logic Lab v2.3</span>
+          <span className="font-semibold text-gray-700 dark:text-white">
+            Sudoku Logic Lab v2.3
+          </span>
           <span className="hidden sm:inline text-gray-400">•</span>
           <span>Created by Edmund</span>
           <span className="hidden sm:inline text-gray-400">•</span>
