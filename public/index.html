@@ -85,9 +85,11 @@
     <script>
       // Detect environment:
       // - GitHub Pages: files are in root (./src/, ./config/)
-      // - Local dev: index.html is in public/, files are in parent (../src/, ../config/)
+      // - Local dev served from root: files are also in root (./src/, ./config/)
+      // - Local dev served from public/: files are in parent (../src/, ../config/)
       const isGitHubPages = window.location.hostname.includes('github.io');
-      const pathPrefix = isGitHubPages ? './' : './';
+      const isLocalInPublic = window.location.pathname.includes('/public/');
+      const pathPrefix = isLocalInPublic ? '../' : './';
       
       // Helper to load scripts with correct path, silently handling failures
       function loadScript(src, attributes = {}) {
