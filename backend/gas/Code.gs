@@ -23,7 +23,17 @@
 // @version 2.2.0
 // ============================================================================
 
-const SHEET_ID = "1QU6QNWy6w6CNivq-PvmVJNcM1tUFWgQFzpN01Mo7QFs";
+// Prefer a Script Property for the sheet id (safer for deployments). Falls back to the hardcoded id.
+const SHEET_ID = (function () {
+  try {
+    const prop =
+      PropertiesService.getScriptProperties().getProperty("SHEET_ID");
+    if (prop && prop.trim()) return prop.trim();
+  } catch (e) {
+    // PropertiesService may not be available in some execution contexts
+  }
+  return "1QU6QNWy6w6CNivq-PvmVJNcM1tUFWgQFzpN01Mo7QFs";
+})();
 
 // ============================================================================
 // API ROUTER - All requests route through doGet and doPost
@@ -117,6 +127,11 @@ function doGet(e) {
 
       case "clearAllChat":
         return makeJsonResponse(clearAllChat(e.parameter));
+
+      case "performMaintenance":
+        // Admin-protected maintenance trigger. Requires `token` param matching
+        // the Script Property `ADMIN_TRIGGER_TOKEN` to run.
+        return makeJsonResponse(runPerformMaintenance_(e.parameter));
 
       default:
         return makeJsonResponse({ error: "Unknown action: " + action });
@@ -1845,9 +1860,11 @@ function performMaintenance(params) {
 
     const data = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
 
+    // Build updated rows in-memory to batch write back in a single call
+    const updatedRows = data.map((r) => r.slice());
     for (let i = 0; i < data.length; i++) {
-      const rowIndex = i + 2;
       const row = data[i];
+      const outRow = updatedRows[i];
       try {
         // Normalize UnlockedThemes -> JSON array string
         if (map["UnlockedThemes"] !== undefined) {
@@ -1868,16 +1885,11 @@ function performMaintenance(params) {
               out = JSON.stringify(["default"]);
             }
           } catch (e) {
-            // If raw looks like a comma list, split
-            try {
-              const s = String(raw || "").trim();
-              const parts = s ? s.split(/\s*,\s*/) : ["default"];
-              out = JSON.stringify(parts.filter(Boolean));
-            } catch (ee) {
-              out = JSON.stringify(["default"]);
-            }
+            const s = String(raw || "").trim();
+            const parts = s ? s.split(/\s*,\s*/) : ["default"];
+            out = JSON.stringify(parts.filter(Boolean));
           }
-          sheet.getRange(rowIndex, map["UnlockedThemes"] + 1).setValue(out);
+          outRow[map["UnlockedThemes"]] = out;
         }
 
         // Normalize UnlockedSoundPacks
@@ -1903,7 +1915,7 @@ function performMaintenance(params) {
             const parts = s ? s.split(/\s*,\s*/) : ["classic"];
             out = JSON.stringify(parts.filter(Boolean));
           }
-          sheet.getRange(rowIndex, map["UnlockedSoundPacks"] + 1).setValue(out);
+          outRow[map["UnlockedSoundPacks"]] = out;
         }
 
         // Normalize ActiveTheme to string
@@ -1927,7 +1939,7 @@ function performMaintenance(params) {
             out = raw.length > 0 ? String(raw[0]) : "";
           } else if (raw) out = String(raw);
           if (!out) out = "default";
-          sheet.getRange(rowIndex, map["ActiveTheme"] + 1).setValue(out);
+          outRow[map["ActiveTheme"]] = out;
         }
 
         // Normalize ActiveSoundPack to string
@@ -1951,7 +1963,7 @@ function performMaintenance(params) {
             out = raw.length > 0 ? String(raw[0]) : "";
           } else if (raw) out = String(raw);
           if (!out) out = "classic";
-          sheet.getRange(rowIndex, map["ActiveSoundPack"] + 1).setValue(out);
+          outRow[map["ActiveSoundPack"]] = out;
         }
 
         // Normalize GameStats to object JSON
@@ -1976,7 +1988,7 @@ function performMaintenance(params) {
           } catch (e) {
             out = "{}";
           }
-          sheet.getRange(rowIndex, map["GameStats"] + 1).setValue(out);
+          outRow[map["GameStats"]] = out;
         }
 
         // Normalize Badges to array JSON
@@ -1995,7 +2007,7 @@ function performMaintenance(params) {
           } catch (e) {
             out = JSON.stringify([]);
           }
-          sheet.getRange(rowIndex, map["Badges"] + 1).setValue(out);
+          outRow[map["Badges"]] = out;
         }
 
         // Normalize Unlocks to object JSON
@@ -2015,13 +2027,20 @@ function performMaintenance(params) {
           } catch (e) {
             out = "{}";
           }
-          sheet.getRange(rowIndex, map["Unlocks"] + 1).setValue(out);
+          outRow[map["Unlocks"]] = out;
         }
 
         results.updatedRows += 1;
       } catch (rowErr) {
         results.errors.push({ row: i + 2, error: String(rowErr) });
       }
+    }
+
+    // Batch write all updated rows back to the sheet in one operation
+    try {
+      sheet.getRange(2, 1, updatedRows.length, lastCol).setValues(updatedRows);
+    } catch (writeErr) {
+      results.errors.push({ row: "batchWrite", error: String(writeErr) });
     }
 
     return { success: true, summary: results };

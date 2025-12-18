@@ -904,7 +904,8 @@ const getThemeAssetSet = (visualId, audioId) => {
   // Optional filesystem-based assets (user-provided)
   // Use BASE_PATH from config for subdirectory deployments (e.g., GitHub Pages)
   const basePath = (window.CONFIG && window.CONFIG.BASE_PATH) || "";
-  const hasFilesystemAssets = safeVisualId !== "default";
+  const visualExists = !!VISUAL_BASES[safeVisualId];
+  const hasFilesystemAssets = visualExists && safeVisualId !== "default";
   const assetBase = hasFilesystemAssets
     ? `${basePath}/public/assets/themes/${safeVisualId}/${safeAudioId}`.replace(
         /^\/+/,
@@ -921,7 +922,7 @@ const getThemeAssetSet = (visualId, audioId) => {
     : null;
 
   // Get theme-specific SVG background pattern
-  const svgBgKey = `${visualId}_bg`;
+  const svgBgKey = `${safeVisualId}_bg`;
   const svgBg = SVG_PATTERNS[svgBgKey] || "";
 
   // Map audio themes to Material Icon sets
@@ -936,14 +937,14 @@ const getThemeAssetSet = (visualId, audioId) => {
   };
 
   // Get Material Icons based on audio theme, with visual theme fallbacks
-  let icons = audioIconMap[audioId] || [];
+  let icons = audioIconMap[safeAudioId] || [];
   if (!icons.length) {
-    if (audioId === "classic") {
+    if (safeAudioId === "classic") {
       // Default uses visual theme hints
-      if (visualId === "ocean") icons = MATERIAL_ICONS.aquatic;
-      else if (visualId === "sakura") icons = MATERIAL_ICONS.blossom;
-      else if (visualId === "volcano") icons = MATERIAL_ICONS.flame;
-      else if (visualId === "arctic") icons = MATERIAL_ICONS.crystal;
+      if (safeVisualId === "ocean") icons = MATERIAL_ICONS.aquatic;
+      else if (safeVisualId === "sakura") icons = MATERIAL_ICONS.blossom;
+      else if (safeVisualId === "volcano") icons = MATERIAL_ICONS.flame;
+      else if (safeVisualId === "arctic") icons = MATERIAL_ICONS.crystal;
     }
   }
 
