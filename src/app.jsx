@@ -1390,6 +1390,9 @@ const App = () => {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showModal, setShowModal] = useState('none');
   const [initialFilledCount, setInitialFilledCount] = useState(0);
+  const [isPracticeMode, setIsPracticeMode] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [tutorialStep, setTutorialStep] = useState(0);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatInput, setChatInput] = useState('');
   const [isChatInputFocused, setIsChatInputFocused] = useState(false);
@@ -1786,9 +1789,10 @@ const App = () => {
     setShowRestartConfirm(false);
   };
 
-  const startNewGame = async (diff) => {
+  const startNewGame = async (diff, practiceMode = false) => {
     if (soundEnabled) SoundManager.init();
     setLoading(true);
+    setIsPracticeMode(practiceMode);
     try {
       let newBoard = null;
       try {
@@ -1829,30 +1833,51 @@ const App = () => {
       if (target.value === num) return;
       target.value = num;
       if (num !== target.solution) {
-        if (soundEnabled) SoundManager.play('error');
-        target.isError = true;
-        const newMistakes = mistakes + 1;
-        setMistakes(newMistakes);
+        // In practice mode, show error but don't count as mistake or end game
+        if (isPracticeMode) {
+          if (soundEnabled) SoundManager.play('error');
+          target.isError = true;
+          // Clear error after visual feedback
+          const errorCellIndex = selectedCell;
+          setTimeout(() => {
+            setBoard(prev => {
+              const b = [...prev];
+              if (b[errorCellIndex]) { 
+                b[errorCellIndex] = {
+                  ...b[errorCellIndex],
+                  isError: false
+                };
+              }
+              return b;
+            });
+          }, 500);
+        } else {
+          // Normal mode - count mistakes and end game at 3
+          if (soundEnabled) SoundManager.play('error');
+          target.isError = true;
+          const newMistakes = mistakes + 1;
+          setMistakes(newMistakes);
 
-        if (newMistakes >= 3) {
-          setBoard(newBoard); setStatus('lost'); StorageService.clearSavedGame(); return;
+          if (newMistakes >= 3) {
+            setBoard(newBoard); setStatus('lost'); StorageService.clearSavedGame(); return;
+          }
+          
+          // Capture cellIndex to avoid race condition
+          const errorCellIndex = selectedCell;
+          setTimeout(() => {
+            setBoard(prev => {
+              const b = [...prev];
+              if (b[errorCellIndex]) { 
+                b[errorCellIndex] = {
+                  ...b[errorCellIndex],
+                  isError: false,
+                  value: null
+                };
+              }
+              return b;
+            });
+          }, 500);
         }
-        
-        // Capture cellIndex to avoid race condition
-        const errorCellIndex = selectedCell;
-        setTimeout(() => {
-          setBoard(prev => {
-            const b = [...prev];
-            if (b[errorCellIndex]) { 
-              b[errorCellIndex] = {
-                ...b[errorCellIndex],
-                isError: false,
-                value: null
-              };
-            }
-            return b;
-          });
-        }, 500);
       } else {
         if (soundEnabled) SoundManager.play('write');
         target.isError = false; target.notes = [];
@@ -1872,7 +1897,7 @@ const App = () => {
       StorageService.clearSavedGame();
       handleWin(newBoard, mistakes, timer);
     }
-  }, [board, selectedCell, status, mode, mistakes, soundEnabled, timer]);
+  }, [board, selectedCell, status, mode, mistakes, soundEnabled, timer, isPracticeMode]);
 
   const handleWin = async (finalBoard, finalMistakes, finalTime) => {
     const currentUserId = StorageService.getCurrentUserId();
@@ -2608,6 +2633,17 @@ const App = () => {
 
             {/* Stats */}
             <div className="w-full bg-gradient-to-r from-white via-gray-50 to-white dark:from-gray-800 dark:via-gray-800/80 dark:to-gray-800 py-3 sm:py-4 px-3 sm:px-4 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+              {/* Practice Mode Badge */}
+              {isPracticeMode && (
+                <div className="mb-3 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 px-3 py-2 rounded-lg border border-purple-300 dark:border-purple-700">
+                  <div className="flex items-center justify-center gap-2 text-xs font-bold text-purple-700 dark:text-purple-300">
+                    <span>🎓</span>
+                    <span>Practice Mode</span>
+                    <span className="text-[10px] font-normal">(No mistake limit)</span>
+                  </div>
+                </div>
+              )}
+              
               {/* Progress Bar */}
               <div className="mb-3">
                 <div className="flex justify-between items-center mb-1.5">
@@ -2638,19 +2674,25 @@ const App = () => {
                 </div>
                 <div className="w-px h-8 bg-gradient-to-b from-transparent via-gray-300 dark:via-gray-600 to-transparent"></div>
                 <div className="flex flex-col items-center">
-                  <span className="text-[9px] sm:text-[10px] text-gray-500 uppercase font-semibold tracking-wide">Mistakes</span>
-                  <div className="flex items-center gap-1">
-                    {[0, 1, 2].map(i => (
-                      <div 
-                        key={i} 
-                        className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full transition-all duration-300 ${
-                          i < mistakes 
-                            ? 'bg-red-500 shadow-md shadow-red-500/50' 
-                            : 'bg-gray-300 dark:bg-gray-600'
-                        }`}
-                      ></div>
-                    ))}
-                  </div>
+                  <span className="text-[9px] sm:text-[10px] text-gray-500 uppercase font-semibold tracking-wide">
+                    {isPracticeMode ? 'Practice' : 'Mistakes'}
+                  </span>
+                  {isPracticeMode ? (
+                    <span className="text-xs font-bold text-purple-600 dark:text-purple-400">∞</span>
+                  ) : (
+                    <div className="flex items-center gap-1">
+                      {[0, 1, 2].map(i => (
+                        <div 
+                          key={i} 
+                          className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full transition-all duration-300 ${
+                            i < mistakes 
+                              ? 'bg-red-500 shadow-md shadow-red-500/50' 
+                              : 'bg-gray-300 dark:bg-gray-600'
+                          }`}
+                        ></div>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div className="w-px h-8 bg-gradient-to-b from-transparent via-gray-300 dark:via-gray-600 to-transparent"></div>
                 <div className="flex flex-col items-end">
@@ -2768,6 +2810,35 @@ const App = () => {
                     {d.name}
                   </button>
                 ))}
+              </div>
+              
+              {/* Practice Mode Toggle */}
+              <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                <label className="flex items-center justify-between cursor-pointer bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 p-2.5 rounded-lg transition-all hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-900/50 dark:hover:to-pink-900/50 group mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🎓</span>
+                    <div>
+                      <span className="text-xs sm:text-sm text-gray-800 dark:text-gray-200 font-bold block">Practice Mode</span>
+                      <span className="text-[10px] text-gray-600 dark:text-gray-400">No mistakes limit, extra hints</span>
+                    </div>
+                  </div>
+                  <div className="relative">
+                    <input 
+                      type="checkbox" 
+                      checked={isPracticeMode} 
+                      onChange={(e) => setIsPracticeMode(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-9 h-5 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
+                  </div>
+                </label>
+                <button
+                  onClick={() => { setShowTutorial(true); setTutorialStep(0); if (soundEnabled) SoundManager.play('uiTap'); }}
+                  className="w-full text-xs px-3 py-2 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/50 dark:to-pink-900/50 hover:from-purple-200 hover:to-pink-200 dark:hover:from-purple-900/70 dark:hover:to-pink-900/70 text-purple-800 dark:text-purple-200 rounded-lg font-semibold transition-all flex items-center justify-center gap-2"
+                >
+                  <Icons.Lightbulb />
+                  <span>Show Tutorial</span>
+                </button>
               </div>
             </div>
 
@@ -3112,6 +3183,100 @@ const App = () => {
               >
                 <Icons.X />
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tutorial Overlay */}
+      {showTutorial && view === 'game' && (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 max-w-md w-full animate-pop">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <span>🎓</span>
+                <span>Tutorial</span>
+              </h2>
+              <button
+                onClick={() => setShowTutorial(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <Icons.X />
+              </button>
+            </div>
+            
+            {tutorialStep === 0 && (
+              <div className="space-y-4">
+                <p className="text-gray-700 dark:text-gray-300">
+                  Welcome to Sudoku Logic Lab! Let's learn the basics.
+                </p>
+                <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
+                  <h3 className="font-bold text-blue-900 dark:text-blue-200 mb-2">Goal</h3>
+                  <p className="text-sm text-blue-800 dark:text-blue-300">
+                    Fill the 9×9 grid so that each row, column, and 3×3 box contains the digits 1-9 without repetition.
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            {tutorialStep === 1 && (
+              <div className="space-y-4">
+                <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg">
+                  <h3 className="font-bold text-green-900 dark:text-green-200 mb-2">Controls</h3>
+                  <ul className="text-sm text-green-800 dark:text-green-300 space-y-2">
+                    <li>• Click a cell to select it</li>
+                    <li>• Press 1-9 to enter a number</li>
+                    <li>• Use arrow keys to navigate</li>
+                    <li>• Press N to toggle notes mode</li>
+                  </ul>
+                </div>
+              </div>
+            )}
+            
+            {tutorialStep === 2 && (
+              <div className="space-y-4">
+                <div className="bg-purple-50 dark:bg-purple-900/30 p-4 rounded-lg">
+                  <h3 className="font-bold text-purple-900 dark:text-purple-200 mb-2">Practice Mode</h3>
+                  <p className="text-sm text-purple-800 dark:text-purple-300">
+                    Practice mode removes the 3-mistake limit and provides extra guidance. Toggle it in the New Game section!
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            <div className="flex justify-between items-center mt-6">
+              <button
+                onClick={() => setTutorialStep(Math.max(0, tutorialStep - 1))}
+                disabled={tutorialStep === 0}
+                className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              >
+                Previous
+              </button>
+              <div className="flex gap-2">
+                {[0, 1, 2].map((step) => (
+                  <div
+                    key={step}
+                    className={`w-2 h-2 rounded-full transition-all ${
+                      step === tutorialStep ? 'bg-blue-600 w-4' : 'bg-gray-300'
+                    }`}
+                  />
+                ))}
+              </div>
+              {tutorialStep < 2 ? (
+                <button
+                  onClick={() => setTutorialStep(tutorialStep + 1)}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
+                >
+                  Next
+                </button>
+              ) : (
+                <button
+                  onClick={() => { setShowTutorial(false); setTutorialStep(0); }}
+                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors"
+                >
+                  Got it!
+                </button>
+              )}
             </div>
           </div>
         </div>
