@@ -14,7 +14,15 @@
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Tailwind CSS (production build) -->
-    <link href="./styles.css" rel="stylesheet">
+    <link id="tailwind-css" href="./styles.css" rel="stylesheet">
+    <script>
+      // Fix CSS path for GitHub Pages
+      (function() {
+        const link = document.getElementById('tailwind-css');
+        const basePath = window.location.hostname === 'edmund-alexander.github.io' ? '/Sudoku-Labs/' : './';
+        link.href = basePath + 'styles.css';
+      })();
+    </script>
     <!-- React -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
