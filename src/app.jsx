@@ -1792,7 +1792,6 @@ const App = () => {
   const startNewGame = async (diff, practiceMode = false) => {
     if (soundEnabled) SoundManager.init();
     setLoading(true);
-    setIsPracticeMode(practiceMode);
     try {
       let newBoard = null;
       try {
@@ -1809,6 +1808,16 @@ const App = () => {
 
       // Count initially filled cells (pre-filled by the puzzle)
       const filledCount = newBoard.filter(c => c.value !== null).length;
+      setInitialFilledCount(filledCount);
+
+      setBoard(newBoard); setDifficulty(diff); setStatus('playing');
+      setTimer(0); setMistakes(0); setHistory([newBoard]); setSelectedCell(null);
+      setShowModal('none');
+      setView('game');
+      // Set practice mode only after successful board generation
+      setIsPracticeMode(practiceMode);
+    } catch (e) { console.error(e); alert("Failed to start game."); } finally { setLoading(false); }
+  };
       setInitialFilledCount(filledCount);
 
       setBoard(newBoard); setDifficulty(diff); setStatus('playing');
@@ -2099,8 +2108,8 @@ const App = () => {
     const currentFilled = board.filter(c => c.value !== null).length;
     const userFilled = currentFilled - initialFilledCount;
     const totalToFill = 81 - initialFilledCount;
-    // Handle edge case of fully pre-filled puzzle
-    if (totalToFill === 0) return 100;
+    // Defensive programming: handle edge case of invalid board state or fully pre-filled puzzle
+    if (totalToFill <= 0) return 100;
     return Math.round((userFilled / totalToFill) * 100);
   };
 
@@ -3148,12 +3157,12 @@ const App = () => {
                 </h3>
                 {newlyUnlockedThemes.length > 0 && (
                   <div className="text-white text-sm mb-2">
-                    <strong>Theme{newlyUnlockedThemes.length > 1 ? 's' : ''}:</strong> {newlyUnlockedThemes.map(id => THEMES[id]?.name).join(', ')}
+                    <strong>Theme{newlyUnlockedThemes.length > 1 ? 's' : ''}:</strong> {newlyUnlockedThemes.map(id => THEMES[id]?.name).filter(Boolean).join(', ')}
                   </div>
                 )}
                 {newlyUnlockedSoundPacks.length > 0 && (
                   <div className="text-white text-sm">
-                    <strong>Sound{newlyUnlockedSoundPacks.length > 1 ? 's' : ''}:</strong> {newlyUnlockedSoundPacks.map(id => SOUND_PACKS[id]?.name).join(', ')}
+                    <strong>Sound{newlyUnlockedSoundPacks.length > 1 ? 's' : ''}:</strong> {newlyUnlockedSoundPacks.map(id => SOUND_PACKS[id]?.name).filter(Boolean).join(', ')}
                   </div>
                 )}
                 <button

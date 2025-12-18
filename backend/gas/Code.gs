@@ -954,7 +954,12 @@ function awardBadge(data) {
   const updatedBadges = Array.isArray(badges) ? [...badges, newBadge] : [newBadge];
 
   if (map['Badges'] !== undefined) {
-    sheet.getRange(rowIndex, map['Badges'] + 1).setValue(JSON.stringify(updatedBadges).substring(0, 5000));
+    const badgesJson = JSON.stringify(updatedBadges);
+    // Google Sheets cell limit is ~50,000 characters; warn if approaching limit
+    if (badgesJson.length > 10000) {
+      Logger.log('Warning: Badge data for user ' + userId + ' is large (' + badgesJson.length + ' chars)');
+    }
+    sheet.getRange(rowIndex, map['Badges'] + 1).setValue(badgesJson.substring(0, 50000));
   }
 
   return { success: true, badge: newBadge };
