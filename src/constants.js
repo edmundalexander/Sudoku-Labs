@@ -906,13 +906,21 @@ const getThemeAssetSet = (visualId, audioId) => {
   const basePath = (window.CONFIG && window.CONFIG.BASE_PATH) || "";
   const visualExists = !!VISUAL_BASES[safeVisualId];
   const hasFilesystemAssets = visualExists && safeVisualId !== "default";
-  const assetBase = hasFilesystemAssets
-    ? `${basePath}/public/assets/themes/${safeVisualId}/${safeAudioId}`.replace(
-        /^\/+/,
-        "/"
-      )
-    : null;
-  const assetPaths = hasFilesystemAssets
+
+  // Asset layout differs between local dev (assets under `/public/assets/...`)
+  // and GitHub Pages production (assets under `/assets/...`). Detect
+  // GitHub Pages by hostname and choose the correct path accordingly.
+  let assetBase = null;
+  if (hasFilesystemAssets) {
+    const isGitHubPages =
+      typeof window !== "undefined" &&
+      window.location &&
+      window.location.hostname.includes("github.io");
+    const assetsRoot = isGitHubPages ? "assets/themes" : "public/assets/themes";
+    assetBase = `${basePath}/${assetsRoot}/${safeVisualId}/${safeAudioId}`.replace(/^\/+/, "/");
+  }
+
+  const assetPaths = assetBase
     ? {
         base: assetBase,
         bgJpg: `${assetBase}/background.jpg`,
