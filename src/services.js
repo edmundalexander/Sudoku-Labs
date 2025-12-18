@@ -59,7 +59,9 @@ const runGasFn = async (fnName, ...args) => {
       getUserProfile: { action: 'getUserProfile', method: 'GET' },
       updateUserProfile: { action: 'updateUserProfile', method: 'GET' },
       getUserState: { action: 'getUserState', method: 'GET' },
-      saveUserState: { action: 'saveUserState', method: 'GET' }
+      saveUserState: { action: 'saveUserState', method: 'GET' },
+      getUserBadges: { action: 'getUserBadges', method: 'GET' },
+      awardBadge: { action: 'awardBadge', method: 'GET' }
     };
 
     const mapping = actionMap[fnName];
@@ -669,6 +671,200 @@ const postChatMessage = (msg) => ChatService.postMessage(msg);
  */
 const isUserAuthenticated = () => StorageService.isUserAuthenticated();
 
+// ============================================================================
+// BADGE SERVICE
+// ============================================================================
+
+const BadgeService = {
+  /**
+   * Get user's badges from local storage
+   * @returns {Array} Array of badge objects with id and awardedAt
+   */
+  getUserBadges() {
+    const badges = localStorage.getItem('sudoku_v2_user_badges');
+    try {
+      return badges ? JSON.parse(badges) : [];
+    } catch {
+      return [];
+    }
+  },
+
+  /**
+   * Save user's badges to local storage
+   * @param {Array} badges - Array of badge objects
+   */
+  saveUserBadges(badges) {
+    localStorage.setItem('sudoku_v2_user_badges', JSON.stringify(badges));
+  },
+
+  /**
+   * Check if user has a specific badge
+   * @param {string} badgeId - Badge ID to check
+   * @returns {boolean} Whether user has the badge
+   */
+  hasBadge(badgeId) {
+    const badges = this.getUserBadges();
+    return badges.some(b => b.id === badgeId);
+  },
+
+  /**
+   * Award a badge to the user
+   * @param {string} badgeId - Badge ID to award
+   * @returns {boolean} Whether badge was newly awarded
+   */
+  awardBadge(badgeId) {
+    if (this.hasBadge(badgeId)) return false;
+    
+    const badges = this.getUserBadges();
+    const newBadge = {
+      id: badgeId,
+      awardedAt: new Date().toISOString()
+    };
+    badges.push(newBadge);
+    this.saveUserBadges(badges);
+    
+    // If user is authenticated, also save to backend
+    if (isUserAuthenticated() && isGasEnvironment()) {
+      const session = StorageService.getUserSession();
+      if (session && session.userId) {
+        runGasFn('awardBadge', { 
+          userId: session.userId, 
+          badge: badgeId 
+        }).catch(err => console.error('Failed to save badge to backend:', err));
+      }
+    }
+    
+    return true;
+  },
+
+  /**
+   * Check for newly earned badges based on game stats
+   * @param {Object} stats - Game statistics
+   * @param {Object} additionalContext - Additional context (time, chatCount, etc.)
+   * @returns {string[]} Array of newly awarded badge IDs
+   */
+  checkAndAwardBadges(stats, additionalContext = {}) {
+    const newlyAwarded = [];
+    const { currentTime, chatMessageCount } = additionalContext;
+
+    // Milestone badges
+    if (stats.totalWins >= 1 && !this.hasBadge('first_win')) {
+      if (this.awardBadge('first_win')) newlyAwarded.push('first_win');
+    }
+    if (stats.totalWins >= 10 && !this.hasBadge('wins_10')) {
+      if (this.awardBadge('wins_10')) newlyAwarded.push('wins_10');
+    }
+    if (stats.totalWins >= 25 && !this.hasBadge('wins_25')) {
+      if (this.awardBadge('wins_25')) newlyAwarded.push('wins_25');
+    }
+    if (stats.totalWins >= 50 && !this.hasBadge('wins_50')) {
+      if (this.awardBadge('wins_50')) newlyAwarded.push('wins_50');
+    }
+    if (stats.totalWins >= 100 && !this.hasBadge('wins_100')) {
+      if (this.awardBadge('wins_100')) newlyAwarded.push('wins_100');
+    }
+
+    // Difficulty badges
+    if (stats.easyWins >= 20 && !this.hasBadge('easy_specialist')) {
+      if (this.awardBadge('easy_specialist')) newlyAwarded.push('easy_specialist');
+    }
+    if (stats.mediumWins >= 20 && !this.hasBadge('medium_master')) {
+      if (this.awardBadge('medium_master')) newlyAwarded.push('medium_master');
+    }
+    if (stats.hardWins >= 20 && !this.hasBadge('hard_hero')) {
+      if (this.awardBadge('hard_hero')) newlyAwarded.push('hard_hero');
+    }
+
+    // Achievement badges
+    if (stats.perfectWins >= 1 && !this.hasBadge('perfect_game')) {
+      if (this.awardBadge('perfect_game')) newlyAwarded.push('perfect_game');
+    }
+    if (stats.perfectWins >= 5 && !this.hasBadge('perfect_5')) {
+      if (this.awardBadge('perfect_5')) newlyAwarded.push('perfect_5');
+    }
+    if (stats.fastWins >= 1 && !this.hasBadge('speed_demon')) {
+      if (this.awardBadge('speed_demon')) newlyAwarded.push('speed_demon');
+    }
+    if (stats.fastWins >= 10 && !this.hasBadge('lightning_fast')) {
+      if (this.awardBadge('lightning_fast')) newlyAwarded.push('lightning_fast');
+    }
+
+    // Special time-based badges
+    if (currentTime) {
+      const hour = currentTime.getHours();
+      if (hour < 8 && !this.hasBadge('early_bird')) {
+        if (this.awardBadge('early_bird')) newlyAwarded.push('early_bird');
+      }
+      if (hour >= 0 && hour < 6 && !this.hasBadge('night_owl')) {
+        if (this.awardBadge('night_owl')) newlyAwarded.push('night_owl');
+      }
+    }
+
+    // Chat badge
+    if (chatMessageCount >= 50 && !this.hasBadge('social_butterfly')) {
+      if (this.awardBadge('social_butterfly')) newlyAwarded.push('social_butterfly');
+    }
+
+    // Collection badges
+    const unlockedThemes = StorageService.getUnlockedThemes();
+    const allThemes = Object.keys(THEMES);
+    if (unlockedThemes.length >= allThemes.length && !this.hasBadge('theme_collector')) {
+      if (this.awardBadge('theme_collector')) newlyAwarded.push('theme_collector');
+    }
+
+    const unlockedPacks = StorageService.getUnlockedSoundPacks();
+    const allPacks = Object.keys(SOUND_PACKS);
+    if (unlockedPacks.length >= allPacks.length && !this.hasBadge('sound_collector')) {
+      if (this.awardBadge('sound_collector')) newlyAwarded.push('sound_collector');
+    }
+
+    // Completionist badge (has all other badges)
+    const allBadgeIds = Object.keys(BADGES).filter(id => id !== 'completionist');
+    const userBadges = this.getUserBadges();
+    if (allBadgeIds.every(id => userBadges.some(b => b.id === id)) && !this.hasBadge('completionist')) {
+      if (this.awardBadge('completionist')) newlyAwarded.push('completionist');
+    }
+
+    return newlyAwarded;
+  },
+
+  /**
+   * Sync local badges with backend for authenticated users
+   */
+  async syncBadgesWithBackend() {
+    if (!isUserAuthenticated() || !isGasEnvironment()) return;
+    
+    const session = StorageService.getUserSession();
+    if (!session || !session.userId) return;
+
+    try {
+      // Get badges from backend
+      const result = await runGasFn('getUserBadges', { userId: session.userId });
+      if (result && result.success) {
+        const backendBadges = result.badges || [];
+        const localBadges = this.getUserBadges();
+        
+        // Merge: use backend badges as source of truth, but keep any local-only badges
+        const merged = [...backendBadges];
+        localBadges.forEach(local => {
+          if (!merged.some(b => b.id === local.id)) {
+            merged.push(local);
+            // Also save this local badge to backend
+            runGasFn('awardBadge', { 
+              userId: session.userId, 
+              badge: local.id 
+            }).catch(err => console.error('Failed to sync badge to backend:', err));
+          }
+        });
+        
+        this.saveUserBadges(merged);
+      }
+    } catch (err) {
+      console.error('Failed to sync badges:', err);
+    }
+  }
+};
+
 // Make services available globally
 window.GAS_URL = GAS_URL;
 window.isGasEnvironment = isGasEnvironment;
@@ -678,6 +874,7 @@ window.StorageService = StorageService;
 window.LeaderboardService = LeaderboardService;
 window.ChatService = ChatService;
 window.UnlockService = UnlockService;
+window.BadgeService = BadgeService;
 
 // Convenience wrappers
 window.getLeaderboard = getLeaderboard;

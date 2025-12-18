@@ -625,22 +625,29 @@ const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSe
               {Object.values(THEMES).map(theme => {
                 const unlocked = isThemeUnlocked(theme.id);
                 const isActive = theme.id === activeThemeId;
+                const progress = getThemeProgress(theme.id);
                 return (
-                  <button
-                    key={theme.id}
-                    onClick={() => handleThemeSelect(theme.id)}
-                    disabled={!unlocked}
-                    className={`p-2 rounded-lg text-xl transition-all ${
-                      isActive 
-                        ? 'bg-blue-500 ring-2 ring-blue-300' 
-                        : unlocked 
-                          ? 'bg-white dark:bg-gray-600 hover:bg-gray-100 dark:hover:bg-gray-500' 
-                          : 'opacity-40 cursor-not-allowed bg-gray-200 dark:bg-gray-800'
-                    }`}
-                    title={unlocked ? theme.name : `🔒 ${theme.unlockCriteria}`}
-                  >
-                    {theme.icon}
-                  </button>
+                  <div key={theme.id} className="relative">
+                    <button
+                      onClick={() => handleThemeSelect(theme.id)}
+                      disabled={!unlocked}
+                      className={`w-full p-2 rounded-lg text-xl transition-all ${
+                        isActive 
+                          ? 'bg-blue-500 ring-2 ring-blue-300' 
+                          : unlocked 
+                            ? 'bg-white dark:bg-gray-600 hover:bg-gray-100 dark:hover:bg-gray-500' 
+                            : 'opacity-40 cursor-not-allowed bg-gray-200 dark:bg-gray-800'
+                      }`}
+                      title={unlocked ? theme.name : `🔒 ${theme.unlockCriteria}`}
+                    >
+                      {theme.icon}
+                    </button>
+                    {!unlocked && progress && (
+                      <div className="absolute -bottom-1 left-0 right-0 text-[8px] text-center bg-red-500 text-white rounded-b px-0.5 py-0.5 font-bold">
+                        {progress}
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </div>
@@ -655,22 +662,29 @@ const AwardsZone = ({ soundEnabled, onClose, activeThemeId, unlockedThemes, onSe
               {Object.values(SOUND_PACKS).map(pack => {
                 const unlocked = isPackUnlocked(pack.id);
                 const isActive = pack.id === activePackId;
+                const progress = getPackProgress(pack.id);
                 return (
-                  <button
-                    key={pack.id}
-                    onClick={() => handlePackSelect(pack.id)}
-                    disabled={!unlocked}
-                    className={`p-2 rounded-lg text-xl transition-all ${
-                      isActive 
-                        ? 'bg-blue-500 ring-2 ring-blue-300' 
-                        : unlocked 
-                          ? 'bg-white dark:bg-gray-600 hover:bg-gray-100 dark:hover:bg-gray-500' 
-                          : 'opacity-40 cursor-not-allowed bg-gray-200 dark:bg-gray-800'
-                    }`}
-                    title={unlocked ? pack.name : `🔒 ${pack.unlockCriteria}`}
-                  >
-                    {pack.icon}
-                  </button>
+                  <div key={pack.id} className="relative">
+                    <button
+                      onClick={() => handlePackSelect(pack.id)}
+                      disabled={!unlocked}
+                      className={`w-full p-2 rounded-lg text-xl transition-all ${
+                        isActive 
+                          ? 'bg-blue-500 ring-2 ring-blue-300' 
+                          : unlocked 
+                            ? 'bg-white dark:bg-gray-600 hover:bg-gray-100 dark:hover:bg-gray-500' 
+                            : 'opacity-40 cursor-not-allowed bg-gray-200 dark:bg-gray-800'
+                      }`}
+                      title={unlocked ? pack.name : `🔒 ${pack.unlockCriteria}`}
+                    >
+                      {pack.icon}
+                    </button>
+                    {!unlocked && progress && (
+                      <div className="absolute -bottom-1 left-0 right-0 text-[8px] text-center bg-red-500 text-white rounded-b px-0.5 py-0.5 font-bold">
+                        {progress}
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </div>
@@ -925,6 +939,46 @@ const UserPanel = ({ soundEnabled, onClose, appUserSession }) => {
             </div>
           </div>
 
+          {/* Badges Section */}
+          <div className="bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 p-4 rounded-xl mb-4 border border-amber-200 dark:border-amber-800">
+            <h3 className="text-xs font-bold uppercase text-amber-700 dark:text-amber-400 mb-3 flex items-center gap-2">
+              <span className="text-lg">🏅</span> Badge Collection
+            </h3>
+            {(() => {
+              const userBadges = BadgeService.getUserBadges();
+              if (userBadges.length === 0) {
+                return (
+                  <p className="text-xs text-center text-gray-500 dark:text-gray-400 py-2">
+                    No badges yet. Keep playing to earn achievements!
+                  </p>
+                );
+              }
+              return (
+                <div className="grid grid-cols-4 gap-2">
+                  {userBadges.slice(0, 8).map(badge => {
+                    const badgeDef = BADGES[badge.id];
+                    if (!badgeDef) return null;
+                    return (
+                      <div 
+                        key={badge.id}
+                        className="flex flex-col items-center p-2 bg-white dark:bg-gray-800 rounded-lg border border-amber-300 dark:border-amber-700 hover:scale-105 transition-transform"
+                        title={`${badgeDef.name}: ${badgeDef.description}`}
+                      >
+                        <span className="text-2xl">{badgeDef.icon}</span>
+                        <span className="text-[8px] text-gray-600 dark:text-gray-400 text-center mt-1 truncate w-full">{badgeDef.name}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+            {BadgeService.getUserBadges().length > 8 && (
+              <p className="text-[10px] text-center text-amber-600 dark:text-amber-400 mt-2">
+                +{BadgeService.getUserBadges().length - 8} more badges
+              </p>
+            )}
+          </div>
+
           <button
             onClick={handleLogout}
             className="w-full py-2.5 sm:py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold text-sm sm:text-base transition-colors flex items-center justify-center gap-2"
@@ -1133,6 +1187,124 @@ const UserPanel = ({ soundEnabled, onClose, appUserSession }) => {
   return null;
 };
 
+// Profile View Modal - for viewing other users' profiles
+const ProfileViewModal = ({ profile, onClose, soundEnabled, loading }) => {
+  if (loading) {
+    return (
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm animate-fade-in">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-md text-center">
+          <div className="animate-spin text-4xl mb-4">⏳</div>
+          <p className="text-gray-600 dark:text-gray-400">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile) return null;
+
+  const winRate = profile.totalGames > 0 ? Math.round((profile.totalWins / profile.totalGames) * 100) : 0;
+  
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm animate-fade-in">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-4 sm:p-6 w-full max-w-md animate-pop relative overflow-hidden">
+        {/* Decorative header gradient */}
+        <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-500 opacity-20"></div>
+        
+        <button onClick={onClose} className="absolute top-3 sm:top-4 right-3 sm:right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 z-10">
+          <Icons.X />
+        </button>
+
+        <div className="relative text-center mb-5">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-3 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
+            <span className="text-2xl sm:text-3xl text-white">
+              {(profile.displayName || profile.username || '?')[0].toUpperCase()}
+            </span>
+          </div>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">{profile.displayName || profile.username}</h2>
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">@{profile.username}</p>
+          <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+            <span className="text-xs font-semibold text-blue-700 dark:text-blue-300">👤 Player Profile</span>
+          </div>
+        </div>
+
+        {/* Main Stats Row */}
+        <div className="grid grid-cols-3 gap-3 mb-4">
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 p-3 rounded-xl text-center border border-blue-200 dark:border-blue-700">
+            <div className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400">{profile.totalGames}</div>
+            <div className="text-[10px] sm:text-xs text-blue-700 dark:text-blue-300 font-medium uppercase">Games</div>
+          </div>
+          <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 p-3 rounded-xl text-center border border-green-200 dark:border-green-700">
+            <div className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400">{profile.totalWins}</div>
+            <div className="text-[10px] sm:text-xs text-green-700 dark:text-green-300 font-medium uppercase">Wins</div>
+          </div>
+          <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 p-3 rounded-xl text-center border border-purple-200 dark:border-purple-700">
+            <div className="text-2xl sm:text-3xl font-bold text-purple-600 dark:text-purple-400">{winRate}%</div>
+            <div className="text-[10px] sm:text-xs text-purple-700 dark:text-purple-300 font-medium uppercase">Win Rate</div>
+          </div>
+        </div>
+
+        {/* Detailed Stats Section */}
+        <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl mb-4">
+          <h3 className="text-xs font-bold uppercase text-gray-500 dark:text-gray-400 mb-3 flex items-center gap-2">
+            <Icons.Awards /> Performance Breakdown
+          </h3>
+          
+          {/* Difficulty breakdown */}
+          <div className="grid grid-cols-3 gap-2 mb-3">
+            <div className="text-center p-2 bg-green-100/50 dark:bg-green-900/20 rounded-lg">
+              <div className="text-lg font-bold text-green-600 dark:text-green-400">{profile.easyWins}</div>
+              <div className="text-[10px] text-gray-600 dark:text-gray-400">Easy</div>
+            </div>
+            <div className="text-center p-2 bg-yellow-100/50 dark:bg-yellow-900/20 rounded-lg">
+              <div className="text-lg font-bold text-yellow-600 dark:text-yellow-400">{profile.mediumWins}</div>
+              <div className="text-[10px] text-gray-600 dark:text-gray-400">Medium</div>
+            </div>
+            <div className="text-center p-2 bg-red-100/50 dark:bg-red-900/20 rounded-lg">
+              <div className="text-lg font-bold text-red-600 dark:text-red-400">{profile.hardWins}</div>
+              <div className="text-[10px] text-gray-600 dark:text-gray-400">Hard</div>
+            </div>
+          </div>
+          
+          {/* Achievement stats */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">✨</span>
+                <span className="text-xs text-gray-600 dark:text-gray-400">Perfect</span>
+              </div>
+              <span className="font-bold text-sm text-gray-800 dark:text-white">{profile.perfectWins}</span>
+            </div>
+            <div className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">⚡</span>
+                <span className="text-xs text-gray-600 dark:text-gray-400">Speed (≤3m)</span>
+              </div>
+              <span className="font-bold text-sm text-gray-800 dark:text-white">{profile.fastWins}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Badges Section - Note: For other users, shows a coming soon message as we don't fetch their badges */}
+        <div className="bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 p-4 rounded-xl mb-4 border border-amber-200 dark:border-amber-800">
+          <h3 className="text-xs font-bold uppercase text-amber-700 dark:text-amber-400 mb-3 flex items-center gap-2">
+            <span className="text-lg">🏅</span> Badges
+          </h3>
+          <p className="text-xs text-center text-gray-500 dark:text-gray-400 py-2">
+            Badge display for other users coming soon!
+          </p>
+        </div>
+
+        <button
+          onClick={onClose}
+          className="w-full py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm sm:text-base transition-colors flex items-center justify-center gap-2"
+        >
+          Close Profile
+        </button>
+      </div>
+    </div>
+  );
+};
+
 
 const OpeningScreen = ({ onStart, onResume, hasSavedGame, darkMode, toggleDarkMode, loading, soundEnabled, toggleSound, onShowUserPanel, onShowAwards, userSession }) => {
   const localStats = StorageService.getGameStats();
@@ -1242,7 +1414,7 @@ const OpeningScreen = ({ onStart, onResume, hasSavedGame, darkMode, toggleDarkMo
   );
 };
 
-const ClosingScreen = ({ status, time, difficulty, mistakes, onRestart, onMenu, loading, soundEnabled, newlyUnlockedThemes, newlyUnlockedSoundPacks }) => {
+const ClosingScreen = ({ status, time, difficulty, mistakes, onRestart, onMenu, loading, soundEnabled, newlyUnlockedThemes, newlyUnlockedSoundPacks, newlyAwardedBadges }) => {
   const isWin = status === 'won';
 
   useEffect(() => {
@@ -1334,6 +1506,47 @@ const ClosingScreen = ({ status, time, difficulty, mistakes, onRestart, onMenu, 
           </div>
         )}
 
+        {newlyAwardedBadges && newlyAwardedBadges.length > 0 && (
+          <div className="my-3 sm:my-4 p-3 sm:p-4 bg-gradient-to-r from-yellow-50 via-amber-50 to-yellow-50 dark:from-yellow-900/40 dark:via-amber-900/30 dark:to-yellow-900/40 rounded-xl border-2 border-yellow-400 dark:border-yellow-600 animate-pulse-glow relative overflow-hidden">
+            {/* Sparkle overlay */}
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-2 left-4 w-2 h-2 bg-amber-400 rounded-full animate-ping"></div>
+              <div className="absolute top-4 right-6 w-1.5 h-1.5 bg-yellow-400 rounded-full animate-ping" style={{animationDelay: '0.3s'}}></div>
+              <div className="absolute bottom-3 left-1/4 w-1 h-1 bg-amber-400 rounded-full animate-ping" style={{animationDelay: '0.6s'}}></div>
+            </div>
+            
+            <div className="relative">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <span className="text-2xl animate-bounce">🏅</span>
+                <p className="text-base sm:text-lg font-bold text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
+                  <Icons.Awards /> New Badge{newlyAwardedBadges.length > 1 ? 's' : ''} Earned!
+                </p>
+                <span className="text-2xl animate-bounce" style={{animationDelay: '0.2s'}}>✨</span>
+              </div>
+              <p className="text-xs text-center text-amber-600 dark:text-amber-200 mb-3">Check your profile to see all achievements!</p>
+              <div className="flex flex-wrap gap-2 justify-center">
+                {newlyAwardedBadges.map((badgeId, idx) => {
+                  const badge = BADGES[badgeId];
+                  if (!badge) return null;
+                  return (
+                    <div 
+                      key={badgeId} 
+                      className="flex items-center gap-2 bg-white dark:bg-gray-800 px-3 py-2 rounded-xl border-2 border-amber-300 dark:border-amber-700 shadow-lg transform hover:scale-105 transition-all animate-bounce-in"
+                      style={{animationDelay: `${idx * 0.1}s`}}
+                    >
+                      <span className="text-2xl drop-shadow-lg">{badge.icon}</span>
+                      <div className="text-left">
+                        <span className="text-sm font-bold text-gray-800 dark:text-white block">{badge.name}</span>
+                        <span className="text-[10px] text-gray-500 dark:text-gray-400">{badge.description}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6 sm:mb-8 text-center bg-gray-50 dark:bg-gray-700/50 p-3 sm:p-4 rounded-xl">
           <div>
             <div className="text-[10px] sm:text-xs text-gray-500 uppercase">Diff</div>
@@ -1375,8 +1588,13 @@ const App = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showModal, setShowModal] = useState('none');
+  const [initialFilledCount, setInitialFilledCount] = useState(0);
+  const [isPracticeMode, setIsPracticeMode] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [tutorialStep, setTutorialStep] = useState(0);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatInput, setChatInput] = useState('');
+  const [isChatInputFocused, setIsChatInputFocused] = useState(false);
   const [userStatus, setUserStatus] = useState(StorageService.getUserStatus());
   const [chatMessages, setChatMessages] = useState([]);
   const [chatNotification, setChatNotification] = useState(null);
@@ -1388,6 +1606,8 @@ const App = () => {
   // User Authentication State
   const [showUserPanel, setShowUserPanel] = useState(false);
   const [appUserSession, setAppUserSession] = useState(StorageService.getUserSession());
+  const [viewingProfile, setViewingProfile] = useState(null); // For viewing other users' profiles
+  const [profileLoading, setProfileLoading] = useState(false);
 
   // Theme State
   const [activeThemeId, setActiveThemeId] = useState(StorageService.getActiveTheme());
@@ -1408,6 +1628,8 @@ const App = () => {
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const [showConflicts, setShowConflicts] = useState(true);
   const [showRestartConfirm, setShowRestartConfirm] = useState(false);
+  const [showUnlockNotification, setShowUnlockNotification] = useState(false);
+  const [newlyAwardedBadges, setNewlyAwardedBadges] = useState([]);
 
   const timerRef = useRef(null);
   const chatEndRef = useRef(null);
@@ -1643,6 +1865,8 @@ const App = () => {
         setStatus('paused'); 
         setHistory(saved.history || [saved.board]); 
         setMode(saved.mode || 'pen');
+        // Restore initialFilledCount or recalculate from fixed cells
+        setInitialFilledCount(saved.initialFilledCount || saved.board.filter(c => c.isFixed).length);
         setView('game');
       }
     } catch (err) {
@@ -1666,9 +1890,9 @@ const App = () => {
 
   useEffect(() => {
     if (status === 'playing' || status === 'paused') {
-      StorageService.saveGame({ board, difficulty, status, timer, mistakes, history, historyIndex: history.length - 1, selectedCell, mode });
+      StorageService.saveGame({ board, difficulty, status, timer, mistakes, history, historyIndex: history.length - 1, selectedCell, mode, initialFilledCount });
     }
-  }, [board, timer, status, difficulty, mistakes, history, selectedCell, mode]);
+  }, [board, timer, status, difficulty, mistakes, history, selectedCell, mode, initialFilledCount]);
 
   useEffect(() => {
     // Only poll chat when backend is configured
@@ -1767,7 +1991,7 @@ const App = () => {
     setShowRestartConfirm(false);
   };
 
-  const startNewGame = async (diff) => {
+  const startNewGame = async (diff, practiceMode = false) => {
     if (soundEnabled) SoundManager.init();
     setLoading(true);
     try {
@@ -1783,6 +2007,20 @@ const App = () => {
         // Fallback to local generator for dev when GAS isn't configured
         newBoard = generateLocalBoard(diff);
       }
+
+      // Count initially filled cells (pre-filled by the puzzle)
+      const filledCount = newBoard.filter(c => c.value !== null).length;
+      setInitialFilledCount(filledCount);
+
+      setBoard(newBoard); setDifficulty(diff); setStatus('playing');
+      setTimer(0); setMistakes(0); setHistory([newBoard]); setSelectedCell(null);
+      setShowModal('none');
+      setView('game');
+      // Set practice mode only after successful board generation
+      setIsPracticeMode(practiceMode);
+    } catch (e) { console.error(e); alert("Failed to start game."); } finally { setLoading(false); }
+  };
+      setInitialFilledCount(filledCount);
 
       setBoard(newBoard); setDifficulty(diff); setStatus('playing');
       setTimer(0); setMistakes(0); setHistory([newBoard]); setSelectedCell(null);
@@ -1806,16 +2044,20 @@ const App = () => {
       if (target.value === num) return;
       target.value = num;
       if (num !== target.solution) {
+        // Play error sound and mark cell as error
         if (soundEnabled) SoundManager.play('error');
         target.isError = true;
-        const newMistakes = mistakes + 1;
-        setMistakes(newMistakes);
-
-        if (newMistakes >= 3) {
-          setBoard(newBoard); setStatus('lost'); StorageService.clearSavedGame(); return;
+        
+        // Handle mistake counting (only in normal mode)
+        if (!isPracticeMode) {
+          const newMistakes = mistakes + 1;
+          setMistakes(newMistakes);
+          if (newMistakes >= 3) {
+            setBoard(newBoard); setStatus('lost'); StorageService.clearSavedGame(); return;
+          }
         }
         
-        // Capture cellIndex to avoid race condition
+        // Clear error feedback after delay
         const errorCellIndex = selectedCell;
         setTimeout(() => {
           setBoard(prev => {
@@ -1824,7 +2066,8 @@ const App = () => {
               b[errorCellIndex] = {
                 ...b[errorCellIndex],
                 isError: false,
-                value: null
+                // In normal mode, also clear the value; in practice mode, keep it
+                value: isPracticeMode ? b[errorCellIndex].value : null
               };
             }
             return b;
@@ -1849,7 +2092,7 @@ const App = () => {
       StorageService.clearSavedGame();
       handleWin(newBoard, mistakes, timer);
     }
-  }, [board, selectedCell, status, mode, mistakes, soundEnabled, timer]);
+  }, [board, selectedCell, status, mode, mistakes, soundEnabled, timer, isPracticeMode]);
 
   const handleWin = async (finalBoard, finalMistakes, finalTime) => {
     const currentUserId = StorageService.getCurrentUserId();
@@ -1870,6 +2113,7 @@ const App = () => {
     if (newThemes.length > 0) {
       setNewlyUnlockedThemes(newThemes);
       setUnlockedThemes(StorageService.getUnlockedThemes()); // Update state with newly unlocked themes
+      setShowUnlockNotification(true); // Show notification
       if (soundEnabled) setTimeout(() => SoundManager.play('unlock'), 250);
     }
 
@@ -1878,7 +2122,18 @@ const App = () => {
     if (newPacks.length > 0) {
       setNewlyUnlockedSoundPacks(newPacks);
       setUnlockedSoundPacks(StorageService.getUnlockedSoundPacks());
+      setShowUnlockNotification(true); // Show notification
       if (soundEnabled) setTimeout(() => SoundManager.play('unlock'), 250);
+    }
+
+    // Check for badge awards
+    const newBadges = BadgeService.checkAndAwardBadges(stats, { 
+      currentTime: new Date(),
+      chatMessageCount: chatMessages.length
+    });
+    if (newBadges.length > 0) {
+      setNewlyAwardedBadges(newBadges);
+      if (soundEnabled) setTimeout(() => SoundManager.play('chestOpen'), 300);
     }
 
     // Update user stats if authenticated
@@ -1914,6 +2169,9 @@ const App = () => {
             activeSoundPack: activeSoundPackId,
             gameStats: stats
           });
+          
+          // Sync badges with backend
+          await BadgeService.syncBadgesWithBackend();
         } catch (err) {
           console.error('Failed to update user stats:', err);
         }
@@ -1958,6 +2216,33 @@ const App = () => {
     setShowUserPanel(false);
   };
 
+  // Handle viewing another user's profile from chat
+  const handleViewProfile = async (username) => {
+    if (!username || !isGasEnvironment()) return;
+    
+    setProfileLoading(true);
+    if (soundEnabled) SoundManager.play('uiTap');
+    
+    try {
+      // Get user profile from backend using username as userId (they're the same in the system)
+      const result = await runGasFn('getUserProfile', { userId: username });
+      if (result && result.success) {
+        setViewingProfile(result.user);
+      } else {
+        console.error('Failed to load profile:', result?.error);
+      }
+    } catch (err) {
+      console.error('Error loading profile:', err);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  const handleCloseViewProfile = () => {
+    setViewingProfile(null);
+    if (soundEnabled) SoundManager.play('uiTap');
+  };
+
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && status === 'playing') {
@@ -1986,6 +2271,8 @@ const App = () => {
   
   useEffect(() => {
     const handleKeyDown = (e) => {
+      // Don't process game shortcuts when chat input is focused
+      if (isChatInputFocused) return;
       if (status !== 'playing' || showKeyboardHelp) return;
       if (e.key >= '1' && e.key <= '9') handleNumberInput(parseInt(e.key));
       else if (e.key === 'Backspace' || e.key === 'Delete') {
@@ -2024,7 +2311,7 @@ const App = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedCell, status, board, mode, handleNumberInput, soundEnabled]);
+  }, [selectedCell, status, board, mode, handleNumberInput, soundEnabled, isChatInputFocused]);
 
   const getRemainingNumbers = () => {
     const counts = Array(10).fill(9);
@@ -2060,8 +2347,12 @@ const App = () => {
   }, [board, showConflicts]);
   
   const getProgressPercentage = () => {
-    const filled = board.filter(c => c.value !== null).length;
-    return Math.round((filled / 81) * 100);
+    const currentFilled = board.filter(c => c.value !== null).length;
+    const userFilled = currentFilled - initialFilledCount;
+    const totalToFill = 81 - initialFilledCount;
+    // Defensive programming: handle edge case of invalid board state or fully pre-filled puzzle
+    if (totalToFill <= 0) return 100;
+    return Math.round((userFilled / totalToFill) * 100);
   };
 
   const completedBoxes = useMemo(() => {
@@ -2229,6 +2520,21 @@ const App = () => {
     };
   }, [activeThemeId, activeSoundPackId]);
 
+  // Get theme-adaptive chat button colors
+  const getChatButtonColors = useMemo(() => {
+    const themeColorMap = {
+      default: { bg: 'bg-blue-600', hover: 'hover:bg-blue-700', text: 'text-white' },
+      ocean: { bg: 'bg-cyan-600', hover: 'hover:bg-cyan-700', text: 'text-white' },
+      forest: { bg: 'bg-green-600', hover: 'hover:bg-green-700', text: 'text-white' },
+      sunset: { bg: 'bg-orange-600', hover: 'hover:bg-orange-700', text: 'text-white' },
+      midnight: { bg: 'bg-indigo-600', hover: 'hover:bg-indigo-700', text: 'text-white' },
+      sakura: { bg: 'bg-pink-600', hover: 'hover:bg-pink-700', text: 'text-white' },
+      volcano: { bg: 'bg-red-600', hover: 'hover:bg-red-700', text: 'text-white' },
+      arctic: { bg: 'bg-blue-500', hover: 'hover:bg-blue-600', text: 'text-white' }
+    };
+    return themeColorMap[activeThemeId] || themeColorMap.default;
+  }, [activeThemeId]);
+
   // Probe filesystem backgrounds in order (png -> svg -> jpg) and pick the first that loads
   useEffect(() => {
     const paths = activeAssetSet?.assetPaths;
@@ -2304,10 +2610,12 @@ const App = () => {
             setView('menu');
             setNewlyUnlockedThemes([]);
             setNewlyUnlockedSoundPacks([]);
+            setNewlyAwardedBadges([]);
           }}
           loading={loading} soundEnabled={soundEnabled}
           newlyUnlockedThemes={newlyUnlockedThemes}
           newlyUnlockedSoundPacks={newlyUnlockedSoundPacks}
+          newlyAwardedBadges={newlyAwardedBadges}
         />
         {showAwardsZone && (
           <AwardsZone
@@ -2564,6 +2872,17 @@ const App = () => {
 
             {/* Stats */}
             <div className="w-full bg-gradient-to-r from-white via-gray-50 to-white dark:from-gray-800 dark:via-gray-800/80 dark:to-gray-800 py-3 sm:py-4 px-3 sm:px-4 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+              {/* Practice Mode Badge */}
+              {isPracticeMode && (
+                <div className="mb-3 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 px-3 py-2 rounded-lg border border-purple-300 dark:border-purple-700">
+                  <div className="flex items-center justify-center gap-2 text-xs font-bold text-purple-700 dark:text-purple-300">
+                    <span>🎓</span>
+                    <span>Practice Mode</span>
+                    <span className="text-[10px] font-normal">(No mistake limit)</span>
+                  </div>
+                </div>
+              )}
+              
               {/* Progress Bar */}
               <div className="mb-3">
                 <div className="flex justify-between items-center mb-1.5">
@@ -2594,19 +2913,25 @@ const App = () => {
                 </div>
                 <div className="w-px h-8 bg-gradient-to-b from-transparent via-gray-300 dark:via-gray-600 to-transparent"></div>
                 <div className="flex flex-col items-center">
-                  <span className="text-[9px] sm:text-[10px] text-gray-500 uppercase font-semibold tracking-wide">Mistakes</span>
-                  <div className="flex items-center gap-1">
-                    {[0, 1, 2].map(i => (
-                      <div 
-                        key={i} 
-                        className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full transition-all duration-300 ${
-                          i < mistakes 
-                            ? 'bg-red-500 shadow-md shadow-red-500/50' 
-                            : 'bg-gray-300 dark:bg-gray-600'
-                        }`}
-                      ></div>
-                    ))}
-                  </div>
+                  <span className="text-[9px] sm:text-[10px] text-gray-500 uppercase font-semibold tracking-wide">
+                    {isPracticeMode ? 'Practice' : 'Mistakes'}
+                  </span>
+                  {isPracticeMode ? (
+                    <span className="text-xs font-bold text-purple-600 dark:text-purple-400">∞</span>
+                  ) : (
+                    <div className="flex items-center gap-1">
+                      {[0, 1, 2].map(i => (
+                        <div 
+                          key={i} 
+                          className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full transition-all duration-300 ${
+                            i < mistakes 
+                              ? 'bg-red-500 shadow-md shadow-red-500/50' 
+                              : 'bg-gray-300 dark:bg-gray-600'
+                          }`}
+                        ></div>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div className="w-px h-8 bg-gradient-to-b from-transparent via-gray-300 dark:via-gray-600 to-transparent"></div>
                 <div className="flex flex-col items-end">
@@ -2724,6 +3049,35 @@ const App = () => {
                     {d.name}
                   </button>
                 ))}
+              </div>
+              
+              {/* Practice Mode Toggle */}
+              <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                <label className="flex items-center justify-between cursor-pointer bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 p-2.5 rounded-lg transition-all hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-900/50 dark:hover:to-pink-900/50 group mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🎓</span>
+                    <div>
+                      <span className="text-xs sm:text-sm text-gray-800 dark:text-gray-200 font-bold block">Practice Mode</span>
+                      <span className="text-[10px] text-gray-600 dark:text-gray-400">No mistakes limit, extra hints</span>
+                    </div>
+                  </div>
+                  <div className="relative">
+                    <input 
+                      type="checkbox" 
+                      checked={isPracticeMode} 
+                      onChange={(e) => setIsPracticeMode(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-9 h-5 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
+                  </div>
+                </label>
+                <button
+                  onClick={() => { setShowTutorial(true); setTutorialStep(0); if (soundEnabled) SoundManager.play('uiTap'); }}
+                  className="w-full text-xs px-3 py-2 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/50 dark:to-pink-900/50 hover:from-purple-200 hover:to-pink-200 dark:hover:from-purple-900/70 dark:hover:to-pink-900/70 text-purple-800 dark:text-purple-200 rounded-lg font-semibold transition-all flex items-center justify-center gap-2"
+                >
+                  <Icons.Lightbulb />
+                  <span>Show Tutorial</span>
+                </button>
               </div>
             </div>
 
@@ -2950,7 +3304,16 @@ const App = () => {
               {chatMessages.map(msg => (
                 <div key={msg.id} className={`flex flex-col ${msg.sender === userId ? 'items-end' : 'items-start'}`}>
                   <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-gray-500 mb-0.5 px-1 max-w-[90%] leading-tight">
-                    <span className="font-semibold text-gray-700 dark:text-gray-200">{msg.sender === userId ? 'You' : msg.sender}</span>
+                    <button
+                      onClick={() => msg.sender !== userId && handleViewProfile(msg.sender)}
+                      className={`font-semibold ${msg.sender === userId 
+                        ? 'text-gray-700 dark:text-gray-200 cursor-default' 
+                        : 'text-blue-600 dark:text-blue-400 hover:underline cursor-pointer'
+                      }`}
+                      disabled={msg.sender === userId}
+                    >
+                      {msg.sender === userId ? 'You' : msg.sender}
+                    </button>
                     {msg.status && <span className="text-gray-400 truncate">· {msg.status}</span>}
                   </div>
                   <div className={`px-3.5 sm:px-4 py-2 text-sm max-w-[85%] leading-snug break-words shadow-md ${msg.sender === userId
@@ -2968,7 +3331,16 @@ const App = () => {
                   className="p-2.5 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 text-lg shadow-sm"
                   onClick={() => { if (soundEnabled) SoundManager.play('uiTap'); setShowEmojiPicker((v) => !v); }}
                 >😀</button>
-                <input className="flex-1 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 sm:px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-shadow placeholder:text-gray-500 dark:placeholder:text-gray-500" placeholder="Type a message..." maxLength={140} value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleChatSend(chatInput); }} />
+                <input 
+                  className="flex-1 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 sm:px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-shadow placeholder:text-gray-500 dark:placeholder:text-gray-500" 
+                  placeholder="Type a message..." 
+                  maxLength={140} 
+                  value={chatInput} 
+                  onChange={e => setChatInput(e.target.value)} 
+                  onFocus={() => setIsChatInputFocused(true)}
+                  onBlur={() => setIsChatInputFocused(false)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleChatSend(chatInput); }} 
+                />
                 <button className="p-2 sm:p-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex-shrink-0 shadow-md" onClick={() => handleChatSend(chatInput)}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M3.105 2.289a.75.75 0 00-.826.95l1.414 4.925A1.5 1.5 0 005.135 9.25h6.115a.75.75 0 010 1.5H5.135a1.5 1.5 0 00-1.442 1.086l-1.414 4.926a.75.75 0 00.826.95 28.896 28.896 0 0015.293-7.154.75.75 0 000-1.115A28.897 28.897 0 003.105 2.289z" /></svg></button>
 
                 {showEmojiPicker && (
@@ -2999,13 +3371,21 @@ const App = () => {
             </div>
           </div>
         )}
-        <button onClick={toggleChat} className={`p-3 sm:p-4 rounded-full shadow-xl transition-all hover:scale-105 flex items-center justify-center relative ${isChatOpen ? 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
+        <button 
+          onClick={toggleChat} 
+          className={`p-3 sm:p-4 rounded-full shadow-xl transition-all hover:scale-105 flex items-center justify-center relative ${
+            isChatOpen 
+              ? 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200' 
+              : `${getChatButtonColors.bg} ${getChatButtonColors.text} ${getChatButtonColors.hover}`
+          }`}
+        >
           {isChatOpen ? <Icons.X /> : <Icons.Chat />}
           {chatNotification && !isChatOpen && <span className="absolute -top-1 -right-1 flex h-3 w-3"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span></span>}
         </button>
       </div>
       {renderModal()}
       {showUserPanel && <UserPanel soundEnabled={soundEnabled} onClose={handleUserPanelClose} appUserSession={appUserSession} />}
+      {viewingProfile && <ProfileViewModal profile={viewingProfile} onClose={handleCloseViewProfile} soundEnabled={soundEnabled} loading={profileLoading} />}
       {showAwardsZone && (
         <AwardsZone
           soundEnabled={soundEnabled}
@@ -3017,6 +3397,138 @@ const App = () => {
           unlockedPacks={unlockedSoundPacks}
           onSelectPack={(id) => handleSoundPackChange(id, { persist: false })}
         />
+      )}
+
+      {/* Unlock Notification - appears during gameplay */}
+      {showUnlockNotification && (newlyUnlockedThemes.length > 0 || newlyUnlockedSoundPacks.length > 0) && (
+        <div className="fixed top-4 right-4 z-50 animate-slide-in-right">
+          <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 p-4 rounded-xl shadow-2xl border-2 border-white dark:border-gray-200 max-w-sm animate-pulse-glow">
+            <div className="flex items-start gap-3">
+              <div className="text-3xl animate-bounce">🎉</div>
+              <div className="flex-1">
+                <h3 className="text-white font-bold text-base mb-1 flex items-center gap-2">
+                  <span>✨ Unlocked!</span>
+                </h3>
+                {newlyUnlockedThemes.length > 0 && (
+                  <div className="text-white text-sm mb-2">
+                    <strong>Theme{newlyUnlockedThemes.length > 1 ? 's' : ''}:</strong> {newlyUnlockedThemes.map(id => THEMES[id]?.name).filter(Boolean).join(', ')}
+                  </div>
+                )}
+                {newlyUnlockedSoundPacks.length > 0 && (
+                  <div className="text-white text-sm">
+                    <strong>Sound{newlyUnlockedSoundPacks.length > 1 ? 's' : ''}:</strong> {newlyUnlockedSoundPacks.map(id => SOUND_PACKS[id]?.name).filter(Boolean).join(', ')}
+                  </div>
+                )}
+                <button
+                  onClick={() => setShowUnlockNotification(false)}
+                  className="mt-2 text-xs bg-white text-purple-600 px-3 py-1 rounded-full font-semibold hover:bg-gray-100 transition-colors"
+                >
+                  Dismiss
+                </button>
+              </div>
+              <button
+                onClick={() => setShowUnlockNotification(false)}
+                className="text-white hover:text-gray-200 transition-colors"
+              >
+                <Icons.X />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tutorial Overlay */}
+      {showTutorial && view === 'game' && (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 max-w-md w-full animate-pop">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <span>🎓</span>
+                <span>Tutorial</span>
+              </h2>
+              <button
+                onClick={() => setShowTutorial(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <Icons.X />
+              </button>
+            </div>
+            
+            {tutorialStep === 0 && (
+              <div className="space-y-4">
+                <p className="text-gray-700 dark:text-gray-300">
+                  Welcome to Sudoku Logic Lab! Let's learn the basics.
+                </p>
+                <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
+                  <h3 className="font-bold text-blue-900 dark:text-blue-200 mb-2">Goal</h3>
+                  <p className="text-sm text-blue-800 dark:text-blue-300">
+                    Fill the 9×9 grid so that each row, column, and 3×3 box contains the digits 1-9 without repetition.
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            {tutorialStep === 1 && (
+              <div className="space-y-4">
+                <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg">
+                  <h3 className="font-bold text-green-900 dark:text-green-200 mb-2">Controls</h3>
+                  <ul className="text-sm text-green-800 dark:text-green-300 space-y-2">
+                    <li>• Click a cell to select it</li>
+                    <li>• Press 1-9 to enter a number</li>
+                    <li>• Use arrow keys to navigate</li>
+                    <li>• Press N to toggle notes mode</li>
+                  </ul>
+                </div>
+              </div>
+            )}
+            
+            {tutorialStep === 2 && (
+              <div className="space-y-4">
+                <div className="bg-purple-50 dark:bg-purple-900/30 p-4 rounded-lg">
+                  <h3 className="font-bold text-purple-900 dark:text-purple-200 mb-2">Practice Mode</h3>
+                  <p className="text-sm text-purple-800 dark:text-purple-300">
+                    Practice mode removes the 3-mistake limit and provides extra guidance. Toggle it in the New Game section!
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            <div className="flex justify-between items-center mt-6">
+              <button
+                onClick={() => setTutorialStep(Math.max(0, tutorialStep - 1))}
+                disabled={tutorialStep === 0}
+                className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              >
+                Previous
+              </button>
+              <div className="flex gap-2">
+                {[0, 1, 2].map((step) => (
+                  <div
+                    key={step}
+                    className={`w-2 h-2 rounded-full transition-all ${
+                      step === tutorialStep ? 'bg-blue-600 w-4' : 'bg-gray-300'
+                    }`}
+                  />
+                ))}
+              </div>
+              {tutorialStep < 2 ? (
+                <button
+                  onClick={() => setTutorialStep(tutorialStep + 1)}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
+                >
+                  Next
+                </button>
+              ) : (
+                <button
+                  onClick={() => { setShowTutorial(false); setTutorialStep(0); }}
+                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors"
+                >
+                  Got it!
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Footer - legible over all themes */}
