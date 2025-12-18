@@ -83,9 +83,11 @@
     
     <!-- Dynamic path resolution for different deployment environments -->
     <script>
-      // Detect if we're in /public/ subdirectory (local dev) or root (production)
-      const isLocalDev = window.location.pathname.includes('/public/');
-      const pathPrefix = isLocalDev ? '../' : './';
+      // Detect environment:
+      // - GitHub Pages: files are in root (./src/, ./config/)
+      // - Local dev: index.html is in public/, files are in parent (../src/, ../config/)
+      const isGitHubPages = window.location.hostname.includes('github.io');
+      const pathPrefix = isGitHubPages ? './' : './';
       
       // Helper to load scripts with correct path, silently handling failures
       function loadScript(src, attributes = {}) {
@@ -104,8 +106,8 @@
     
     <!-- Configuration files (load conditionally to avoid conflicts) -->
     <script>
-      // Only load production config if we're NOT in local dev and config.local.js doesn't exist
-      if (isLocalDev) {
+      // Only load production config if we're on GitHub Pages
+      if (!isGitHubPages) {
         loadScript('config/config.local.js');
         loadScript('config/admin.local.js');
       } else {
