@@ -1,0 +1,32 @@
+{
+  "name": "sudoku-labs",
+  "version": "1.0.0",
+  "description": "A modern, browser-based Sudoku game with leaderboard, chat, and campaign features. Built with React and Google Apps Script.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "build:css": "tailwindcss -i src/styles.css -o public/styles.css --minify",
+    "watch:css": "tailwindcss -i src/styles.css -o public/styles.css --watch",
+    "dev": "python3 -m http.server 8000 --directory public",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/edmund-alexander/Sudoku-Labs.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/edmund-alexander/Sudoku-Labs/issues"
+  },
+  "homepage": "https://github.com/edmund-alexander/Sudoku-Labs#readme",
+  "devDependencies": {
+    "autoprefixer": "^10.4.23",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18"
+  }
+}

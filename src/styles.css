@@ -1,0 +1,159 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom animations */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+.animate-shake { 
+  animation: shake 0.3s ease-in-out; 
+}
+
+@keyframes pop {
+  0% { transform: scale(0.9); opacity: 0.7; }
+  50% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-pop { 
+  animation: pop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+}
+
+@keyframes sparkle {
+  0% { transform: scale(0) rotate(0deg); opacity: 0; }
+  50% { transform: scale(1) rotate(180deg); opacity: 1; }
+  100% { transform: scale(0) rotate(360deg); opacity: 0; }
+}
+
+.sparkle {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  margin-left: -10px;
+  margin-top: -10px;
+  background: gold;
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  animation: sparkle 1s ease-in-out forwards;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Custom Scrollbar */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-thin::-webkit-scrollbar { width: 6px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+.scrollbar-thin::-webkit-scrollbar-thumb { 
+  background-color: rgba(156, 163, 175, 0.5); 
+  border-radius: 20px; 
+}
+
+/* Campaign Map Animations */
+@keyframes dash {
+  to { stroke-dashoffset: -1000; }
+}
+.animate-dash {
+  stroke-dasharray: 20 10;
+  animation: dash 20s linear infinite;
+}
+
+/* Theme-Specific Floating Animations */
+@keyframes float-slow { 
+  0%, 100% { transform: translateY(0px) translateX(0px); }
+  25% { transform: translateY(-15px) translateX(5px); }
+  50% { transform: translateY(-25px) translateX(-8px); }
+  75% { transform: translateY(-10px) translateX(12px); }
+}
+.float-slow { animation: float-slow 8s ease-in-out infinite; }
+
+@keyframes float-slow-wave {
+  0%, 100% { transform: translateY(0px) translateX(0px); }
+  25% { transform: translateY(-20px) translateX(10px); }
+  50% { transform: translateY(-30px) translateX(0px); }
+  75% { transform: translateY(-15px) translateX(-10px); }
+}
+.float-slow-wave { animation: float-slow-wave 10s ease-in-out infinite; }
+
+@keyframes float-glow {
+  0%, 100% { transform: translateY(0px); filter: brightness(1) drop-shadow(0 0 8px currentColor); }
+  50% { transform: translateY(-20px); filter: brightness(1.2) drop-shadow(0 0 16px currentColor); }
+}
+.float-glow { animation: float-glow 6s ease-in-out infinite; }
+
+@keyframes float-pulse {
+  0%, 100% { transform: scale(1) translateY(0px); opacity: 0.6; }
+  50% { transform: scale(1.1) translateY(-15px); opacity: 0.9; }
+}
+.float-pulse { animation: float-pulse 7s ease-in-out infinite; }
+
+@keyframes float-soft {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+.float-soft { animation: float-soft 9s ease-in-out infinite; }
+
+@keyframes float-intense {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  25% { transform: translateY(-18px) rotate(5deg); }
+  50% { transform: translateY(-25px) rotate(-5deg); }
+  75% { transform: translateY(-12px) rotate(3deg); }
+}
+.float-intense { animation: float-intense 5s ease-in-out infinite; }
+
+@keyframes float-crystalline {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  25% { transform: translateY(-16px) rotate(-10deg); }
+  50% { transform: translateY(-28px) rotate(0deg); }
+  75% { transform: translateY(-14px) rotate(10deg); }
+}
+.float-crystalline { animation: float-crystalline 8s ease-in-out infinite; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-float-slow {
+  animation: float-slow 15s ease-in-out infinite;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.5); }
+}
+.animate-twinkle {
+  animation: twinkle 3s ease-in-out infinite;
+}
+
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+.animate-bounce-slow {
+  animation: bounce-slow 2s ease-in-out infinite;
+}
+
+/* Profile hover effects */
+.profile-hover-card {
+  position: absolute;
+  z-index: 9999;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.profile-trigger:hover + .profile-hover-card,
+.profile-hover-card:hover {
+  pointer-events: auto;
+}
+
+/* Font family */
+body { 
+  font-family: 'Inter', sans-serif; 
+}
+
