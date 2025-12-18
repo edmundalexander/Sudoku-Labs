@@ -146,9 +146,17 @@
       loadScript('src/services.js');
     </script>
 
-    <!-- Load React app (JSX, compiled in-browser by Babel) -->
+
+    <!-- Load React app (JSX, compiled in-browser by Babel) only after services.js is loaded -->
     <script>
-      loadScript('src/app.jsx', { 'type': 'text/babel', 'data-presets': 'env,react' });
+      // Wait for StorageService to be defined before loading app.jsx
+      (function waitForServicesAndLoadApp() {
+        if (window.StorageService) {
+          loadScript('src/app.jsx', { 'type': 'text/babel', 'data-presets': 'env,react' });
+        } else {
+          setTimeout(waitForServicesAndLoadApp, 20);
+        }
+      })();
     </script>
 
     <!-- Load admin console (JSX, optional - only works if admin.local.js is loaded) -->
