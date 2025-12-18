@@ -205,11 +205,17 @@
 
     <!-- Configuration files (load conditionally to avoid conflicts) -->
     <script>
-      // Load appropriate config based on environment
-      // These files are optional and will fail silently if not found
+      // Only try to load local config in development environments
+      // In production (GitHub Pages), these files don't exist
       (async function () {
-        await loadScript("config/config.local.js");
-        await loadScript("config/admin.local.js");
+        const isDev = window.location.hostname === "localhost" ||
+                      window.location.hostname === "127.0.0.1" ||
+                      window.location.hostname.includes("app.github.dev");
+        
+        if (isDev) {
+          await loadScript("config/config.local.js");
+          await loadScript("config/admin.local.js");
+        }
       })();
     </script>
 
