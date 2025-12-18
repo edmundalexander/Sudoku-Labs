@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Test</title>
+    <script>
+        window.addEventListener('error', function(e) {
+            console.error('Global error:', e.message, 'at', e.filename, ':', e.lineno);
+        });
+    </script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+    <script>
+      window.CONFIG = { GAS_URL: null, BASE_PATH: '' };
+    </script>
+    <script src="src/constants.js"></script>
+    <script src="src/utils.js"></script>
+    <script src="src/sound.js"></script>
+    <script src="src/services.js"></script>
+    <script type="text/babel" data-presets="env,react" src="src/app.jsx"></script>
+    <script>
+        setTimeout(() => {
+            console.log('=== DEBUG CHECK ===');
+            console.log('KEYS:', typeof KEYS);
+            console.log('THEMES:', typeof THEMES);
+            console.log('CONFIG:', window.CONFIG);
+            console.log('React:', typeof React);
+            console.log('ReactDOM:', typeof ReactDOM);
+            console.log('Root element:', document.getElementById('root').innerHTML.substring(0, 100));
+        }, 3000);
+    </script>
+</body>
+</html>

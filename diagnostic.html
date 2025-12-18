@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Diagnostic Test</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #111; color: #0f0; }
+        .error { color: #f00; }
+        .success { color: #0f0; }
+        .warning { color: #ff0; }
+        #log { white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>Sudoku Logic Lab - Diagnostic Test</h1>
+    <div id="log"></div>
+    
+    <script>
+        const log = document.getElementById('log');
+        const print = (msg, type = 'info') => {
+            const line = document.createElement('div');
+            line.className = type;
+            line.textContent = `[${new Date().toISOString().substr(11, 12)}] ${msg}`;
+            log.appendChild(line);
+            console.log(msg);
+        };
+        
+        window.addEventListener('error', (e) => {
+            print(`❌ GLOBAL ERROR: ${e.message} at ${e.filename}:${e.lineno}:${e.colno}`, 'error');
+        });
+        
+        window.addEventListener('unhandledrejection', (e) => {
+            print(`❌ UNHANDLED PROMISE: ${e.reason}`, 'error');
+        });
+        
+        print('🔍 Starting diagnostic checks...', 'info');
+        
+        // Test 1: Check CONFIG
+        setTimeout(() => {
+            if (typeof window.CONFIG !== 'undefined') {
+                print('✅ CONFIG loaded: ' + JSON.stringify(window.CONFIG), 'success');
+            } else {
+                print('❌ CONFIG not loaded', 'error');
+            }
+        }, 100);
+        
+        // Test 2: Check React/ReactDOM
+        setTimeout(() => {
+            if (typeof React !== 'undefined') {
+                print('✅ React loaded: v' + React.version, 'success');
+            } else {
+                print('❌ React NOT loaded', 'error');
+            }
+            
+            if (typeof ReactDOM !== 'undefined') {
+                print('✅ ReactDOM loaded', 'success');
+            } else {
+                print('❌ ReactDOM NOT loaded', 'error');
+            }
+            
+            if (typeof Babel !== 'undefined') {
+                print('✅ Babel loaded: v' + Babel.version, 'success');
+            } else {
+                print('❌ Babel NOT loaded', 'error');
+            }
+        }, 500);
+        
+        // Test 3: Check constants
+        setTimeout(() => {
+            const checks = ['KEYS', 'THEMES', 'SOUND_PACKS', 'DIFFICULTY', 'EMOJI_CATEGORIES', 
+                           'getThemeAssetSet', 'VISUAL_BASES'];
+            checks.forEach(name => {
+                if (typeof window[name] !== 'undefined') {
+                    print(`✅ ${name} available`, 'success');
+                } else {
+                    print(`❌ ${name} NOT available`, 'error');
+                }
+            });
+        }, 800);
+        
+        // Test 4: Check utils
+        setTimeout(() => {
+            const utils = ['isValidSudoku', 'generateLocalBoard', 'formatTime'];
+            utils.forEach(name => {
+                if (typeof window[name] !== 'undefined') {
+                    print(`✅ ${name} available`, 'success');
+                } else {
+                    print(`❌ ${name} NOT available`, 'error');
+                }
+            });
+        }, 1000);
+        
+        // Test 5: Check sound
+        setTimeout(() => {
+            if (typeof window.SoundManager !== 'undefined') {
+                print('✅ SoundManager available', 'success');
+            } else {
+                print('❌ SoundManager NOT available', 'error');
+            }
+        }, 1200);
+        
+        // Test 6: Check services
+        setTimeout(() => {
+            const services = ['runGasFn', 'StorageService', 'initUser'];
+            services.forEach(name => {
+                if (typeof window[name] !== 'undefined') {
+                    print(`✅ ${name} available`, 'success');
+                } else {
+                    print(`❌ ${name} NOT available`, 'error');
+                }
+            });
+        }, 1400);
+        
+        // Test 7: Try to load the actual app
+        setTimeout(() => {
+            print('🔍 Attempting to render app...', 'info');
+            const rootEl = document.createElement('div');
+            rootEl.id = 'test-root';
+            document.body.appendChild(rootEl);
+            
+            try {
+                if (typeof ReactDOM !== 'undefined' && ReactDOM.createRoot) {
+                    print('✅ ReactDOM.createRoot available', 'success');
+                } else {
+                    print('❌ ReactDOM.createRoot NOT available', 'error');
+                }
+            } catch (err) {
+                print(`❌ React render error: ${err.message}`, 'error');
+            }
+        }, 1600);
+        
+        setTimeout(() => {
+            print('\n📊 Diagnostic complete. Check console for details.', 'info');
+        }, 2000);
+    </script>
+    
+    <!-- Load everything in order -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <script>
+      window.CONFIG = { GAS_URL: null, BASE_PATH: '' };
+    </script>
+    <script src="config/config.local.js" onerror="print('⚠️  config.local.js load failed', 'warning');"></script>
+    <script src="config/config.production.example.js" onerror="print('⚠️  config.production.example.js load failed', 'warning');"></script>
+    
+    <script src="src/constants.js" onerror="print('❌ constants.js load failed', 'error');"></script>
+    <script src="src/utils.js" onerror="print('❌ utils.js load failed', 'error');"></script>
+    <script src="src/sound.js" onerror="print('❌ sound.js load failed', 'error');"></script>
+    <script src="src/services.js" onerror="print('❌ services.js load failed', 'error');"></script>
+</body>
+</html>
