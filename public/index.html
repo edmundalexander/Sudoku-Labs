@@ -115,7 +115,9 @@
           if (value === true) script.setAttribute(key, '');
           else script.setAttribute(key, value);
         });
-        document.currentScript.parentNode.insertBefore(script, document.currentScript.nextSibling);
+        // If called from a timer or async, document.currentScript may be null
+        const parent = (document.currentScript && document.currentScript.parentNode) || document.head || document.body;
+        parent.appendChild(script);
       }
     </script>
     
