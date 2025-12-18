@@ -1045,9 +1045,14 @@ const CHAT_POLL_INTERVAL = 5000;
 
 const FullScreenLoader = ({ message = "Loading..." }) => (
   <div className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center text-white gap-3 animate-fade-in">
-    <div className="w-12 h-12 border-4 border-white/50 border-t-white rounded-full animate-spin" aria-label="Loading" />
+    <div
+      className="w-12 h-12 border-4 border-white/50 border-t-white rounded-full animate-spin"
+      aria-label="Loading"
+    />
     <div className="text-sm font-semibold tracking-wide">{message}</div>
-    <div className="text-[11px] text-white/80">Please wait while we finish updating.</div>
+    <div className="text-[11px] text-white/80">
+      Please wait while we finish updating.
+    </div>
   </div>
 );
 
@@ -1503,11 +1508,24 @@ const UserPanel = ({ soundEnabled, onClose, appUserSession }) => {
     }
   };
 
-  const handleLogout = () => {
-    StorageService.clearUserSession();
-    setLocalUserSession(null);
-    if (soundEnabled) SoundManager.play("uiTap");
-    onClose(null);
+  const handleLogout = async () => {
+    setLoading(true);
+    try {
+      // Small delay to show loading state
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      if (typeof StorageService !== "undefined") {
+        StorageService.clearUserSession();
+      }
+      setLocalUserSession(null);
+      if (soundEnabled) SoundManager.play("uiTap");
+      onClose(null);
+    } catch (e) {
+      console.error("Logout failed:", e);
+      setError("Logout failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleContinueAsGuest = () => {
@@ -1723,9 +1741,19 @@ const UserPanel = ({ soundEnabled, onClose, appUserSession }) => {
 
           <button
             onClick={handleLogout}
-            className="w-full py-2.5 sm:py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold text-sm sm:text-base transition-colors flex items-center justify-center gap-2"
+            disabled={loading}
+            className="w-full py-2.5 sm:py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold text-sm sm:text-base transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Icons.Logout /> Logout
+            {loading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                Logging out...
+              </>
+            ) : (
+              <>
+                <Icons.Logout /> Logout
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -3777,18 +3805,27 @@ const App = () => {
   const handleUserPanelClose = (updatedUser) => {
     if (updatedUser) {
       // Update both global storage and component state for consistency
-      StorageService.setUserSession(updatedUser);
+      if (typeof StorageService !== "undefined") {
+        StorageService.setUserSession(updatedUser);
+      }
       setAppUserSession(updatedUser);
     } else {
       // Explicit logout path
-      StorageService.clearUserSession();
+      if (typeof StorageService !== "undefined") {
+        StorageService.clearUserSession();
+        setUnlockedThemes(StorageService.getUnlockedThemes());
+        setUnlockedSoundPacks(StorageService.getUnlockedSoundPacks());
+        setActiveThemeId(sanitizeThemeId(StorageService.getActiveTheme()));
+        setActiveSoundPackId(
+          sanitizeSoundPackId(StorageService.getActiveSoundPack())
+        );
+      } else {
+        setUnlockedThemes(["default"]);
+        setUnlockedSoundPacks(["classic"]);
+        setActiveThemeId("default");
+        setActiveSoundPackId("classic");
+      }
       setAppUserSession(null);
-      setUnlockedThemes(StorageService.getUnlockedThemes());
-      setUnlockedSoundPacks(StorageService.getUnlockedSoundPacks());
-      setActiveThemeId(sanitizeThemeId(StorageService.getActiveTheme()));
-      setActiveSoundPackId(
-        sanitizeSoundPackId(StorageService.getActiveSoundPack())
-      );
       setNewlyUnlockedThemes([]);
       setNewlyUnlockedSoundPacks([]);
       setNewlyAwardedBadges([]);
@@ -5978,9 +6015,46 @@ const App = () => {
   );
 };
 
+const AppLoader = () => {
+  const [ready, setReady] = useState(typeof StorageService !== "undefined");
+
+  useEffect(() => {
+    if (!ready) {
+      const checkInterval = setInterval(() => {
+        if (typeof StorageService !== "undefined") {
+          setReady(true);
+          clearInterval(checkInterval);
+        }
+      }, 50);
+
+      // Timeout after 5 seconds
+      const timeout = setTimeout(() => {
+        clearInterval(checkInterval);
+        console.error("StorageService failed to load within timeout");
+      }, 5000);
+
+      return () => {
+        clearInterval(checkInterval);
+        clearTimeout(timeout);
+      };
+    }
+  }, [ready]);
+
+  if (!ready) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white transition-colors duration-300">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+        <h2 className="text-xl font-semibold">Loading Resources...</h2>
+      </div>
+    );
+  }
+
+  return <App />;
+};
+
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <ErrorBoundary>
-    <App />
+    <AppLoader />
   </ErrorBoundary>
 );
