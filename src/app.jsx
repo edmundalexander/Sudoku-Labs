@@ -4205,14 +4205,14 @@ const App = () => {
         <div className="flex justify-between items-center px-2 sm:px-4 lg:px-0">
           <div className="flex flex-col">
             <h1
-              className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight cursor-pointer"
+              className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight cursor-pointer text-gray-900 dark:text-white"
               onClick={() => {
                 if (soundEnabled) SoundManager.play("uiTap");
                 setStatus("paused");
                 setView("menu");
               }}
             >
-              Sudoku <span className="text-blue-600">Logic</span> Lab
+              Sudoku <span className="text-blue-600 dark:text-blue-300">Logic</span> Lab
             </h1>
           </div>
           <div className="flex gap-1 sm:gap-2 items-center">
