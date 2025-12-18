@@ -17,6 +17,11 @@
 # - GAS project already created with a Google Sheet
 #
 # Usage: bash scripts/setup-admin-full.sh
+#
+# Troubleshooting:
+# - If authentication fails: clasp logout && clasp login
+# - If push fails: Check Script ID and project access
+# - For manual setup: bash scripts/setup-admin.sh
 # ============================================================================
 
 set -e  # Exit on error
@@ -27,6 +32,9 @@ PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." && pwd )"
 echo "╔══════════════════════════════════════════════════════════════════════╗"
 echo "║     Sudoku Labs - Automated Admin Console Setup (Full)              ║"
 echo "╚══════════════════════════════════════════════════════════════════════╝"
+echo ""
+echo "⚠️  If you encounter authentication issues, you can always fall back to:"
+echo "   bash scripts/setup-admin.sh (manual setup)"
 echo ""
 echo "This script will automate the ENTIRE admin setup process including"
 echo "Google Apps Script deployment and configuration."
@@ -67,7 +75,11 @@ echo ""
 # ============================================================================
 
 echo "🔐 Checking Google authentication..."
-if ! clasp login --status &> /dev/null; then
+
+# Always try to check status more thoroughly
+CLASP_STATUS_OUTPUT=$(clasp login --status 2>&1)
+
+if echo "$CLASP_STATUS_OUTPUT" | grep -qi "not.*logged.*in\|no.*credentials"; then
     echo ""
     echo "You need to authenticate with Google to manage Apps Script."
     echo "This is a one-time setup that will open a browser window."
@@ -85,6 +97,7 @@ if ! clasp login --status &> /dev/null; then
     echo "✅ Successfully authenticated!"
 else
     echo "✅ Already authenticated with Google"
+    echo "   If you encounter issues, try: clasp logout && clasp login"
 fi
 
 echo ""
@@ -222,16 +235,56 @@ echo ""
 echo "📤 Deploying code to Google Apps Script..."
 cd "$PROJECT_ROOT"
 
+# Verify .clasp.json exists
+if [ ! -f ".clasp.json" ]; then
+    echo "❌ .clasp.json not found. Please check project configuration."
+    exit 1
+fi
+
+echo "Using project configuration:"
+cat .clasp.json
+echo ""
+
+# Try to get project info first (this validates auth and project access)
+echo "Verifying project access..."
+if ! clasp open --cwd; then
+    echo ""
+    echo "⚠️  Could not verify project access."
+    echo ""
+    echo "Please ensure:"
+    echo "  1. You're logged in: clasp login --status"
+    echo "  2. Script ID is correct"
+    echo "  3. You have access to the project"
+    echo ""
+    read -p "Do you want to re-authenticate? (y/N): " -n 1 -r
+    echo ""
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        clasp logout
+        clasp login
+        if [ $? -ne 0 ]; then
+            echo "❌ Authentication failed"
+            exit 1
+        fi
+    else
+        echo "Please check your setup and try again."
+        exit 1
+    fi
+fi
+
 # Push the code
+echo "Pushing code to Google Apps Script..."
 if clasp push --force; then
     echo "✅ Code deployed successfully!"
 else
     echo "❌ Failed to deploy code"
     echo ""
-    echo "You may need to enable the Apps Script API:"
-    echo "  https://script.google.com/home/usersettings"
+    echo "Troubleshooting steps:"
+    echo "  1. Verify authentication: clasp logout && clasp login"
+    echo "  2. Check Script ID is correct in .clasp.json"
+    echo "  3. Ensure Apps Script API is enabled:"
+    echo "     https://script.google.com/home/usersettings"
+    echo "  4. Try opening project manually: clasp open"
     echo ""
-    echo "Then try running this script again."
     exit 1
 fi
 
