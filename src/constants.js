@@ -864,16 +864,20 @@ const THEME_COMBINATIONS = Object.freeze({
  * @returns {Object} Combined ThemeAssetSet with all styling properties
  */
 const getThemeAssetSet = (visualId, audioId) => {
-  const comboKey = getComboKey(visualId, audioId);
+  // Validate and sanitize input IDs - ensure they're strings, not arrays or other types
+  const safeVisualId = (typeof visualId === 'string' && visualId.trim()) ? visualId.trim() : 'default';
+  const safeAudioId = (typeof audioId === 'string' && audioId.trim()) ? audioId.trim() : 'classic';
+  
+  const comboKey = getComboKey(safeVisualId, safeAudioId);
   const combo = THEME_COMBINATIONS[comboKey] || THEME_COMBINATIONS['default_classic'];
-  const visualBase = VISUAL_BASES[visualId] || VISUAL_BASES.default;
+  const visualBase = VISUAL_BASES[safeVisualId] || VISUAL_BASES.default;
   const texture = BOARD_TEXTURES[combo.boardTexture] || BOARD_TEXTURES.smooth;
   const decorSet = DECOR_SETS[combo.decor] || DECOR_SETS.none;
   
   // Optional filesystem-based assets (user-provided)
   // Use BASE_PATH from config for subdirectory deployments (e.g., GitHub Pages)
   const basePath = (window.CONFIG && window.CONFIG.BASE_PATH) || '';
-  const assetBase = `${basePath}/public/assets/themes/${visualId}/${audioId}`.replace(/^\/\//, '/');
+  const assetBase = `${basePath}/public/assets/themes/${safeVisualId}/${safeAudioId}`.replace(/^\/\//, '/');
   const assetPaths = {
     base: assetBase,
     bgJpg: `${assetBase}/background.jpg`,

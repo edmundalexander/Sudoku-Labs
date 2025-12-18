@@ -1637,12 +1637,18 @@ const App = () => {
   const profileCacheRef = useRef(new Map()); // Cache for profile data
 
   // Theme State
-  const [activeThemeId, setActiveThemeId] = useState(StorageService.getActiveTheme());
+  const [activeThemeId, setActiveThemeId] = useState(() => {
+    const stored = StorageService.getActiveTheme();
+    return (typeof stored === 'string' && stored.trim()) ? stored.trim() : 'default';
+  });
   const [unlockedThemes, setUnlockedThemes] = useState(StorageService.getUnlockedThemes());
   const [newlyUnlockedThemes, setNewlyUnlockedThemes] = useState([]);
 
   // Sound Pack State
-  const [activeSoundPackId, setActiveSoundPackId] = useState(StorageService.getActiveSoundPack());
+  const [activeSoundPackId, setActiveSoundPackId] = useState(() => {
+    const stored = StorageService.getActiveSoundPack();
+    return (typeof stored === 'string' && stored.trim()) ? stored.trim() : 'classic';
+  });
   const [unlockedSoundPacks, setUnlockedSoundPacks] = useState(StorageService.getUnlockedSoundPacks());
   const [newlyUnlockedSoundPacks, setNewlyUnlockedSoundPacks] = useState([]);
   const [showAwardsZone, setShowAwardsZone] = useState(false);
@@ -1793,8 +1799,10 @@ const App = () => {
 
       const currentActiveTheme = themeTouchedRef.current ? activeThemeId : StorageService.getActiveTheme();
       const currentActivePack = soundPackTouchedRef.current ? activeSoundPackId : StorageService.getActiveSoundPack();
-      const remoteActiveTheme = remote.state.activeTheme;
-      const remoteActivePack = remote.state.activeSoundPack;
+      
+      // Ensure remote values are strings, not arrays or other invalid types
+      const remoteActiveTheme = (typeof remote.state.activeTheme === 'string' && remote.state.activeTheme.trim()) ? remote.state.activeTheme.trim() : null;
+      const remoteActivePack = (typeof remote.state.activeSoundPack === 'string' && remote.state.activeSoundPack.trim()) ? remote.state.activeSoundPack.trim() : null;
 
       const activeTheme = themeTouchedRef.current ? currentActiveTheme : (remoteActiveTheme || currentActiveTheme);
       const activePack = soundPackTouchedRef.current ? currentActivePack : (remoteActivePack || currentActivePack);
@@ -2288,17 +2296,32 @@ const App = () => {
       const updated = await postChatMessage(msg);
       if (updated && Array.isArray(updated)) setChatMessages(updated);
     } catch (error) {
-      // Handle ban/mute errors
+      // Handle ban/mute errors with friendly notifications
       if (error.message.startsWith('BANNED:')) {
-        alert('You have been banned from chat');
+        // Show animated notification
+        const notif = document.createElement('div');
+        notif.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-red-900 text-white px-6 py-4 rounded-lg shadow-2xl z-50 border-2 border-red-500 animate-bounce max-w-md';
+        notif.innerHTML = '<div class="text-center"><div class="text-xl font-bold mb-2">🚫 Chat Blocked</div><div class="text-sm">You have been banned from chat and cannot send messages. Contact an administrator if you believe this is in error.</div></div>';
+        document.body.appendChild(notif);
+        setTimeout(() => notif.remove(), 5000);
+        
         // Remove the pending message
         setChatMessages(prev => prev.filter(m => m.id !== msg.id));
+        if (soundEnabled) SoundManager.play('error');
       } else if (error.message.startsWith('MUTED:')) {
         const match = error.message.match(/(\d+) more minute/);
         const minutes = match ? match[1] : 'several';
-        alert(`You are muted for ${minutes} more minute(s)`);
+        
+        // Show animated notification
+        const notif = document.createElement('div');
+        notif.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-yellow-900 text-white px-6 py-4 rounded-lg shadow-2xl z-50 border-2 border-yellow-600 animate-pulse max-w-md';
+        notif.innerHTML = `<div class="text-center"><div class="text-xl font-bold mb-2">🔇 Temporarily Muted</div><div class="text-sm">You are muted for ${minutes} more minute(s). You can still play and see messages.</div></div>`;
+        document.body.appendChild(notif);
+        setTimeout(() => notif.remove(), 5000);
+        
         // Remove the pending message
         setChatMessages(prev => prev.filter(m => m.id !== msg.id));
+        if (soundEnabled) SoundManager.play('error');
       } else {
         console.error('Failed to send chat message:', error);
       }
@@ -2545,30 +2568,36 @@ const App = () => {
   };
 
   const handleThemeChange = (themeId, { persist = true } = {}) => {
-    if (themeId === activeThemeId) return;
+    // Validate themeId is a string
+    if (typeof themeId !== 'string' || !themeId.trim()) return;
+    const validThemeId = themeId.trim();
+    if (validThemeId === activeThemeId) return;
     themeTouchedRef.current = true;
-    setActiveThemeId(themeId);
+    setActiveThemeId(validThemeId);
     if (!persist) {
-      setPendingActiveThemeId(themeId);
+      setPendingActiveThemeId(validThemeId);
       setAwardsDirty(true);
       return;
     }
-    StorageService.saveActiveTheme(themeId);
-    schedulePersist({ activeTheme: themeId });
+    StorageService.saveActiveTheme(validThemeId);
+    schedulePersist({ activeTheme: validThemeId });
   };
 
   const handleSoundPackChange = (packId, { persist = true } = {}) => {
-    if (packId === activeSoundPackId) return;
+    // Validate packId is a string
+    if (typeof packId !== 'string' || !packId.trim()) return;
+    const validPackId = packId.trim();
+    if (validPackId === activeSoundPackId) return;
     soundPackTouchedRef.current = true;
-    setActiveSoundPackId(packId);
-    SoundManager.setPack(packId);
+    setActiveSoundPackId(validPackId);
+    SoundManager.setPack(validPackId);
     if (!persist) {
-      setPendingActiveSoundPackId(packId);
+      setPendingActiveSoundPackId(validPackId);
       setAwardsDirty(true);
       return;
     }
-    StorageService.saveActiveSoundPack(packId);
-    schedulePersist({ activeSoundPack: packId });
+    StorageService.saveActiveSoundPack(validPackId);
+    schedulePersist({ activeSoundPack: validPackId });
   };
 
   const handleAwardsClose = () => {
