@@ -917,11 +917,7 @@ const getThemeAssetSet = (visualId, audioId) => {
       window.location &&
       window.location.hostname.includes("github.io");
     const assetsRoot = isGitHubPages ? "assets/themes" : "public/assets/themes";
-    assetBase =
-      `${basePath}/${assetsRoot}/${safeVisualId}/${safeAudioId}`.replace(
-        /^\/+/,
-        "/"
-      );
+    assetBase = `${basePath}/${assetsRoot}/${safeVisualId}/${safeAudioId}`.replace(/^\/+/, "/");
   }
 
   const assetPaths = assetBase

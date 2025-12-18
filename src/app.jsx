@@ -1,4 +1,3 @@
-console.log("App.jsx loaded");
 /**
  * Sudoku Logic Lab - Main Application (React Components Only)
  *
