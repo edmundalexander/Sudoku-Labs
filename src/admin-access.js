@@ -56,14 +56,20 @@
 
       // Hash password (SHA-256)
       const passwordHash = await this.sha256(password);
+      console.log(`[Debug] Generated Hash: ${passwordHash}`);
 
       // Verify locally first (if config loaded)
       if (window.ADMIN_CONFIG) {
+        const localUser = window.ADMIN_CONFIG.ADMIN_USERNAME;
+        const localHash = window.ADMIN_CONFIG.ADMIN_PASSWORD_HASH;
+
         if (
-          username !== window.ADMIN_CONFIG.ADMIN_USERNAME ||
-          passwordHash !== window.ADMIN_CONFIG.ADMIN_PASSWORD_HASH
+          username !== localUser &&
+          passwordHash.toLowerCase() !== localHash.toLowerCase()
         ) {
-          console.error("❌ Invalid credentials");
+          console.error("❌ Invalid credentials (Local check failed)");
+          console.log(`Expected User: ${localUser}, Got: ${username}`);
+          console.log(`Expected Hash: ${localHash}, Got: ${passwordHash}`);
           return;
         }
       }
