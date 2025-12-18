@@ -65,6 +65,17 @@
       src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"
     ></script>
     <!-- Babel Standalone for in-browser JSX compilation -->
+    <script>
+      // Load Babel standalone early so `text/babel` scripts can be compiled
+      try {
+        loadScript('https://unpkg.com/@babel/standalone/babel.min.js');
+      } catch (e) {
+        // If loadScript not yet defined, inject a plain script tag
+        var _s = document.createElement('script');
+        _s.src = 'https://unpkg.com/@babel/standalone/babel.min.js';
+        document.currentScript.parentNode.insertBefore(_s, document.currentScript.nextSibling);
+      }
+    </script>
 
     <!-- Inline shim: define minimal legacy globals if services.js fails to load -->
     <script>

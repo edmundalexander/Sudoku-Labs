@@ -1,23 +1,28 @@
-/**
- * Sudoku Logic Lab - Services (API & Storage)
- *
- * API service layer for GAS backend communication and local storage management.
- * This file uses plain JavaScript (no JSX) and can be loaded before React.
- *
- * @version 2.3.0
- */
+(function () {
+  // Prevent duplicate execution which causes `Identifier 'StorageService' has already been declared`
+  if (typeof window !== 'undefined' && window.__SudokuServicesLoaded) {
+    console.warn('src/services.js already loaded — skipping duplicate execution.');
+    return;
+  }
+  if (typeof window !== 'undefined') window.__SudokuServicesLoaded = true;
+
+  /**
+   * Sudoku Logic Lab - Services (API & Storage)
+   *
+   * API service layer for GAS backend communication and local storage management.
+   * This file uses plain JavaScript (no JSX) and can be loaded before React.
+   *
+   * @version 2.3.0
+   */
 
 // ============================================================================
 // CONFIGURATION
 // ============================================================================
 
-(function () {
-  'use strict';
-
-  // GAS Backend API URL - Configure via config/config.local.js
-  const DEFAULT_GAS_URL = "";
-  const GAS_URL =
-    (typeof CONFIG !== "undefined" && CONFIG.GAS_URL) || DEFAULT_GAS_URL;
+// GAS Backend API URL - Configure via config/config.local.js
+const DEFAULT_GAS_URL = "";
+const GAS_URL =
+  (typeof CONFIG !== "undefined" && CONFIG.GAS_URL) || DEFAULT_GAS_URL;
 
 /**
  * Check if GAS backend is properly configured
@@ -97,11 +102,30 @@ const runGasFn = async (fnName, ...args) => {
       redirect: "follow",
     });
 
+    const contentType = (response.headers.get("content-type") || "").toLowerCase();
+    const bodyText = await response.text();
+
+    // If the server returned HTML (login/redirect page), log a helpful message
+    if (contentType.includes("text/html") || /<html/i.test(bodyText)) {
+      console.error("GAS returned HTML instead of JSON (redirect or auth required).", {
+        status: response.status,
+        url: response.url,
+        snippet: bodyText.slice(0, 240),
+      });
+      throw new Error("GAS returned non-JSON response (possible redirect/auth)");
+    }
+
     if (!response.ok) {
+      console.error("GAS returned non-OK status:", response.status, bodyText.slice(0, 240));
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
-    return await response.json();
+    try {
+      return JSON.parse(bodyText);
+    } catch (e) {
+      console.error("Failed to parse GAS JSON response:", e, bodyText.slice(0, 240));
+      throw e;
+    }
   } catch (error) {
     console.error("GAS API Error:", error);
     throw error;
@@ -1053,4 +1077,5 @@ if (typeof window !== "undefined") {
     window.isUserAuthenticated || isUserAuthenticated;
 }
 
+// End duplicate-execution guard
 })();
