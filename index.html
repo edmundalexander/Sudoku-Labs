@@ -196,9 +196,8 @@
             else script.setAttribute(key, value);
           });
 
-          // Append to document head instead of using currentScript
-          // (currentScript is null inside Promise callbacks)
-          document.head.appendChild(script);
+          // Append to body (required for Babel to process JSX scripts)
+          document.body.appendChild(script);
         });
       }
     </script>
