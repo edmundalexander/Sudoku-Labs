@@ -2354,21 +2354,9 @@ const App = () => {
           style={{
             opacity: activeAssetSet.texture.opacity,
             backgroundImage:
-              activeAssetSet.texture.pattern === "paper"
-                ? `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.4'/%3E%3C/svg%3E")`
-                : activeAssetSet.texture.pattern === "wood"
-                ? `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cdefs%3E%3Cpattern id='wood' patternUnits='userSpaceOnUse' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23b5651d' opacity='0.1'/%3E%3Cpath d='M0,20 Q50,15 100,20 T200,20' stroke='%23654321' stroke-width='0.5' fill='none' opacity='0.3'/%3E%3Cpath d='M0,60 Q50,55 100,60 T200,60' stroke='%23654321' stroke-width='0.5' fill='none' opacity='0.3'/%3E%3Cpath d='M0,100 Q50,95 100,100 T200,100' stroke='%23654321' stroke-width='0.5' fill='none' opacity='0.3'/%3E%3Cpath d='M0,140 Q50,135 100,140 T200,140' stroke='%23654321' stroke-width='0.5' fill='none' opacity='0.3'/%3E%3Cpath d='M0,180 Q50,175 100,180 T200,180' stroke='%23654321' stroke-width='0.5' fill='none' opacity='0.3'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='200' height='200' fill='url(%23wood)'/%3E%3C/svg%3E")`
-                : activeAssetSet.texture.pattern === "pixel"
-                ? `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Crect width='8' height='8' fill='%23000' opacity='0.05'/%3E%3Crect x='8' y='8' width='8' height='8' fill='%23000' opacity='0.05'/%3E%3C/svg%3E")`
-                : activeAssetSet.texture.pattern === "stone"
-                ? `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cpath d='M0,0 L30,5 L60,0 L55,30 L60,60 L30,55 L0,60 L5,30 Z' fill='none' stroke='%23666' stroke-width='0.5' opacity='0.2'/%3E%3C/svg%3E")`
-                : activeAssetSet.texture.pattern === "ice"
-                ? `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cpath d='M40,0 L40,80 M0,40 L80,40 M10,10 L70,70 M70,10 L10,70' stroke='%2399ccff' stroke-width='0.5' opacity='0.3'/%3E%3C/svg%3E")`
-                : activeAssetSet.texture.pattern === "nebula"
-                ? `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cdefs%3E%3CradialGradient id='star'%3E%3Cstop offset='0%25' stop-color='white' stop-opacity='0.8'/%3E%3Cstop offset='100%25' stop-color='white' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='20' cy='30' r='1' fill='url(%23star)'/%3E%3Ccircle cx='70' cy='20' r='0.5' fill='url(%23star)'/%3E%3Ccircle cx='50' cy='80' r='0.8' fill='url(%23star)'/%3E%3Ccircle cx='85' cy='60' r='0.6' fill='url(%23star)'/%3E%3C/svg%3E")`
-                : activeAssetSet.texture.pattern === "carnival"
-                ? `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Ccircle cx='10' cy='10' r='2' fill='%23ff6b6b' opacity='0.2'/%3E%3Ccircle cx='30' cy='30' r='2' fill='%234ecdc4' opacity='0.2'/%3E%3Ccircle cx='30' cy='10' r='1.5' fill='%23ffe66d' opacity='0.2'/%3E%3Ccircle cx='10' cy='30' r='1.5' fill='%23c9b1ff' opacity='0.2'/%3E%3C/svg%3E")`
-                : `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Crect width='20' height='20' fill='%23888' opacity='0.03'/%3E%3C/svg%3E")`,
+              (window.TEXTURE_PATTERNS &&
+                window.TEXTURE_PATTERNS[activeAssetSet.texture.pattern]) ||
+              "none",
           }}
         />
       )}

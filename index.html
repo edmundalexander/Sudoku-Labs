@@ -240,13 +240,50 @@
       });
     </script>
 
-    <!-- Load admin console (JSX, optional - only works if admin.local.js is loaded) -->
+    <!-- Load admin console components -->
     <script>
-      loadScript("src/admin.jsx", {
+      loadScript("src/components/admin/OverviewTab.jsx", {
         type: "text/babel",
         "data-presets": "env,react",
       });
     </script>
+    <script>
+      loadScript("src/components/admin/ChatTab.jsx", {
+        type: "text/babel",
+        "data-presets": "env,react",
+      });
+    </script>
+    <script>
+      loadScript("src/components/admin/UsersTab.jsx", {
+        type: "text/babel",
+        "data-presets": "env,react",
+      });
+    </script>
+    <script>
+      loadScript("src/components/admin/StatsTab.jsx", {
+        type: "text/babel",
+        "data-presets": "env,react",
+      });
+    </script>
+    <script>
+      loadScript("src/components/admin/ThemesTab.jsx", {
+        type: "text/babel",
+        "data-presets": "env,react",
+      });
+    </script>
+    <script>
+      loadScript("src/components/admin/SystemTab.jsx", {
+        type: "text/babel",
+        "data-presets": "env,react",
+      });
+    </script>
+    <script>
+      loadScript("src/components/admin/AdminConsole.jsx", {
+        type: "text/babel",
+        "data-presets": "env,react",
+      });
+    </script>
+
     <script>
       loadScript("src/admin-access.js");
     </script>
