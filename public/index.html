@@ -104,18 +104,26 @@
       const isLocalInPublic = window.location.pathname.includes('/public/');
       const pathPrefix = isLocalInPublic ? '../' : './';
       
-      // Helper to load scripts with correct path, silently handling failures
-      function loadScript(src, attributes = {}) {
+      // Helper to load scripts with correct path
+      function loadScript(src, attributes = {}, silent = true) {
         const script = document.createElement('script');
-        script.src = pathPrefix + src;
-        script.onerror = function() {
-          // Silently fail - file is optional
-        };
+        script.src = pathPrefix + src + '?v=' + Date.now();
+        if (!silent) {
+          script.onerror = function () {
+            throw new Error(`Failed to load required script: ${src}`);
+          };
+        } else {
+          script.onerror = function () {
+            // Silently fail - file is optional
+          };
+        }
         Object.entries(attributes).forEach(([key, value]) => {
           if (value === true) script.setAttribute(key, '');
           else script.setAttribute(key, value);
         });
-        document.currentScript.parentNode.insertBefore(script, document.currentScript.nextSibling);
+        // If called from a timer or async, document.currentScript may be null
+        const parent = (document.currentScript && document.currentScript.parentNode) || document.head || document.body;
+        parent.appendChild(script);
       }
     </script>
     
@@ -134,21 +142,29 @@
     <!-- Load modular JavaScript files (plain JS, loaded before React components) -->
     <!-- Order matters: constants → utils → sound → services → app -->
     <script>
-      loadScript('src/constants.js');
+      loadScript('src/constants.js', {}, false);
     </script>
     <script>
-      loadScript('src/utils.js');
+      loadScript('src/utils.js', {}, false);
     </script>
     <script>
-      loadScript('src/sound.js');
+      loadScript('src/sound.js', {}, false);
     </script>
     <script>
-      loadScript('src/services.js');
+      loadScript('src/services.js', {}, false);
     </script>
 
-    <!-- Load React app (JSX, compiled in-browser by Babel) -->
+    <!-- Load React app (JSX, compiled in-browser by Babel) only after services.js is loaded -->
     <script>
-      loadScript('src/app.jsx', { 'type': 'text/babel', 'data-presets': 'env,react' });
+      // Wait for StorageService to be defined before loading app.jsx
+      (function waitForServicesAndLoadApp() {
+        if (window.StorageService) {
+          console.log("Attempting to load app.jsx");
+          loadScript('src/app.jsx', { 'type': 'text/babel', 'data-presets': 'env,react' }, false);
+        } else {
+          setTimeout(waitForServicesAndLoadApp, 20);
+        }
+      })();
     </script>
 
     <!-- Load admin console (JSX, optional - only works if admin.local.js is loaded) -->
