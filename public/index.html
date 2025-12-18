@@ -114,17 +114,33 @@
                 // ignore shim errors
               }
             }
+      <!-- Load React app (JSX) only after services have initialized to avoid race conditions -->
+      <script>
+        (function waitForServicesAndLoadApp(){
+          var maxTries = 50;
+          var interval = 100; // ms
+          var tries = 0;
+          function loadAppScripts(){
+            loadScript('src/app.jsx', { 'type': 'text/babel', 'data-presets': 'env,react' });
+            loadScript('src/admin.jsx', { 'type': 'text/babel', 'data-presets': 'env,react' });
+            loadScript('src/admin-access.js');
           }
-        } catch (e) {
-          // no-op
-        }
-      })();
-    </script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  </head>
-  <body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-    <div id="root"></div>
-
+          function check(){
+            if (window.StorageService && typeof window.StorageService.getUserSession === 'function'){
+              loadAppScripts();
+              return;
+            }
+            tries++;
+            if (tries > maxTries){
+              // Fallback: still attempt to load app scripts
+              loadAppScripts();
+              return;
+            }
+            setTimeout(check, interval);
+          }
+          check();
+        })();
+      </script>
     <!-- Prevent dark mode flash: Check localStorage and apply dark class ASAP -->
     <script>
       (function () {
