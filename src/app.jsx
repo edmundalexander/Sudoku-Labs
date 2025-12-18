@@ -863,10 +863,10 @@ const UserPanel = ({ soundEnabled, onClose, appUserSession }) => {
     const winRate = mergedStats.totalGames > 0 ? Math.round((mergedStats.totalWins / mergedStats.totalGames) * 100) : 0;
     
     return (
-      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm animate-fade-in">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-4 sm:p-6 w-full max-w-md animate-pop relative overflow-hidden">
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm animate-fade-in overflow-y-auto">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto animate-pop relative my-auto">
           {/* Decorative header gradient */}
-          <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 opacity-20"></div>
+          <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 opacity-20 rounded-t-xl"></div>
           
           <button onClick={() => onClose(localUserSession)} className="absolute top-3 sm:top-4 right-3 sm:right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 z-10">
             <Icons.X />
@@ -1192,7 +1192,7 @@ const ProfileViewModal = ({ profile, onClose, soundEnabled, loading }) => {
   if (loading) {
     return (
       <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm animate-fade-in">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-md text-center">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto text-center">
           <div className="animate-spin text-4xl mb-4">⏳</div>
           <p className="text-gray-600 dark:text-gray-400">Loading profile...</p>
         </div>
@@ -1205,10 +1205,10 @@ const ProfileViewModal = ({ profile, onClose, soundEnabled, loading }) => {
   const winRate = profile.totalGames > 0 ? Math.round((profile.totalWins / profile.totalGames) * 100) : 0;
   
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-4 sm:p-6 w-full max-w-md animate-pop relative overflow-hidden">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm animate-fade-in overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto animate-pop relative my-auto">
         {/* Decorative header gradient */}
-        <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-500 opacity-20"></div>
+        <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-500 opacity-20 rounded-t-xl"></div>
         
         <button onClick={onClose} className="absolute top-3 sm:top-4 right-3 sm:right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 z-10">
           <Icons.X />
@@ -1308,6 +1308,7 @@ const ProfileViewModal = ({ profile, onClose, soundEnabled, loading }) => {
 
 const OpeningScreen = ({ onStart, onResume, hasSavedGame, darkMode, toggleDarkMode, loading, soundEnabled, toggleSound, onShowUserPanel, onShowAwards, userSession }) => {
   const localStats = StorageService.getGameStats();
+  const [practiceMode, setPracticeMode] = useState(false);
   
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 text-gray-900 dark:text-gray-100 animate-fade-in relative z-10 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
@@ -1377,7 +1378,7 @@ const OpeningScreen = ({ onStart, onResume, hasSavedGame, darkMode, toggleDarkMo
               ].map(d => (
                 <button
                   key={d.name}
-                  onClick={() => { if (soundEnabled) SoundManager.play('startGame'); onStart(d.name); }}
+                  onClick={() => { if (soundEnabled) SoundManager.play('startGame'); onStart(d.name, practiceMode); }}
                   disabled={loading}
                   className={`py-2.5 px-2 rounded-xl bg-gradient-to-br ${d.color} ${d.hoverColor} text-white transition-all font-semibold text-sm disabled:opacity-50 disabled:cursor-wait shadow-md hover:shadow-lg transform hover:scale-105`}
                 >
@@ -1385,6 +1386,28 @@ const OpeningScreen = ({ onStart, onResume, hasSavedGame, darkMode, toggleDarkMo
                 </button>
               ))}
             </div>
+          </div>
+          
+          {/* Practice Mode Toggle */}
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 p-3 sm:p-4 rounded-2xl shadow-xl border border-purple-200 dark:border-purple-700">
+            <label className="flex items-center justify-between cursor-pointer group">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🎓</span>
+                <div>
+                  <span className="text-sm sm:text-base text-gray-800 dark:text-gray-200 font-bold block">Practice Mode</span>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">No mistakes limit, learn freely</span>
+                </div>
+              </div>
+              <div className="relative">
+                <input 
+                  type="checkbox" 
+                  checked={practiceMode} 
+                  onChange={(e) => setPracticeMode(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
+              </div>
+            </label>
           </div>
         </div>
 
@@ -1608,6 +1631,9 @@ const App = () => {
   const [appUserSession, setAppUserSession] = useState(StorageService.getUserSession());
   const [viewingProfile, setViewingProfile] = useState(null); // For viewing other users' profiles
   const [profileLoading, setProfileLoading] = useState(false);
+  const [hoverProfile, setHoverProfile] = useState(null); // For hover preview in chat
+  const [hoverProfilePos, setHoverProfilePos] = useState({ x: 0, y: 0 });
+  const hoverTimeoutRef = useRef(null);
 
   // Theme State
   const [activeThemeId, setActiveThemeId] = useState(StorageService.getActiveTheme());
@@ -2020,14 +2046,6 @@ const App = () => {
       setIsPracticeMode(practiceMode);
     } catch (e) { console.error(e); alert("Failed to start game."); } finally { setLoading(false); }
   };
-      setInitialFilledCount(filledCount);
-
-      setBoard(newBoard); setDifficulty(diff); setStatus('playing');
-      setTimer(0); setMistakes(0); setHistory([newBoard]); setSelectedCell(null);
-      setShowModal('none');
-      setView('game');
-    } catch (e) { console.error(e); alert("Failed to start game."); } finally { setLoading(false); }
-  };
 
   const handleNumberInput = useCallback((num) => {
     // Validate input is a number between 1-9
@@ -2236,6 +2254,40 @@ const App = () => {
     } finally {
       setProfileLoading(false);
     }
+  };
+
+  // Handle hover profile preview
+  const handleProfileHoverStart = async (username, event) => {
+    if (!username || username === userId || !isGasEnvironment()) return;
+    
+    // Clear any existing timeout
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+    
+    // Set position based on mouse/touch
+    const rect = event.currentTarget.getBoundingClientRect();
+    setHoverProfilePos({ x: rect.left, y: rect.bottom + 5 });
+    
+    // Wait 500ms before showing
+    hoverTimeoutRef.current = setTimeout(async () => {
+      try {
+        const result = await runGasFn('getUserProfile', { userId: username });
+        if (result && result.success) {
+          setHoverProfile(result.user);
+        }
+      } catch (err) {
+        console.error('Error loading hover profile:', err);
+      }
+    }, 500);
+  };
+
+  const handleProfileHoverEnd = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    setHoverProfile(null);
   };
 
   const handleCloseViewProfile = () => {
@@ -2795,10 +2847,95 @@ const App = () => {
           </div>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-2 sm:gap-3 md:gap-4 lg:gap-5 justify-center items-start">
+        <div className="flex flex-col xl:flex-row gap-2 sm:gap-3 md:gap-4 xl:gap-5 justify-center items-start xl:items-stretch">
 
-          {/* Left: Board */}
-          <div className="flex-shrink-0 mx-auto lg:mx-0 relative">
+          {/* Left Column: New Game, Settings, Leaderboard - visible on xl+ screens */}
+          <div className="hidden xl:flex flex-col gap-2 sm:gap-2.5 w-72 flex-shrink-0">
+            {/* New Game */}
+            <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 p-3 sm:p-4 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-200 flex items-center gap-1.5">
+                  {loading ? (
+                    <>
+                      <span className="animate-spin">⏳</span>
+                      <span>Generating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Icons.Play />
+                      <span>New Game</span>
+                    </>
+                  )}
+                </h3>
+                <button
+                  onClick={handleQuickRestart}
+                  disabled={status !== 'playing' && status !== 'paused'}
+                  className="text-[10px] sm:text-xs px-2.5 py-1.5 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 hover:from-orange-100 hover:to-orange-200 dark:hover:from-orange-900/30 dark:hover:to-orange-800/30 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1.5 font-medium text-gray-700 dark:text-gray-300 hover:text-orange-700 dark:hover:text-orange-300 shadow-sm hover:shadow-md"
+                  title="Restart puzzle (R)"
+                >
+                  <Icons.Refresh />
+                  <span className="hidden sm:inline">Restart</span>
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { name: 'Easy', color: 'from-green-500 to-emerald-600', hoverColor: 'hover:from-green-400 hover:to-emerald-500', activeRing: 'ring-green-300' },
+                  { name: 'Medium', color: 'from-yellow-500 to-orange-500', hoverColor: 'hover:from-yellow-400 hover:to-orange-400', activeRing: 'ring-yellow-300' },
+                  { name: 'Hard', color: 'from-red-500 to-rose-600', hoverColor: 'hover:from-red-400 hover:to-rose-500', activeRing: 'ring-red-300' },
+                  { name: 'Daily', color: 'from-blue-500 to-indigo-600', hoverColor: 'hover:from-blue-400 hover:to-indigo-500', activeRing: 'ring-blue-300' }
+                ].map(d => (
+                  <button 
+                    key={d.name} 
+                    onClick={() => { if (soundEnabled) SoundManager.play('startGame'); startNewGame(d.name); }} 
+                    disabled={loading} 
+                    className={`py-2 sm:py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all transform hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-wait disabled:hover:scale-100 ${
+                      difficulty === d.name 
+                        ? `bg-gradient-to-br ${d.color} text-white shadow-lg ring-2 ${d.activeRing}` 
+                        : `bg-gradient-to-br ${d.color} ${d.hoverColor} text-white shadow-md opacity-80 hover:opacity-100`
+                    }`}
+                  >
+                    {d.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Settings */}
+            <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 p-3 sm:p-4 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+              <h3 className="text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-200 mb-2 flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Settings
+              </h3>
+              <label className="flex items-center justify-between cursor-pointer bg-gray-50 dark:bg-gray-700/50 p-2.5 rounded-lg transition-all hover:bg-gray-100 dark:hover:bg-gray-700 group">
+                <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-medium">Highlight Conflicts</span>
+                <div className="relative">
+                  <input 
+                    type="checkbox" 
+                    checked={showConflicts} 
+                    onChange={(e) => setShowConflicts(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                </div>
+              </label>
+            </div>
+
+            {/* Leaderboard Button */}
+            <button 
+              onClick={handleOpenLeaderboard} 
+              className="w-full py-3 sm:py-3.5 bg-gradient-to-r from-yellow-500 via-amber-500 to-orange-500 hover:from-yellow-400 hover:via-amber-400 hover:to-orange-400 text-white rounded-xl shadow-lg text-sm font-bold transition-all transform hover:scale-[1.02] hover:shadow-xl flex items-center justify-center gap-2 relative overflow-hidden group"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+              <span className="text-lg relative z-10">🏆</span>
+              <span className="relative z-10">Leaderboard</span>
+            </button>
+          </div>
+
+          {/* Center Column: Board */}
+          <div className="flex-shrink-0 mx-auto relative">
             <SudokuBoard
               board={board} selectedId={selectedCell}
               onCellClick={(id) => { if (soundEnabled) SoundManager.play('select'); setSelectedCell(id); }}
@@ -2834,8 +2971,8 @@ const App = () => {
             )}
           </div>
 
-          {/* Right: Sidebar */}
-          <div className="flex flex-col gap-2 sm:gap-2.5 w-full max-w-xs lg:w-72 mx-auto lg:mx-0">
+          {/* Right Column: Number Pad, Progress, Tools */}
+          <div className="flex flex-col gap-2 sm:gap-2.5 w-full max-w-xs xl:w-72 mx-auto xl:mx-0">
 
             {/* Number Pad (top of sidebar) */}
             <div className="grid grid-cols-3 gap-1.5 sm:gap-2 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-900/50 p-2 sm:p-2.5 rounded-xl shadow-inner">
@@ -3003,8 +3140,8 @@ const App = () => {
               </button>
             </div>
 
-            {/* New Game */}
-            <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 p-3 sm:p-4 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+            {/* New Game (Mobile/Tablet Only) */}
+            <div className="xl:hidden bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 p-3 sm:p-4 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
               <div className="flex justify-between items-center mb-3">
                 <h3 className="text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-200 flex items-center gap-1.5">
                   {loading ? (
@@ -3050,39 +3187,10 @@ const App = () => {
                   </button>
                 ))}
               </div>
-              
-              {/* Practice Mode Toggle */}
-              <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                <label className="flex items-center justify-between cursor-pointer bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 p-2.5 rounded-lg transition-all hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-900/50 dark:hover:to-pink-900/50 group mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">🎓</span>
-                    <div>
-                      <span className="text-xs sm:text-sm text-gray-800 dark:text-gray-200 font-bold block">Practice Mode</span>
-                      <span className="text-[10px] text-gray-600 dark:text-gray-400">No mistakes limit, extra hints</span>
-                    </div>
-                  </div>
-                  <div className="relative">
-                    <input 
-                      type="checkbox" 
-                      checked={isPracticeMode} 
-                      onChange={(e) => setIsPracticeMode(e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-9 h-5 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
-                  </div>
-                </label>
-                <button
-                  onClick={() => { setShowTutorial(true); setTutorialStep(0); if (soundEnabled) SoundManager.play('uiTap'); }}
-                  className="w-full text-xs px-3 py-2 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/50 dark:to-pink-900/50 hover:from-purple-200 hover:to-pink-200 dark:hover:from-purple-900/70 dark:hover:to-pink-900/70 text-purple-800 dark:text-purple-200 rounded-lg font-semibold transition-all flex items-center justify-center gap-2"
-                >
-                  <Icons.Lightbulb />
-                  <span>Show Tutorial</span>
-                </button>
-              </div>
             </div>
 
-            {/* Settings */}
-            <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 p-3 sm:p-4 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+            {/* Settings (Mobile/Tablet Only) */}
+            <div className="xl:hidden bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 p-3 sm:p-4 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
               <h3 className="text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-200 mb-2 flex items-center gap-1.5">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
@@ -3104,10 +3212,10 @@ const App = () => {
               </label>
             </div>
 
-            {/* Leaderboard Button */}
+            {/* Leaderboard Button (Mobile/Tablet Only) */}
             <button 
               onClick={handleOpenLeaderboard} 
-              className="w-full py-3 sm:py-3.5 bg-gradient-to-r from-yellow-500 via-amber-500 to-orange-500 hover:from-yellow-400 hover:via-amber-400 hover:to-orange-400 text-white rounded-xl shadow-lg text-sm font-bold transition-all transform hover:scale-[1.02] hover:shadow-xl flex items-center justify-center gap-2 relative overflow-hidden group"
+              className="xl:hidden w-full py-3 sm:py-3.5 bg-gradient-to-r from-yellow-500 via-amber-500 to-orange-500 hover:from-yellow-400 hover:via-amber-400 hover:to-orange-400 text-white rounded-xl shadow-lg text-sm font-bold transition-all transform hover:scale-[1.02] hover:shadow-xl flex items-center justify-center gap-2 relative overflow-hidden group"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
               <span className="text-lg relative z-10">🏆</span>
@@ -3306,6 +3414,8 @@ const App = () => {
                   <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-gray-500 mb-0.5 px-1 max-w-[90%] leading-tight">
                     <button
                       onClick={() => msg.sender !== userId && handleViewProfile(msg.sender)}
+                      onMouseEnter={(e) => msg.sender !== userId && handleProfileHoverStart(msg.sender, e)}
+                      onMouseLeave={handleProfileHoverEnd}
                       className={`font-semibold ${msg.sender === userId 
                         ? 'text-gray-700 dark:text-gray-200 cursor-default' 
                         : 'text-blue-600 dark:text-blue-400 hover:underline cursor-pointer'
@@ -3383,6 +3493,53 @@ const App = () => {
           {chatNotification && !isChatOpen && <span className="absolute -top-1 -right-1 flex h-3 w-3"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span></span>}
         </button>
       </div>
+
+      {/* Hover Profile Preview */}
+      {hoverProfile && (
+        <div 
+          className="fixed z-[60] pointer-events-none"
+          style={{
+            left: `${Math.min(hoverProfilePos.x, window.innerWidth - 280)}px`,
+            top: `${Math.min(hoverProfilePos.y, window.innerHeight - 200)}px`,
+          }}
+        >
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-3 w-64 border border-gray-200 dark:border-gray-700 animate-fade-in">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                {(hoverProfile.displayName || hoverProfile.username || '?')[0].toUpperCase()}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-bold text-sm text-gray-800 dark:text-white truncate">
+                  {hoverProfile.displayName || hoverProfile.username}
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                  @{hoverProfile.username}
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-2 text-center text-xs">
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-1.5 rounded">
+                <div className="font-bold text-blue-600 dark:text-blue-400">{hoverProfile.totalGames || 0}</div>
+                <div className="text-[9px] text-gray-600 dark:text-gray-400">Games</div>
+              </div>
+              <div className="bg-green-50 dark:bg-green-900/20 p-1.5 rounded">
+                <div className="font-bold text-green-600 dark:text-green-400">{hoverProfile.totalWins || 0}</div>
+                <div className="text-[9px] text-gray-600 dark:text-gray-400">Wins</div>
+              </div>
+              <div className="bg-purple-50 dark:bg-purple-900/20 p-1.5 rounded">
+                <div className="font-bold text-purple-600 dark:text-purple-400">
+                  {hoverProfile.totalGames > 0 ? Math.round((hoverProfile.totalWins / hoverProfile.totalGames) * 100) : 0}%
+                </div>
+                <div className="text-[9px] text-gray-600 dark:text-gray-400">Win Rate</div>
+              </div>
+            </div>
+            <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700 text-[10px] text-center text-gray-500 dark:text-gray-400">
+              Click name to view full profile
+            </div>
+          </div>
+        </div>
+      )}
+
       {renderModal()}
       {showUserPanel && <UserPanel soundEnabled={soundEnabled} onClose={handleUserPanelClose} appUserSession={appUserSession} />}
       {viewingProfile && <ProfileViewModal profile={viewingProfile} onClose={handleCloseViewProfile} soundEnabled={soundEnabled} loading={profileLoading} />}

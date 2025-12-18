@@ -358,6 +358,9 @@
     <script src="../config/config.local.js" onerror="console.warn('config.local.js not found, trying production config...');"></script>
     <script src="../config/config.production.example.js" onerror="console.warn('No production config found, using defaults');"></script>
 
+    <!-- Load admin configuration (optional, silently fails if not present) -->
+    <script src="../config/admin.local.js" onerror=""></script>
+
     <!-- Load modular JavaScript files (plain JS, loaded before React components) -->
     <!-- Order matters: constants → utils → sound → services → app -->
     <script src="../src/constants.js"></script>
@@ -367,5 +370,9 @@
 
     <!-- Load React app (JSX, compiled in-browser by Babel) -->
     <script type="text/babel" data-presets="env,react" src="../src/app.jsx"></script>
+
+    <!-- Load admin console (JSX, optional - only works if admin.local.js is loaded) -->
+    <script type="text/babel" data-presets="env,react" src="../src/admin.jsx" onerror=""></script>
+    <script src="../src/admin-access.js" onerror=""></script>
   </body>
 </html>
