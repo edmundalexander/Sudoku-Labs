@@ -1438,8 +1438,8 @@ const UserPanel = ({ soundEnabled, onClose, appUserSession }) => {
     };
     const winRate =
       mergedStats.totalGames > 0
-        ? ((mergedStats.totalWins / mergedStats.totalGames) * 100).toFixed(1)
-        : "0.0";
+        ? Math.round((mergedStats.totalWins / mergedStats.totalGames) * 100)
+        : 0;
 
     return (
       <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm animate-fade-in overflow-y-auto">
@@ -1880,8 +1880,8 @@ const ProfileViewModal = ({ profile, onClose, soundEnabled, loading }) => {
 
   const winRate =
     profile.totalGames > 0
-      ? ((profile.totalWins / profile.totalGames) * 100).toFixed(1)
-      : "0.0";
+      ? Math.round((profile.totalWins / profile.totalGames) * 100)
+      : 0;
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm animate-fade-in overflow-y-auto">
