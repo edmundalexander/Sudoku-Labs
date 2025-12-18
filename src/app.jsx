@@ -1212,20 +1212,21 @@ const AwardsZone = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm animate-fade-in">
+    <div role="dialog" aria-modal="true" aria-labelledby="customizer-title" className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm animate-fade-in">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-4 sm:p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto animate-pop relative">
         <button
           onClick={() => {
             if (soundEnabled) SoundManager.play("uiTap");
             onClose();
           }}
+          aria-label="Close customizer"
           className="absolute top-3 sm:top-4 right-3 sm:right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
         >
           <Icons.X />
         </button>
 
         <div className="flex items-center gap-2 mb-2 sm:mb-3">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+          <h2 id="customizer-title" className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
             <Icons.Awards /> Customizer
           </h2>
           <span className="text-[10px] sm:text-xs text-gray-500">
@@ -1442,13 +1443,14 @@ const UserPanel = ({ soundEnabled, onClose, appUserSession }) => {
         : 0;
 
     return (
-      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm animate-fade-in overflow-y-auto">
+      <div role="dialog" aria-modal="true" aria-labelledby="userpanel-title" className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm animate-fade-in overflow-y-auto">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto animate-pop relative my-auto">
           {/* Decorative header gradient */}
           <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 opacity-20 rounded-t-xl"></div>
 
           <button
             onClick={() => onClose(localUserSession)}
+            aria-label="Close profile"
             className="absolute top-3 sm:top-4 right-3 sm:right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 z-10"
           >
             <Icons.X />
@@ -1462,7 +1464,7 @@ const UserPanel = ({ soundEnabled, onClose, appUserSession }) => {
                   "?")[0].toUpperCase()}
               </span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
+            <h2 id="userpanel-title" className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
               {localUserSession.displayName || localUserSession.username}
             </h2>
             <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
@@ -1615,10 +1617,11 @@ const UserPanel = ({ soundEnabled, onClose, appUserSession }) => {
   // Auth mode selection menu
   if (mode === "menu") {
     return (
-      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+      <div role="dialog" aria-modal="true" aria-labelledby="welcome-title" className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-sm animate-pop relative">
           <button
             onClick={handleContinueAsGuest}
+            aria-label="Close welcome dialog"
             className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
           >
             <Icons.X />
@@ -1628,7 +1631,7 @@ const UserPanel = ({ soundEnabled, onClose, appUserSession }) => {
             <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
               <Icons.User />
             </div>
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">
+            <h2 id="welcome-title" className="text-2xl font-bold text-gray-800 dark:text-white mb-2">
               Welcome!
             </h2>
             <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -1678,7 +1681,7 @@ const UserPanel = ({ soundEnabled, onClose, appUserSession }) => {
   // Login form
   if (mode === "login") {
     return (
-      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+      <div role="dialog" aria-modal="true" aria-labelledby="signin-title" className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-sm animate-pop relative">
           <button
             onClick={() => setMode("menu")}
@@ -1688,13 +1691,14 @@ const UserPanel = ({ soundEnabled, onClose, appUserSession }) => {
           </button>
           <button
             onClick={handleContinueAsGuest}
+            aria-label="Close sign in"
             className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
           >
             <Icons.X />
           </button>
 
           <div className="text-center mb-6 mt-4">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+            <h2 id="signin-title" className="text-2xl font-bold text-gray-800 dark:text-white">
               Sign In
             </h2>
             <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -1768,7 +1772,7 @@ const UserPanel = ({ soundEnabled, onClose, appUserSession }) => {
   // Register form
   if (mode === "register") {
     return (
-      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+      <div role="dialog" aria-modal="true" aria-labelledby="createaccount-title" className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-sm animate-pop relative">
           <button
             onClick={() => setMode("menu")}
@@ -1778,13 +1782,14 @@ const UserPanel = ({ soundEnabled, onClose, appUserSession }) => {
           </button>
           <button
             onClick={handleContinueAsGuest}
+            aria-label="Close create account"
             className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
           >
             <Icons.X />
           </button>
 
           <div className="text-center mb-6 mt-4">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+            <h2 id="createaccount-title" className="text-2xl font-bold text-gray-800 dark:text-white">
               Create Account
             </h2>
             <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -1884,13 +1889,14 @@ const ProfileViewModal = ({ profile, onClose, soundEnabled, loading }) => {
       : 0;
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm animate-fade-in overflow-y-auto">
+    <div role="dialog" aria-modal="true" aria-labelledby="profile-title" className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm animate-fade-in overflow-y-auto">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto animate-pop relative my-auto">
         {/* Decorative header gradient */}
         <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-500 opacity-20 rounded-t-xl"></div>
 
         <button
           onClick={onClose}
+          aria-label="Close profile"
           className="absolute top-3 sm:top-4 right-3 sm:right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 z-10"
         >
           <Icons.X />
@@ -1904,7 +1910,7 @@ const ProfileViewModal = ({ profile, onClose, soundEnabled, loading }) => {
                 "?")[0].toUpperCase()}
             </span>
           </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
+          <h2 id="profile-title" className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
             {profile.displayName || profile.username}
           </h2>
           <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
@@ -4843,16 +4849,17 @@ const App = () => {
 
       {/* Keyboard Shortcuts Help Modal */}
       {showKeyboardHelp && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+        <div role="dialog" aria-modal="true" aria-labelledby="keyboardhelp-title" className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-lg animate-pop relative">
             <button
               onClick={() => setShowKeyboardHelp(false)}
+              aria-label="Close keyboard help"
               className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
             >
               <Icons.X />
             </button>
 
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6 flex items-center gap-2">
+            <h2 id="keyboardhelp-title" className="text-2xl font-bold text-gray-800 dark:text-white mb-6 flex items-center gap-2">
               <Icons.HelpCircle />
               Keyboard Shortcuts
             </h2>
@@ -4992,13 +4999,13 @@ const App = () => {
 
       {/* Restart Confirmation Modal */}
       {showRestartConfirm && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+        <div role="dialog" aria-modal="true" aria-labelledby="restart-title" className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-sm animate-pop relative">
             <div className="text-center mb-6">
               <div className="w-16 h-16 mx-auto mb-4 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center">
                 <Icons.Refresh />
               </div>
-              <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
+              <h2 id="restart-title" className="text-xl font-bold text-gray-800 dark:text-white mb-2">
                 Sudoku{" "}
                 <span className="text-blue-800 dark:text-white">Logic</span> Lab
               </h2>
@@ -5385,15 +5392,16 @@ const App = () => {
 
       {/* Tutorial Overlay */}
       {showTutorial && view === "game" && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+        <div role="dialog" aria-modal="true" aria-labelledby="tutorial-title" className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 max-w-md w-full animate-pop">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <h2 id="tutorial-title" className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                 <span>🎓</span>
                 <span>Tutorial</span>
               </h2>
               <button
                 onClick={() => setShowTutorial(false)}
+                aria-label="Close tutorial"
                 className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
               >
                 <Icons.X />
