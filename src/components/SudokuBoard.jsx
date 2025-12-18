@@ -87,16 +87,7 @@ const SudokuBoard = ({
   const getTextureStyle = () => {
     if (!boardTexture || boardTexture.pattern === "none") return {};
 
-    const texturePatterns = {
-      paper: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.4'/%3E%3C/svg%3E")`,
-      wood: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='20' viewBox='0 0 100 20'%3E%3Cpath d='M0,10 Q25,8 50,10 T100,10' stroke='%23654321' stroke-width='0.5' fill='none' opacity='0.4'/%3E%3C/svg%3E")`,
-      pixel: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Crect width='4' height='4' fill='%23000' opacity='0.03'/%3E%3Crect x='4' y='4' width='4' height='4' fill='%23000' opacity='0.03'/%3E%3C/svg%3E")`,
-      stone: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3E%3Cpath d='M0,0 L15,2 L30,0 L28,15 L30,30 L15,28 L0,30 L2,15 Z' fill='none' stroke='%23888' stroke-width='0.3' opacity='0.3'/%3E%3C/svg%3E")`,
-      ice: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cpath d='M20,0 L20,40 M0,20 L40,20 M5,5 L35,35 M35,5 L5,35' stroke='%2399ccff' stroke-width='0.3' opacity='0.3'/%3E%3C/svg%3E")`,
-      nebula: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Ccircle cx='15' cy='20' r='1' fill='white' opacity='0.5'/%3E%3Ccircle cx='45' cy='15' r='0.5' fill='white' opacity='0.4'/%3E%3Ccircle cx='30' cy='50' r='0.8' fill='white' opacity='0.5'/%3E%3C/svg%3E")`,
-      carnival: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Ccircle cx='5' cy='5' r='1' fill='%23ff6b6b' opacity='0.15'/%3E%3Ccircle cx='15' cy='15' r='1' fill='%234ecdc4' opacity='0.15'/%3E%3C/svg%3E")`,
-      concrete: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Crect width='10' height='10' fill='%23888' opacity='0.02'/%3E%3C/svg%3E")`,
-    };
+    const texturePatterns = window.TEXTURE_PATTERNS || {};
 
     return {
       backgroundImage: texturePatterns[boardTexture.pattern] || "none",

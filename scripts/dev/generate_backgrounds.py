@@ -92,31 +92,44 @@ def build_prompt(visual: str, audio: str) -> str:
     )
 
 def write_placeholder_svg(out_path: Path, visual: str):
-    # Minimal gradient SVG placeholder
-    base_colors = {
-        "ocean": ("#06b6d4","#67e8f9"),
-        "forest": ("#10b981","#6ee7b7"),
-        "sunset": ("#f97316","#fbbf24"),
-        "midnight": ("#6366f1","#a5b4fc"),
-        "sakura": ("#ec4899","#f472b6"),
-        "volcano": ("#dc2626","#f97316"),
-        "arctic": ("#0ea5e9","#7dd3fc"),
-        "default": ("#3b82f6","#60a5fa")
+    # Improved procedural SVG patterns matching src/constants.js
+    
+    # Default theme
+    svg_default = """<svg xmlns='http://www.w3.org/2000/svg' width='1920' height='1080'><defs><linearGradient id='grad' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='#4f46e5' stop-opacity='0.03'/><stop offset='100%' stop-color='#2563eb' stop-opacity='0.01'/></linearGradient><pattern id='grid' width='40' height='40' patternUnits='userSpaceOnUse'><path d='M 40 0 L 0 0 0 40' fill='none' stroke='#4f46e5' stroke-width='0.5' opacity='0.05'/></pattern></defs><rect width='1920' height='1080' fill='url(#grad)'/><rect width='1920' height='1080' fill='url(#grid)'/><circle cx='960' cy='540' r='400' fill='none' stroke='#4f46e5' stroke-width='2' opacity='0.03'/><circle cx='200' cy='200' r='100' fill='#4f46e5' opacity='0.02'/><circle cx='1700' cy='900' r='150' fill='#2563eb' opacity='0.02'/></svg>"""
+
+    # Ocean theme
+    svg_ocean = """<svg xmlns='http://www.w3.org/2000/svg' width='1920' height='1080'><defs><linearGradient id='oceanGrad' x1='0%' y1='0%' x2='0%' y2='100%'><stop offset='0%' stop-color='#06b6d4' stop-opacity='0.08'/><stop offset='100%' stop-color='#0369a1' stop-opacity='0.04'/></linearGradient><radialGradient id='bubbleGrad' cx='30%' cy='30%' r='70%'><stop offset='0%' stop-color='white' stop-opacity='0.2'/><stop offset='100%' stop-color='white' stop-opacity='0'/></radialGradient></defs><rect width='1920' height='1080' fill='url(#oceanGrad)'/><path d='M0,300 Q480,150 960,300 T1920,300' stroke='#0ea5e9' stroke-width='4' fill='none' opacity='0.1'/><path d='M0,600 Q480,450 960,600 T1920,600' stroke='#0284c7' stroke-width='4' fill='none' opacity='0.08'/><path d='M0,900 Q480,750 960,900 T1920,900' stroke='#0369a1' stroke-width='4' fill='none' opacity='0.06'/><circle cx='200' cy='900' r='40' fill='url(#bubbleGrad)' opacity='0.3'/><circle cx='600' cy='700' r='60' fill='url(#bubbleGrad)' opacity='0.2'/><circle cx='1200' cy='400' r='30' fill='url(#bubbleGrad)' opacity='0.25'/><circle cx='1600' cy='200' r='80' fill='url(#bubbleGrad)' opacity='0.15'/></svg>"""
+
+    # Forest theme
+    svg_forest = """<svg xmlns='http://www.w3.org/2000/svg' width='1920' height='1080'><defs><linearGradient id='forestGrad' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='#10b981' stop-opacity='0.08'/><stop offset='100%' stop-color='#047857' stop-opacity='0.05'/></linearGradient></defs><rect width='1920' height='1080' fill='url(#forestGrad)'/><path d='M-200,1080 Q480,800 960,1080 T1920,1080' fill='none' stroke='#059669' stroke-width='100' opacity='0.05'/><path d='M960,0 Q1440,300 960,600 T960,1080' fill='none' stroke='#34d399' stroke-width='5' opacity='0.1'/><circle cx='480' cy='300' r='200' fill='#10b981' opacity='0.05'/><circle cx='1440' cy='800' r='250' fill='#047857' opacity='0.05'/><path d='M200,200 L280,360 L120,360 Z' fill='#34d399' opacity='0.1' transform='rotate(15 200 280)'/><path d='M1700,500 L1780,660 L1620,660 Z' fill='#10b981' opacity='0.08' transform='rotate(-10 1700 580)'/></svg>"""
+
+    # Sunset theme
+    svg_sunset = """<svg xmlns='http://www.w3.org/2000/svg' width='1920' height='1080'><defs><linearGradient id='sunsetGrad' x1='0%' y1='0%' x2='0%' y2='100%'><stop offset='0%' stop-color='#f97316' stop-opacity='0.1'/><stop offset='100%' stop-color='#ec4899' stop-opacity='0.08'/></linearGradient><radialGradient id='sunGlow' cx='50%' cy='100%' r='80%'><stop offset='0%' stop-color='#fbbf24' stop-opacity='0.2'/><stop offset='100%' stop-color='#f97316' stop-opacity='0'/></radialGradient></defs><rect width='1920' height='1080' fill='url(#sunsetGrad)'/><circle cx='960' cy='1080' r='600' fill='url(#sunGlow)'/><path d='M0,800 Q480,750 960,800 T1920,800' stroke='#f97316' stroke-width='5' fill='none' opacity='0.15'/><path d='M0,600 Q480,550 960,600 T1920,600' stroke='#fb923c' stroke-width='4' fill='none' opacity='0.1'/><path d='M960,1080 L480,0' stroke='#fbbf24' stroke-width='50' opacity='0.03'/><path d='M960,1080 L1440,0' stroke='#fbbf24' stroke-width='50' opacity='0.03'/></svg>"""
+
+    # Midnight theme
+    svg_midnight = """<svg xmlns='http://www.w3.org/2000/svg' width='1920' height='1080'><defs><radialGradient id='starGlow' r='50%'><stop offset='0%' stop-color='white' stop-opacity='0.8'/><stop offset='100%' stop-color='white' stop-opacity='0'/></radialGradient><radialGradient id='nebula' cx='50%' cy='50%' r='50%'><stop offset='0%' stop-color='#6366f1' stop-opacity='0.1'/><stop offset='100%' stop-color='#111827' stop-opacity='0'/></radialGradient></defs><rect width='1920' height='1080' fill='#111827' opacity='0.05'/><circle cx='960' cy='540' r='800' fill='url(#nebula)'/><circle cx='200' cy='200' r='4' fill='url(#starGlow)'/><circle cx='1700' cy='300' r='6' fill='url(#starGlow)'/><circle cx='500' cy='900' r='5' fill='url(#starGlow)'/><circle cx='1400' cy='800' r='3' fill='url(#starGlow)'/><circle cx='960' cy='100' r='4' fill='url(#starGlow)'/><circle cx='100' cy='1000' r='5' fill='url(#starGlow)'/><circle cx='1800' cy='100' r='4' fill='url(#starGlow)'/></svg>"""
+
+    # Sakura theme
+    svg_sakura = """<svg xmlns='http://www.w3.org/2000/svg' width='1920' height='1080'><defs><linearGradient id='sakuraGrad' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='#ec4899' stop-opacity='0.08'/><stop offset='100%' stop-color='#be185d' stop-opacity='0.04'/></linearGradient><path id='petal' d='M0,0 C5,-5 10,0 10,5 C10,10 5,15 0,10 C-5,15 -10,10 -10,5 C-10,0 -5,-5 0,0' fill='#f472b6' opacity='0.15'/></defs><rect width='1920' height='1080' fill='url(#sakuraGrad)'/><use href='#petal' x='200' y='200' transform='rotate(45 200 200) scale(4)'/><use href='#petal' x='1700' y='300' transform='rotate(-30 1700 300) scale(3)'/><use href='#petal' x='600' y='900' transform='rotate(90 600 900) scale(2.5)'/><use href='#petal' x='1200' y='700' transform='rotate(180 1200 700) scale(2)'/><circle cx='960' cy='540' r='400' fill='#fbcfe8' opacity='0.05'/></svg>"""
+
+    # Volcano theme
+    svg_volcano = """<svg xmlns='http://www.w3.org/2000/svg' width='1920' height='1080'><defs><linearGradient id='volcanoGrad' x1='0%' y1='100%' x2='100%' y2='0%'><stop offset='0%' stop-color='#dc2626' stop-opacity='0.1'/><stop offset='100%' stop-color='#991b1b' stop-opacity='0.05'/></linearGradient><pattern id='heat' width='40' height='40' patternUnits='userSpaceOnUse'><path d='M0,20 Q20,0 40,20' fill='none' stroke='#f97316' stroke-width='2' opacity='0.1'/></pattern></defs><rect width='1920' height='1080' fill='url(#volcanoGrad)'/><rect width='1920' height='1080' fill='url(#heat)'/><path d='M0,1080 L480,800 L960,1000 L1440,700 L1920,1080 Z' fill='#7f1d1d' opacity='0.05'/><circle cx='1440' cy='300' r='150' fill='#ef4444' opacity='0.05'/></svg>"""
+
+    # Arctic theme
+    svg_arctic = """<svg xmlns='http://www.w3.org/2000/svg' width='1920' height='1080'><defs><linearGradient id='arcticGrad' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='#0ea5e9' stop-opacity='0.08'/><stop offset='100%' stop-color='#0369a1' stop-opacity='0.04'/></linearGradient></defs><rect width='1920' height='1080' fill='url(#arcticGrad)'/><path d='M400,200 L600,600 L200,600 Z' fill='#e0f2fe' opacity='0.1'/><path d='M1400,800 L1600,1200 L1200,1200 Z' fill='#bae6fd' opacity='0.08' transform='rotate(180 1400 1000)'/><path d='M960,400 L1160,800 L760,800 Z' fill='#7dd3fc' opacity='0.05' transform='rotate(45 960 600)'/><circle cx='200' cy='900' r='100' fill='white' opacity='0.05'/></svg>"""
+
+    svg_map = {
+        "ocean": svg_ocean,
+        "forest": svg_forest,
+        "sunset": svg_sunset,
+        "midnight": svg_midnight,
+        "sakura": svg_sakura,
+        "volcano": svg_volcano,
+        "arctic": svg_arctic,
+        "default": svg_default
     }
-    c1, c2 = base_colors.get(visual, base_colors["default"])
-    svg = f"""
-<svg xmlns='http://www.w3.org/2000/svg' width='1920' height='1080'>
-  <defs>
-    <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
-      <stop offset='0%' stop-color='{c1}'/>
-      <stop offset='100%' stop-color='{c2}'/>
-    </linearGradient>
-  </defs>
-  <rect x='0' y='0' width='1920' height='1080' fill='url(#g)'/>
-  <circle cx='30%' cy='40%' r='220' fill='#ffffff20' />
-  <circle cx='70%' cy='65%' r='180' fill='#ffffff10' />
-</svg>
-"""
+
+    svg = svg_map.get(visual, svg_default)
     out_path.write_text(svg)
 
 
