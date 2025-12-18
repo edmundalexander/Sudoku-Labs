@@ -1,65 +1,156 @@
 # Copilot / AI Agent Instructions for Sudoku-Labs
 
-Short, actionable guide to get an AI coding agent productive in this repo.
+Essential knowledge for AI agents to be productive in this codebase.
 
-**Big picture**
-- Frontend: [public/index.html](../public/index.html) is the HTML shell. The app uses a **modular architecture** with 5 source files loaded in order:
-  - [src/constants.js](../src/constants.js) - Game constants, themes, sound packs, campaign data
-  - [src/utils.js](../src/utils.js) - Validation, formatting, Sudoku helpers
-  - [src/sound.js](../src/sound.js) - WebAudio SoundManager with 8 procedural sound packs
-  - [src/services.js](../src/services.js) - API service layer, storage, data management
-  - [src/app.jsx](../src/app.jsx) - React UI components (compiled in-browser with Babel)
-- Backend: [backend/gas/Code.gs](../backend/gas/Code.gs) — Google Apps Script (GAS) Web App. All API traffic uses `doGet(e)` with an `action` query parameter.
-- Data store: Google Sheets (sheets: `Leaderboard`, `Chat`, `Logs`, `Users`) accessed via `SHEET_ID` in `Code.gs`.
+## Architecture Overview
 
-**Key repo conventions & gotchas (must-know)**
-- **Modular frontend**: All modules export to `window` object for in-browser Babel compatibility (no ES modules). Load order matters: constants → utils → sound → services → app.
-- All client ↔ GAS calls use HTTP GET with `action=...` (see `runGasFn` mapping in [src/services.js](../src/services.js)). Writes (saveScore, postChat, logError) are implemented as GET to avoid GAS POST redirect/auth issues.
-- `config/config.example.js` is the template. Developers provide a local `config/config.local.js` (gitignored) that sets `CONFIG.GAS_URL`. The app falls back to a local generator and localStorage when `GAS_URL` is missing.
-- Deploy GAS as a *Web App* with **Who has access = "Anyone (even anonymous)"**; otherwise requests will redirect (302) to a Google auth page and return HTML instead of JSON.
+**Frontend**: In-browser React app with modular architecture, no build step required
+- HTML shell: `public/index.html` loads 5 modules in strict order via script tags
+- Load sequence (critical): `constants.js` → `utils.js` → `sound.js` → `services.js` → `app.jsx`
+- All modules export to `window` object (no ES modules) for in-browser Babel compatibility
+- React/Babel loaded from CDN; JSX compiled in browser at runtime
+- Styling: Tailwind CSS compiled via `npm run build:css` (not hot-reloaded)
 
-**Data flows & integration points**
-- Frontend → GAS: `runGasFn(fnName, payload)` builds a URL with `action` and query params. Mapping in [src/services.js](../src/services.js): `generateSudoku`, `getLeaderboard`, `saveScore`, `getChat`, `postChat`, `logError`.
-- Local fallback: [src/utils.js](../src/utils.js) contains `generateLocalBoard()` for offline puzzle generation. [src/services.js](../src/services.js) contains StorageService with 18 methods for localStorage management.
+**Backend**: Google Apps Script (GAS) serverless API
+- Single file: `backend/gas/Code.gs` handles all API routes via `doGet(e)` 
+- Data store: Google Sheets with 4 sheets (`Leaderboard`, `Chat`, `Logs`, `Users`)
+- **Critical**: ALL requests use GET (see "GAS POST Issue" below)
 
-**Important code locations**
-- API router & helpers: [backend/gas/Code.gs](../backend/gas/Code.gs)
-- Frontend app & GAS client: [src/app.jsx](../src/app.jsx)
-- Constants & configuration: [src/constants.js](../src/constants.js) - THEMES, SOUND_PACKS, CAMPAIGN_LEVELS
-- Utilities & helpers: [src/utils.js](../src/utils.js) - validation, formatting, Sudoku logic
-- Sound system: [src/sound.js](../src/sound.js) - SoundManager with 8 procedural packs
-- Service layer: [src/services.js](../src/services.js) - API, storage, leaderboard, chat, unlocks
-- HTML shell & runtime config load: [public/index.html](../public/index.html)
-- Config template: [config/config.example.js](../config/config.example.js) and [config/README.md](../config/README.md)
-- Deployment & troubleshooting: [docs/deployment/checklist.md](../docs/deployment/checklist.md), [docs/deployment/troubleshooting.md](../docs/deployment/troubleshooting.md)
+**Configuration**: Runtime config injection
+- Template: `config/config.example.js` (committed)
+- Local: `config/config.local.js` (gitignored, required for backend features)
+- Two config properties: `GAS_URL` (backend endpoint), `BASE_PATH` (subdirectory prefix)
+- Fallback: Without `GAS_URL`, app runs offline with local puzzle generation + localStorage
 
-**Developer workflows (explicit commands & checks)**
-- Quick backend health check (replace with your GAS_URL):
-  ```bash
-  curl "$GAS_URL?action=ping"
-  curl "$GAS_URL?action=generateSudoku&difficulty=Easy"
-  ```
-- Edit/deploy GAS:
-  1. Paste `backend/gas/Code.gs` into a new Apps Script project.
-  2. Run `setupSheets_()` once to create `Leaderboard`, `Chat`, `Logs`.
-  3. Deploy → Web App, execute as owner, set Who has access = Anyone (even anonymous).
-  4. Copy the deployment URL into `config/config.local.js` as `CONFIG.GAS_URL`.
-- Frontend local testing: serve the repo (simple Python/Node static server) and open `public/index.html`. The app loads `src/app.jsx` via in-browser Babel compilation.
+## Critical Gotchas
 
-**Patterns & conventions to preserve when coding**
-- Keep `doGet(e)` action names and `runGasFn` mapping in sync. Example: adding `action=foo` requires a `runGasFn` mapping entry in [src/services.js](../src/services.js) and handler in `Code.gs`.
-- Always sanitize sheet inputs in GAS using `sanitizeInput_` and `sanitizeOutput_`.
-- Avoid introducing POST-only endpoints (public GAS redirects POSTs). If you must support POST, provide a GET-compatible alternative or document the auth requirements.
-- Use the `KEYS` and localStorage helpers in `src/services.js` for state persistence: `sudoku_v2_state`, `sudoku_v2_leaderboard`, `sudoku_v2_chat`, `sudoku_v2_uid`, `sudoku_v2_sound`, `sudoku_v2_campaign`.
+### GAS POST Issue (non-negotiable pattern)
+- **All API calls use HTTP GET**, including writes (saveScore, postChat, logError)
+- Why: GAS public deployments redirect POSTs (302) to auth pages, breaking API
+- Pattern: `runGasFn(fnName, args)` in `src/services.js` builds GET URL with `action` param
+- Example: `?action=saveScore&name=Alice&difficulty=Easy&time=180`
+- Adding new endpoints: Update both `actionMap` in `runGasFn` AND `doGet()` switch in `Code.gs`
 
-**Project-specific features to be aware of**
-- Campaign mode: `CAMPAIGN_LEVELS` in [src/constants.js](../src/constants.js) drives the map UI and unlock logic; progress saved via StorageService.
-- SoundManager: lightweight WebAudio-based manager in [src/sound.js](../src/sound.js) — call `SoundManager.init()` before play in browsers that suspend audio contexts.
-- Local fallback puzzle generator: `generateLocalBoard()` in [src/utils.js](../src/utils.js) mirrors server generator for dev and offline use.
+### Module Load Order
+- `constants.js` must load first (defines `KEYS`, `THEMES`, `SOUND_PACKS`, `CAMPAIGN_LEVELS`)
+- `utils.js` depends on constants (uses `GAME_SETTINGS`)
+- `services.js` depends on utils and constants (uses `KEYS`, validation functions)
+- `app.jsx` depends on all previous modules
+- Breaking this order causes undefined reference errors
 
-**Debugging tips (project-specific)**
-- If GAS returns HTML, confirm deployment access. Use `curl -v` to inspect `Location:` headers.
-- Use `diagnostic.sh` for pre-built curl checks and `docs/TROUBLESHOOTING.md` for flags and examples.
-- When investigating frontend behavior, inspect `runGasFn` caller sites in `src/services.js` and check Network tab for the built query string.
+### GAS Deployment Access Level
+- Must deploy as Web App with "Anyone (even anonymous)" access
+- Restricted access causes 302 redirects and HTML responses instead of JSON
+- Verify: `curl -I "$GAS_URL?action=ping"` should return `200 OK`, not `302 Found`
 
-If you'd like, I can expand this with a step-by-step example: add a new GAS action + update `runGasFn` + test with `curl`.
+### GitHub Pages Subdirectory Deployments
+- Set `BASE_PATH = '/Sudoku-Labs'` for `username.github.io/Sudoku-Labs`
+- Fixes asset paths: themes, backgrounds, favicon
+- Root deployments: `BASE_PATH = ''`
+
+## Key File Locations
+
+| Purpose | File | Contents |
+|---------|------|----------|
+| API router | `backend/gas/Code.gs` | All `doGet()` actions, sheet operations, auth |
+| React UI | `src/app.jsx` | All components, game logic |
+| API client | `src/services.js` | `runGasFn` mapping, StorageService (18 methods) |
+| Game constants | `src/constants.js` | `KEYS`, `THEMES`, `SOUND_PACKS`, `CAMPAIGN_LEVELS` |
+| Utilities | `src/utils.js` | Validation, formatting, `generateLocalBoard()` |
+| Sound system | `src/sound.js` | `SoundManager` with 8 procedural sound packs |
+| Config template | `config/config.example.js` | Required config keys |
+| Deployment guide | `docs/deployment/checklist.md` | Step-by-step deploy |
+
+## Developer Workflows
+
+**Local development:**
+```bash
+# 1. Setup config (first time)
+cp config/config.example.js config/config.local.js
+# Edit config.local.js to add GAS_URL (or leave empty for offline mode)
+
+# 2. Rebuild Tailwind CSS (if editing styles)
+npm run build:css   # or npm run watch:css for auto-rebuild
+
+# 3. Start local server
+npm run dev         # Runs: python3 -m http.server 8000
+# Visit: http://localhost:8000/public/
+
+# 4. Backend health check (if using GAS)
+curl "$GAS_URL?action=ping"
+curl "$GAS_URL?action=generateSudoku&difficulty=Easy"
+```
+
+**Adding a new GAS endpoint:**
+```javascript
+// 1. Add to backend/gas/Code.gs doGet() switch
+case 'myAction':
+  return makeJsonResponse(myFunction(e.parameter));
+
+// 2. Add to src/services.js runGasFn actionMap
+const actionMap = {
+  myActionName: { action: 'myAction', method: 'GET' },
+  // ...
+};
+
+// 3. Call from frontend
+const result = await runGasFn('myActionName', { param: 'value' });
+
+// 4. Test with curl
+curl "$GAS_URL?action=myAction&param=value"
+```
+
+**GAS deployment:**
+1. Create new Apps Script project at script.google.com
+2. Paste `backend/gas/Code.gs` 
+3. Update `SHEET_ID` on line ~26
+4. Run `setupSheets_()` once (creates 4 sheets)
+5. Deploy → Web App → Execute as: me → Access: Anyone → Deploy
+6. Copy deployment URL to `config/config.local.js`
+
+## Code Conventions
+
+**State persistence**: Use `KEYS` constants + StorageService methods
+```javascript
+// Good
+StorageService.set(KEYS.GAME_STATE, gameState);
+const state = StorageService.get(KEYS.GAME_STATE);
+
+// Bad - hardcoded strings scattered everywhere
+localStorage.setItem('sudoku_v2_state', JSON.stringify(state));
+```
+
+**Input sanitization**: Always sanitize in GAS handlers
+```javascript
+// In Code.gs
+const username = sanitizeInput_(e.parameter.username);
+```
+
+**Window exports**: All non-JSX modules export to window
+```javascript
+// In src/services.js
+window.runGasFn = runGasFn;
+window.StorageService = StorageService;
+```
+
+## Project-Specific Features
+
+**Campaign Mode**: Defined in `CAMPAIGN_LEVELS` (constants.js), progress tracked via StorageService
+**Sound System**: `SoundManager.init()` required before first play (browser autoplay policy)
+**Local Puzzle Generator**: `generateLocalBoard()` in utils.js provides offline fallback
+**Authentication**: Optional demo-grade auth (username/password hashed), stored in Users sheet
+
+## Debugging Tips
+
+**GAS returns HTML instead of JSON**: Deployment access is wrong (must be "Anyone")
+```bash
+curl -v "$GAS_URL?action=ping" 2>&1 | grep Location  # Should be empty
+```
+
+**Module load errors**: Check browser console for undefined references, verify script load order in index.html
+
+**Asset 404s on GitHub Pages**: `BASE_PATH` config mismatch, should match repo name
+
+**Diagnostic script**: `scripts/dev/diagnostic.sh` runs pre-built health checks
+
+**No tests**: This repo has no test suite; validate changes manually via local server
