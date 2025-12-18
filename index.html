@@ -56,12 +56,30 @@
   </head>
   <body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
     <div id="root">
-      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#444;">
-        <div style="font-size:3rem;animation:spin 1s linear infinite;">🧩</div>
-        <div style="margin-top:1rem;font-size:1.2rem;">Loading Sudoku Logic Lab...</div>
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 100vh;
+          font-family: sans-serif;
+          color: #444;
+        "
+      >
+        <div style="font-size: 3rem; animation: spin 1s linear infinite">
+          🧩
+        </div>
+        <div style="margin-top: 1rem; font-size: 1.2rem">
+          Loading Sudoku Logic Lab...
+        </div>
       </div>
       <style>
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes spin {
+          100% {
+            transform: rotate(360deg);
+          }
+        }
       </style>
     </div>
 
@@ -160,7 +178,10 @@
           else script.setAttribute(key, value);
         });
         // If called from a timer or async, document.currentScript may be null
-        const parent = (document.currentScript && document.currentScript.parentNode) || document.head || document.body;
+        const parent =
+          (document.currentScript && document.currentScript.parentNode) ||
+          document.head ||
+          document.body;
         parent.appendChild(script);
       }
     </script>
@@ -192,14 +213,17 @@
       loadScript("src/services.js", {}, false);
     </script>
 
-
     <!-- Load React app (JSX, compiled in-browser by Babel) only after services.js is loaded -->
     <script>
       // Wait for StorageService to be defined before loading app.jsx
       (function waitForServicesAndLoadApp() {
         if (window.StorageService) {
           console.log("Attempting to load app.jsx");
-          loadScript('src/app.jsx', { 'type': 'text/babel', 'data-presets': 'env,react' }, false);
+          loadScript(
+            "src/app.jsx",
+            { type: "text/babel", "data-presets": "env,react" },
+            false
+          );
         } else {
           setTimeout(waitForServicesAndLoadApp, 20);
         }
