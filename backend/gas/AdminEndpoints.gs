@@ -8,8 +8,9 @@
 //
 // SECURITY NOTES:
 // 1. Store admin credentials in Script Properties (File → Project Properties → Script Properties)
-// 2. Add property: ADMIN_TRIGGER_TOKEN
-// 3. Session tokens expire after 30 minutes
+// 2. Add properties: ADMIN_USERNAME and ADMIN_PASSWORD_HASH
+// 3. Generate password hash with SHA-256: https://emn178.github.io/online-tools/sha256.html
+// 4. Session tokens expire after 30 minutes
 //
 // Add these to your doGet() switch statement:
 //
@@ -61,37 +62,39 @@ function verifyAdminToken_(token) {
  * Admin login - generates a one-time session token
  */
 function adminLogin(params) {
-  const token = params.token;
+  const username = params.username;
+  const passwordHash = params.passwordHash;
 
-  if (!token) {
-    return { success: false, error: "Missing token" };
+  if (!username || !passwordHash) {
+    return { success: false, error: "Missing credentials" };
   }
 
   // Get admin credentials from Script Properties
   const scriptProperties = PropertiesService.getScriptProperties();
-  const adminToken = scriptProperties.getProperty("ADMIN_TRIGGER_TOKEN");
+  const adminUsername = scriptProperties.getProperty("ADMIN_USERNAME");
+  const adminPasswordHash = scriptProperties.getProperty("ADMIN_PASSWORD_HASH");
 
-  if (!adminToken) {
+  if (!adminUsername || !adminPasswordHash) {
     return {
       success: false,
-      error: "Admin token not configured in Script Properties",
+      error: "Admin credentials not configured in Script Properties",
     };
   }
 
   // Verify credentials
-  if (token !== adminToken) {
-    return { success: false, error: "Invalid token" };
+  if (username !== adminUsername || passwordHash !== adminPasswordHash) {
+    return { success: false, error: "Invalid credentials" };
   }
 
   // Generate session token
-  const sessionToken = Utilities.getUuid();
-  ADMIN_SESSIONS[sessionToken] = {
-    username: 'admin',
+  const token = Utilities.getUuid();
+  ADMIN_SESSIONS[token] = {
+    username: username,
     createdAt: Date.now(),
     expiry: Date.now() + ADMIN_SESSION_TIMEOUT,
   };
 
-  return { success: true, token: sessionToken };
+  return { success: true, token: token };
 }
 
 /**
