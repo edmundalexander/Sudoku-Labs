@@ -115,6 +115,30 @@ const runGasFn = async (fnName, ...args) => {
 };
 
 /**
+ * Retry wrapper for GAS calls that may fail transiently (network/CORS/etc).
+ * Usage: await robustRunGasFn('updateUserProfile', { ... }, { retries: 2, backoff: 300 });
+ */
+const robustRunGasFn = async (fnName, args = {}, opts = {}) => {
+  const retries = Number(opts.retries || 2);
+  const backoff = Number(opts.backoff || 300);
+  let attempt = 0;
+  while (true) {
+    try {
+      return await runGasFn(fnName, args);
+    } catch (err) {
+      attempt++;
+      // If we've exhausted retries, rethrow
+      if (attempt > retries) throw err;
+      // Wait before retrying (exponential-ish backoff)
+      await new Promise((res) => setTimeout(res, backoff * attempt));
+    }
+  }
+};
+
+// Expose to global for quick access
+window.robustRunGasFn = robustRunGasFn;
+
+/**
  * Log an error to the backend
  * @param {string} message - Error message
  * @param {Error} error - Error object

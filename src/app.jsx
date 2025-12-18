@@ -16,6 +16,24 @@
 const { useState, useEffect, useCallback, useRef, memo, useMemo, Component } =
   React;
 
+// Debug helper - enable by setting window.DEBUG = true in config.local.js or when running locally
+const DEBUG = Boolean(
+  (typeof window !== 'undefined' && window.DEBUG) ||
+  (typeof window !== 'undefined' && window.APP_VERSION === 'local-dev') ||
+  (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
+);
+const dlog = (...args) => {
+  if (DEBUG) console.log(...args);
+};
+
+// Silence console.log in production to avoid noisy logs in hot paths
+if (!DEBUG && typeof console !== 'undefined' && typeof console.log === 'function') {
+  try {
+    console._originalLog = console.log;
+    console.log = function() {};
+  } catch (e) {}
+}
+
 // ============================================================================
 // ERROR BOUNDARY
 // ============================================================================
@@ -183,7 +201,7 @@ window.runDebugTests = async function () {
 
   try {
     // Test 1: Check GAS configuration
-    console.log("%cTest 1: GAS Configuration...", "font-weight: bold");
+    dlog("%cTest 1: GAS Configuration...", "font-weight: bold");
     if (isGasEnvironment()) {
       console.log("✅ GAS_URL is configured and valid");
       results.passed.push("GAS Configuration");
@@ -3350,7 +3368,14 @@ const App = () => {
                       // Do NOT incrementWins on loss
                       difficulty: difficulty,
                     };
-                    runGasFn && runGasFn("updateUserProfile", updateData);
+                    // Use robust wrapper to handle transient errors
+                    if (typeof window.robustRunGasFn === 'function') {
+                      window.robustRunGasFn("updateUserProfile", updateData, { retries: 2, backoff: 250 }).catch((err) =>
+                        console.error("Failed to update user stats (loss):", err)
+                      );
+                    } else {
+                      runGasFn && runGasFn("updateUserProfile", updateData);
+                    }
                   } catch (err) {
                     console.error("Failed to update user stats (loss):", err);
                   }
@@ -3503,24 +3528,45 @@ const App = () => {
               fastWin: finalTime <= 180, // Fast win if 3 minutes or less
             };
 
-            await runGasFn("updateUserProfile", updateData);
-            // Refresh user profile to get updated stats
-            const updatedProfile = await runGasFn("getUserProfile", {
-              userId: session.userId,
-            });
-            if (updatedProfile && updatedProfile.success) {
-              // Update both global storage and component state for consistency
-              StorageService.setUserSession(updatedProfile.user);
-              setAppUserSession(updatedProfile.user);
-            }
+            // Use robustRunGasFn to reduce impact of transient failures
+            if (typeof window.robustRunGasFn === 'function') {
+              await window.robustRunGasFn("updateUserProfile", updateData, { retries: 2, backoff: 300 });
+              // Refresh user profile to get updated stats
+              const updatedProfile = await window.robustRunGasFn("getUserProfile", { userId: session.userId }, { retries: 2, backoff: 300 });
+              if (updatedProfile && updatedProfile.success) {
+                // Update both global storage and component state for consistency
+                StorageService.setUserSession(updatedProfile.user);
+                setAppUserSession(updatedProfile.user);
+              }
 
-            await persistUserStateToBackend({
-              unlockedThemes: StorageService.getUnlockedThemes(),
-              unlockedSoundPacks: StorageService.getUnlockedSoundPacks(),
-              activeTheme: activeThemeId,
-              activeSoundPack: activeSoundPackId,
-              gameStats: stats,
-            });
+              try {
+                await window.robustRunGasFn("saveUserState", {
+                  userId: session.userId,
+                  unlockedThemes: StorageService.getUnlockedThemes(),
+                  unlockedSoundPacks: StorageService.getUnlockedSoundPacks(),
+                  activeTheme: activeThemeId,
+                  activeSoundPack: activeSoundPackId,
+                  gameStats: stats,
+                }, { retries: 2, backoff: 300 });
+              } catch (e) {
+                console.error("Failed to persist user state to backend:", e);
+              }
+            } else {
+              await runGasFn("updateUserProfile", updateData);
+              const updatedProfile = await runGasFn("getUserProfile", { userId: session.userId });
+              if (updatedProfile && updatedProfile.success) {
+                StorageService.setUserSession(updatedProfile.user);
+                setAppUserSession(updatedProfile.user);
+              }
+
+              await persistUserStateToBackend({
+                unlockedThemes: StorageService.getUnlockedThemes(),
+                unlockedSoundPacks: StorageService.getUnlockedSoundPacks(),
+                activeTheme: activeThemeId,
+                activeSoundPack: activeSoundPackId,
+                gameStats: stats,
+              });
+            }
 
             // Sync badges with backend
             await BadgeService.syncBadgesWithBackend();
