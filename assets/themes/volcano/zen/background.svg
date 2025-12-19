@@ -1,12 +1,60 @@
-
-<svg xmlns='http://www.w3.org/2000/svg' width='1920' height='1080'>
-  <defs>
-    <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
-      <stop offset='0%' stop-color='#dc2626'/>
-      <stop offset='100%' stop-color='#f97316'/>
-    </linearGradient>
-  </defs>
-  <rect x='0' y='0' width='1920' height='1080' fill='url(#g)'/>
-  <circle cx='30%' cy='40%' r='220' fill='#ffffff20' />
-  <circle cx='70%' cy='65%' r='180' fill='#ffffff10' />
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080" preserveAspectRatio="xMidYMid slice"><polygon points="537,503 541.0,511 537,519 533.0,511" fill="#fb923c" opacity="0.48" />
+<polygon points="1461,1044 1464.0,1050 1461,1056 1458.0,1050" fill="#dc2626" opacity="0.55" />
+<polygon points="1047,385 1053.5,398 1047,411 1040.5,398" fill="#f87171" opacity="0.53" />
+<polygon points="1875,277 1881.0,289 1875,301 1869.0,289" fill="#fca5a5" opacity="0.44" />
+<polygon points="1091,637 1093.5,642 1091,647 1088.5,642" fill="#dc2626" opacity="0.56" />
+<polygon points="1654,1029 1657.0,1035 1654,1041 1651.0,1035" fill="#fb923c" opacity="0.34" />
+<polygon points="1146,844 1148.5,849 1146,854 1143.5,849" fill="#dc2626" opacity="0.49" />
+<polygon points="197,472 201.5,481 197,490 192.5,481" fill="#f87171" opacity="0.50" />
+<polygon points="685,888 690.5,899 685,910 679.5,899" fill="#fca5a5" opacity="0.35" />
+<polygon points="98,956 102.0,964 98,972 94.0,964" fill="#fb923c" opacity="0.40" />
+<polygon points="1697,372 1700.0,378 1697,384 1694.0,378" fill="#dc2626" opacity="0.36" />
+<polygon points="1416,75 1421.5,86 1416,97 1410.5,86" fill="#f87171" opacity="0.38" />
+<polygon points="1134,488 1137.0,494 1134,500 1131.0,494" fill="#f87171" opacity="0.37" />
+<polygon points="774,725 779.5,736 774,747 768.5,736" fill="#fb923c" opacity="0.40" />
+<polygon points="517,795 523.5,808 517,821 510.5,808" fill="#fca5a5" opacity="0.47" />
+<polygon points="1331,848 1336.5,859 1331,870 1325.5,859" fill="#fb923c" opacity="0.54" />
+<polygon points="543,235 545.5,240 543,245 540.5,240" fill="#f87171" opacity="0.39" />
+<polygon points="129,492 135.0,504 129,516 123.0,504" fill="#fb923c" opacity="0.55" />
+<polygon points="1020,929 1024.0,937 1020,945 1016.0,937" fill="#dc2626" opacity="0.42" />
+<polygon points="967,1 971.5,10 967,19 962.5,10" fill="#fb923c" opacity="0.39" />
+<polygon points="921,1029 927.5,1042 921,1055 914.5,1042" fill="#dc2626" opacity="0.60" />
+<polygon points="1171,388 1173.5,393 1171,398 1168.5,393" fill="#dc2626" opacity="0.49" />
+<polygon points="816,380 822.5,393 816,406 809.5,393" fill="#dc2626" opacity="0.45" />
+<polygon points="1920,65 1922.5,70 1920,75 1917.5,70" fill="#fca5a5" opacity="0.46" />
+<polygon points="1618,101 1624.5,114 1618,127 1611.5,114" fill="#fb923c" opacity="0.50" />
+<polygon points="1041,318 1045.0,326 1041,334 1037.0,326" fill="#dc2626" opacity="0.60" />
+<polygon points="1587,266 1592.5,277 1587,288 1581.5,277" fill="#f87171" opacity="0.43" />
+<polygon points="0,600 6.0,612 0,624 -6.0,612" fill="#fca5a5" opacity="0.40" />
+<polygon points="1757,366 1761.0,374 1757,382 1753.0,374" fill="#fca5a5" opacity="0.55" />
+<polygon points="1920,756 1923.5,763 1920,770 1916.5,763" fill="#fca5a5" opacity="0.57" />
+<polygon points="399,622 402.0,628 399,634 396.0,628" fill="#dc2626" opacity="0.52" />
+<polygon points="1917,181 1920.5,188 1917,195 1913.5,188" fill="#fb923c" opacity="0.51" />
+<polygon points="527,299 533.0,311 527,323 521.0,311" fill="#dc2626" opacity="0.47" />
+<polygon points="1260,367 1265.0,377 1260,387 1255.0,377" fill="#fca5a5" opacity="0.57" />
+<polygon points="754,844 760.5,857 754,870 747.5,857" fill="#fb923c" opacity="0.33" />
+<polygon points="1781,480 1784.0,486 1781,492 1778.0,486" fill="#fca5a5" opacity="0.49" />
+<polygon points="68,126 70.5,131 68,136 65.5,131" fill="#fca5a5" opacity="0.53" />
+<polygon points="1246,87 1248.5,92 1246,97 1243.5,92" fill="#f87171" opacity="0.57" />
+<polygon points="9,94 11.5,99 9,104 6.5,99" fill="#fca5a5" opacity="0.40" />
+<polygon points="1471,870 1478.0,884 1471,898 1464.0,884" fill="#fb923c" opacity="0.59" />
+<circle cx="467" cy="685" r="33" fill="#1f2937" opacity="0.13" />
+<circle cx="645" cy="983" r="42" fill="#1f2937" opacity="0.10" />
+<circle cx="945" cy="688" r="28" fill="#1f2937" opacity="0.14" />
+<circle cx="183" cy="1070" r="22" fill="#1f2937" opacity="0.06" />
+<circle cx="707" cy="33" r="21" fill="#1f2937" opacity="0.05" />
+<circle cx="787" cy="207" r="23" fill="#1f2937" opacity="0.12" />
+<circle cx="551" cy="719" r="47" fill="#1f2937" opacity="0.05" />
+<circle cx="723" cy="851" r="42" fill="#1f2937" opacity="0.11" />
+<circle cx="660" cy="571" r="24" fill="#1f2937" opacity="0.05" />
+<circle cx="1587" cy="310" r="31" fill="#1f2937" opacity="0.06" />
+<circle cx="1545" cy="259" r="40" fill="#1f2937" opacity="0.10" />
+<circle cx="1704" cy="509" r="20" fill="#1f2937" opacity="0.08" />
+<circle cx="277" cy="1012" r="41" fill="#1f2937" opacity="0.09" />
+<circle cx="1102" cy="764" r="35" fill="#1f2937" opacity="0.11" />
+<circle cx="1265" cy="299" r="20" fill="#1f2937" opacity="0.13" />
+<circle cx="1" cy="557" r="22" fill="#1f2937" opacity="0.06" />
+<circle cx="448" cy="104" r="40" fill="#1f2937" opacity="0.13" />
+<circle cx="556" cy="222" r="24" fill="#1f2937" opacity="0.12" />
+<circle cx="576" cy="403" r="33" fill="#1f2937" opacity="0.14" />
+<circle cx="547" cy="569" r="49" fill="#1f2937" opacity="0.08" /></svg>
