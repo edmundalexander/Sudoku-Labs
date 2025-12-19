@@ -24,28 +24,35 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api", apiRouter);
 
 // Static Files
-// Determine the path to the public directory
-// We support two structures:
-// 1. Running from project root (development or full-repo deploy): Built files are in ./dist/public
-// 2. Running from dist folder (production artifact): Built files are in ./public (sibling to server folder)
+// Determine the path to the built public directory. We only serve compiled assets
+// to avoid accidentally exposing source files when a build has not been run.
+const candidatePublicDirs = [
+  path.join(__dirname, "../dist/public"), // running from repository root
+  path.join(__dirname, "../public"), // running from the dist bundle
+];
 
-const rootBuildPath = path.join(__dirname, "../dist/public");
-const distBuildPath = path.join(__dirname, "../public");
+const PUBLIC_DIR = candidatePublicDirs.find((dir) =>
+  fs.existsSync(path.join(dir, "index.html"))
+);
 
-// Check for the existence of index.html to confirm the valid build directory
-// Priority: Check root/dist/public first (standard build output), then fallback to ../public (dist structure)
-const PUBLIC_DIR = fs.existsSync(path.join(rootBuildPath, "index.html")) 
-  ? rootBuildPath 
-  : distBuildPath;
+if (PUBLIC_DIR) {
+  console.log(`Serving static files from: ${PUBLIC_DIR}`);
+  app.use(express.static(PUBLIC_DIR));
 
-console.log(`Serving static files from: ${PUBLIC_DIR}`);
-
-app.use(express.static(PUBLIC_DIR));
-
-// SPA Fallback
-app.get("*", (req, res) => {
-  res.sendFile(path.join(PUBLIC_DIR, "index.html"));
-});
+  // SPA Fallback
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(PUBLIC_DIR, "index.html"));
+  });
+} else {
+  console.error(
+    "No built frontend found. Run `npm run build` before starting the server."
+  );
+  app.get("*", (req, res) => {
+    res
+      .status(500)
+      .send("Server misconfigured: build artifacts missing. Run `npm run build`.");
+  });
+}
 
 // Start the server if run directly
 const PORT = parseInt(process.env.PORT) || 8080;
