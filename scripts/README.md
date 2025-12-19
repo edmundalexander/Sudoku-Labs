@@ -14,10 +14,7 @@ scripts/
 │
 └── dev/                         # Development utilities
     ├── diagnostic.sh            # Health check and diagnostics
-    ├── generate_backgrounds.py  # AI background generator
-    ├── theme_combos.json        # Theme combination definitions
-    ├── cleanup-merged-branches.sh # Git branch cleanup
-    └── README.md                # Background generator docs
+    └── cleanup-merged-branches.sh # Git branch cleanup
 ```
 
 ## 🚀 Quick Reference
