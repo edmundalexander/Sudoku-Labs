@@ -2,11 +2,53 @@
 
 This directory stores sensitive configuration that should NOT be committed to GitHub.
 
-## Files
+## Configuration Files
 
-- **`config.example.js`** - Template for local/root deployments (SAFE to commit)
-- **`config.production.example.js`** - Template for subdirectory deployments like GitHub Pages (SAFE to commit)
-- **`config.local.js`** - Your actual configuration with real API keys and URLs (MUST NOT commit - listed in .gitignore)
+### 1. Main Application Config (`config.local.js`)
+Controls the connection to the backend API.
+
+- **Template**: `config.example.js`
+- **Local File**: `config.local.js` (Gitignored)
+- **Key Settings**:
+  - `GAS_URL`: The URL of your Google Apps Script Web App.
+  - `BASE_PATH`: Subdirectory path (e.g., `/Sudoku-Labs`) for GitHub Pages.
+
+### 2. Admin & Maintenance Config (`admin.local.js`)
+Controls administrative access and automated maintenance tasks.
+
+- **Template**: `admin.example.js`
+- **Local File**: `admin.local.js` (Gitignored)
+- **Key Settings**:
+  - `SESSION_TIMEOUT`: Duration of admin console sessions (default: 30 mins).
+  - `ADMIN_TRIGGER_TOKEN`: Secret token for **Maintenance Automation** (bots/scripts).
+
+---
+
+## Authentication Systems
+
+We use two separate authentication systems for different purposes:
+
+### A. Admin Console Login (Human Access)
+Used by humans to access the UI-based Admin Console in the browser.
+
+- **Usage**: `sudokuAdmin.login()` in browser console.
+- **Credentials**: Username & Password.
+- **Storage**:
+  - **Backend**: Stored in GAS **Script Properties** as `ADMIN_USERNAME` and `ADMIN_PASSWORD_HASH`.
+  - **Frontend**: Passwords are hashed locally before sending.
+- **Setup**: See [docs/ADMIN_CONSOLE.md](../docs/ADMIN_CONSOLE.md).
+
+### B. Maintenance Automation (Bot Access)
+Used by automated scripts (e.g., GitHub Actions, cron jobs) to trigger maintenance tasks.
+
+- **Usage**: Server-to-server HTTP requests.
+- **Credentials**: Bearer Token (`ADMIN_TRIGGER_TOKEN`).
+- **Storage**:
+  - **Backend**: Stored in GAS **Script Properties** as `ADMIN_TRIGGER_TOKEN`.
+  - **Local**: Stored in `config/admin.local.js` for local scripts to use.
+- **Example**: `curl "$GAS_URL?action=performMaintenance&token=$ADMIN_TRIGGER_TOKEN"`
+
+---
 
 ## Setup Instructions
 

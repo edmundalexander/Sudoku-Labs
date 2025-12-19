@@ -90,7 +90,32 @@ const SHEET_ID = 'YOUR_SHEET_ID_HERE';
 - Chat
 - Logs
 
-### Step 6: Deploy as Web App
+### Step 7: Configure Admin & Maintenance Access
+
+To enable admin features, you must set **Script Properties** in your GAS project.
+
+1. In the Apps Script editor, click **Project Settings** (gear icon ⚙️).
+2. Scroll to **Script Properties**.
+3. Click **Edit script properties** and add the following:
+
+#### A. For Admin Console (Human Login)
+| Property | Value | Description |
+|----------|-------|-------------|
+| `ADMIN_USERNAME` | `admin` (or your choice) | Username for browser login |
+| `ADMIN_PASSWORD_HASH` | `[SHA-256 Hash]` | Hash of your password |
+
+> **Generate Hash**: Use an [Online SHA-256 Generator](https://emn178.github.io/online-tools/sha256.html). Enter your password and copy the result.
+
+#### B. For Maintenance Automation (Bot Access)
+| Property | Value | Description |
+|----------|-------|-------------|
+| `ADMIN_TRIGGER_TOKEN` | `[Random String]` | Secret token for automated scripts |
+
+> **Generate Token**: You can use a UUID or any long random string.
+
+4. Click **Save script properties**.
+
+### Step 8: Deploy as Web App
 
 1. Click **Deploy** → **New deployment**
 2. Click the gear icon ⚙️ next to "Select type"

@@ -2,7 +2,9 @@
 
 ## Overview
 
-The Sudoku Labs Admin Console is a secure, browser-based administrative panel for managing users, chat, game statistics, and assets. Access is restricted and requires authentication through the browser console.
+The **Sudoku Labs Admin Console** is a secure, browser-based administrative panel for **human administrators**. It allows you to manage users, chat, game statistics, and assets via a graphical interface.
+
+> **Note:** For automated maintenance tasks (bots/scripts), see the **Maintenance Automation** section in `config/README.md`.
 
 ## Features
 
