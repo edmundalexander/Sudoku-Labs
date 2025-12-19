@@ -5,25 +5,15 @@ const sudoku = require("./sudoku");
 const axios = require("axios");
 const path = require("path");
 
-// Initialize Firebase Admin with service account if available
-// This is critical for local testing or environments where ADC is not set up
-const serviceAccountPath = path.resolve(
-  __dirname,
-  "../../gas/sudoku-labs-firebase-adminsdk-fbsvc-1dbcf9956f.json"
-);
-let serviceAccount;
+// Initialize Firebase Admin
+// In Cloud Run (App Hosting), we should rely on ADC (Application Default Credentials)
+// The service account file is likely not present in the container unless we copy it,
+// and using ADC is the preferred method.
 try {
-  serviceAccount = require(serviceAccountPath);
-} catch (e) {
-  console.log("Service account file not found, using default credentials");
-}
-
-if (serviceAccount) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-  });
-} else {
   admin.initializeApp();
+  console.log("Firebase Admin initialized with default credentials");
+} catch (e) {
+  console.error("Failed to initialize Firebase Admin:", e);
 }
 
 const db = admin.firestore();

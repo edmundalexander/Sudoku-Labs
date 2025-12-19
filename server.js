@@ -27,11 +27,17 @@ let apiHandler = null;
 try {
   // Attempt to load the Firebase Functions logic
   // We need to ensure the environment is set up correctly for this to work
+  // Note: In the container, the path might be different if we are not careful.
+  // But since we are running from root, it should be fine.
   const functionsIndex = require("./backend/firebase/functions/index.js");
   apiHandler = functionsIndex.api;
   console.log("Backend API logic loaded.");
 } catch (e) {
-  console.warn("Backend API logic could not be loaded:", e.message);
+  console.error("CRITICAL ERROR: Backend API logic could not be loaded:", e);
+  // We should probably exit if backend is critical, or at least log loudly.
+  // The previous error was MODULE_NOT_FOUND for /workspace/index.js which is weird.
+  // It might be that package.json "main" was pointing to index.js before?
+  // But we changed it to server.js.
 }
 
 const MIME_TYPES = {
