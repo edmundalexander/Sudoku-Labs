@@ -360,7 +360,7 @@ const AdminConsole = ({ onClose, sessionToken }) => {
             { id: "system", label: "⚙️ System", icon: "⚙️" },
           ].map((tab) => (
             <button
-              key={tab.id}
+              key={`tab-${tab.id}`}
               onClick={() => setActiveTab(tab.id)}
               className={`px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap ${
                 activeTab === tab.id

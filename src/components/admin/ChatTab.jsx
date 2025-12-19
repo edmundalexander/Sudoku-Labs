@@ -89,7 +89,7 @@ export const ChatTab = ({
             <tbody>
               {filteredMessages.map((msg, idx) => (
                 <tr
-                  key={msg.id}
+                  key={msg.id || `msg-${idx}`}
                   className={`border-t border-gray-700 ${
                     idx % 2 === 0 ? "bg-gray-800" : "bg-gray-850"
                   }`}

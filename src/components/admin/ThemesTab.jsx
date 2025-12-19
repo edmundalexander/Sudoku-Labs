@@ -24,7 +24,7 @@ const ThemesTab = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {themes.map((theme) => (
             <div
-              key={theme.id}
+              key={`theme-${theme.id}`}
               className="bg-gray-800 p-4 rounded-lg border border-gray-700 hover:border-blue-500 transition-colors"
             >
               <div className="flex items-start justify-between mb-2">
@@ -154,7 +154,7 @@ const ThemesTab = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {soundPacks.map((pack) => (
             <div
-              key={pack.id}
+              key={`pack-${pack.id}`}
               className="bg-gray-800 p-4 rounded-lg border border-gray-700 hover:border-green-500 transition-colors"
             >
               <div className="flex items-start justify-between mb-2">

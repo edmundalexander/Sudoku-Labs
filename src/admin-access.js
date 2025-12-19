@@ -19,7 +19,7 @@ const AdminManager = {
 
   // Helper to render the "GUI" header
   renderHeader() {
-    console.clear();
+    // console.clear(); // Don't clear console to preserve history/errors
     console.log(
       "%c🔐 Sudoku Labs Admin System",
       "font-size: 24px; font-weight: bold; color: #4f46e5; padding: 10px; border-bottom: 2px solid #4f46e5;"

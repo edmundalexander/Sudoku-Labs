@@ -66,7 +66,7 @@ export const UsersTab = ({
 
                 return (
                   <tr
-                    key={user.username}
+                    key={user.username || `user-${idx}`}
                     className={`border-t border-gray-700 ${
                       idx % 2 === 0 ? "bg-gray-800" : "bg-gray-850"
                     }`}
