@@ -7,7 +7,7 @@ echo "SUDOKU-LABS GAS API DIAGNOSTICS"
 echo "=========================================="
 echo ""
 
-GAS_URL="https://script.google.com/macros/s/AKfycbxrJHnw5xFDTPTYiaYPiQd-e0S0mQWF-6bYiHMBOOi3MxlvgVk_coN7Q2kDl_3IWL8M/exec"
+GAS_URL="https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec"
 
 echo "1. Testing GAS Endpoint Connection"
 echo "   URL: $GAS_URL"

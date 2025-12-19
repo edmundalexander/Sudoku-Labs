@@ -23,7 +23,7 @@
 // @version 2.2.0
 // ============================================================================
 
-// Prefer a Script Property for the sheet id (safer for deployments). Falls back to the hardcoded id.
+// Prefer a Script Property for the sheet id (safer for deployments).
 const SHEET_ID = (function () {
   try {
     const prop =
@@ -32,7 +32,8 @@ const SHEET_ID = (function () {
   } catch (e) {
     // PropertiesService may not be available in some execution contexts
   }
-  return "1QU6QNWy6w6CNivq-PvmVJNcM1tUFWgQFzpN01Mo7QFs";
+  // Hardcoded ID removed for security. Ensure 'SHEET_ID' is set in Script Properties.
+  throw new Error("SHEET_ID not configured in Script Properties");
 })();
 
 // ============================================================================

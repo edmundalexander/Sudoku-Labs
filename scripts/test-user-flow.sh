@@ -15,7 +15,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Configuration
-GAS_URL='https://script.google.com/macros/s/AKfycbzZg11UDcIZGbwHvrtxb5E2enGspkQnjsBPbCP5Aw6BYP5Jo5cq3JqPr8PHOZgbgn2kOg/exec'
+GAS_URL='https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec'
 TEST_USERNAME="test_user_$(date +%s)"
 TEST_PASSWORD="testpass123"
 

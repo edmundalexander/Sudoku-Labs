@@ -64,7 +64,7 @@ This is just an example - your actual Sheet ID will be different.
 In the Apps Script editor, find line ~15:
 
 ```javascript
-const SHEET_ID = "1QU6QNWy6w6CNivq-PvmVJNcM1tUFWgQFzpN01Mo7QFs";
+const SHEET_ID = "YOUR_SHEET_ID_HERE";
 ```
 
 Replace the value with your Sheet ID from Step 1:

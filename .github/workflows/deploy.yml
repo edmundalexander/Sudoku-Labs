@@ -30,6 +30,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Create Config File
+        run: |
+          mkdir -p public/config
+          echo "window.CONFIG = {" > public/config/config.local.js
+          echo "  GAS_URL: '${{ secrets.GAS_URL }}'," >> public/config/config.local.js
+          echo "  BASE_PATH: '/Sudoku-Labs'" >> public/config/config.local.js
+          echo "};" >> public/config/config.local.js
+
       - name: Build
         run: npm run build
 

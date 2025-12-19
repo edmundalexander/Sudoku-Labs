@@ -11,7 +11,7 @@
 const CONFIG = {
   // Google Apps Script Web App deployment URL
   // Get this from your Apps Script deployment (see docs/DEPLOYMENT_CHECKLIST.md)
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbzZg11UDcIZGbwHvrtxb5E2enGspkQnjsBPbCP5Aw6BYP5Jo5cq3JqPr8PHOZgbgn2kOg/exec',
+  GAS_URL: "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec",
 
   // Base path for GitHub Pages deployment
   // Production URL: https://edmund-alexander.github.io/Sudoku-Labs/
