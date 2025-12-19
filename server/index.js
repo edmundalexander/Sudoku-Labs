@@ -38,10 +38,14 @@ const PUBLIC_DIR = candidatePublicDirs.find((dir) =>
 if (PUBLIC_DIR) {
   console.log(`Serving static files from: ${PUBLIC_DIR}`);
   app.use(express.static(PUBLIC_DIR));
+  const indexHtml = fs.readFileSync(
+    path.join(PUBLIC_DIR, "index.html"),
+    "utf8"
+  );
 
   // SPA Fallback
   app.get("*", (req, res) => {
-    res.sendFile(path.join(PUBLIC_DIR, "index.html"));
+    res.type("html").send(indexHtml);
   });
 } else {
   const checkedPaths = candidatePublicDirs
