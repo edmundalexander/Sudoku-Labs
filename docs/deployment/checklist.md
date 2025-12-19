@@ -1,6 +1,7 @@
 # Deployment Checklist
 
 ## Prerequisites
+
 - Google account with Google Sheets access
 - GitHub account with GitHub Pages enabled
 - Google Apps Script access
@@ -8,23 +9,27 @@
 ## Part 1: Google Apps Script Backend
 
 ### 1. Create Apps Script Project
+
 - Go to https://script.google.com/home
 - Click **"New project"**
 - Name it "Sudoku Logic Lab API"
 
 ### 2. Setup Code
+
 - Open `apps_script/Code.gs` in this repo
 - Copy **all** the code
 - In Apps Script editor, paste into `Code.gs`
 - Save (Ctrl+S)
 
 ### 3. Update Sheet ID
+
 - Create or use existing Google Sheet
 - Get Sheet ID from URL: `https://docs.google.com/spreadsheets/d/[SHEET_ID]/edit`
 - In Code.gs line ~13, update: `const SHEET_ID = '[YOUR_SHEET_ID]'`
 - Save
 
 ### 4. Initialize Database
+
 - In Apps Script, select `setupSheets_` from function dropdown
 - Click **Run** button (▶️)
 - Check Execution log → should see success
@@ -32,6 +37,7 @@
   - **Note:** The Users sheet is for the optional authentication system
 
 ### 5. Deploy as Web App
+
 - Click **Deploy** → **New Deployment**
 - Type: **Web App**
 - Execute as: **Your email address** (the account that owns the Sheet)
@@ -39,11 +45,13 @@
 - Click **Deploy**
 
 ### 6. Copy Deployment URL
+
 - You'll see a popup showing your deployment URL
 - Format: `https://script.google.com/macros/s/[SCRIPT_ID]/exec`
 - **Copy this entire URL**
 
 ### 7. Test Backend
+
 ```bash
 # Replace with your actual URL
 curl "https://script.google.com/macros/s/YOUR_ID/exec?action=ping"
@@ -55,27 +63,32 @@ curl "https://script.google.com/macros/s/YOUR_ID/exec?action=ping"
 ## Part 2: GitHub Pages Frontend
 
 ### 1. Update Configuration (Local Dev)
+
 - Copy `public/config/config.example.js` to `public/config/config.local.js`
 - Update `GAS_URL` with your deployment URL from Part 1, Step 6
 - This file is for local development only and is gitignored.
 
 ### 2. Configure GitHub Actions
+
 - Ensure `.github/workflows/deploy.yml` exists in your repository.
 - This workflow handles building and deploying your site automatically.
 
 ### 3. Enable GitHub Pages
+
 - Go to GitHub repo settings
 - Scroll to **Pages** section
 - **Source**: Select **GitHub Actions**
 - Save
 
 ### 4. Access Your Game
+
 - Push your changes to `main`
 - Wait for the "Deploy to GitHub Pages" action to complete (check "Actions" tab)
 - Go to: `https://[username].github.io/[repo-name]/`
 - Game should load!
 
 ### 5. Test Frontend
+
 - Start a game (pick difficulty)
 - Solve and submit (score should save)
 - Send chat message (should appear in sheet)
@@ -84,19 +97,21 @@ curl "https://script.google.com/macros/s/YOUR_ID/exec?action=ping"
 ## Part 3: Production Configuration
 
 ### 1. Add GAS_URL as a Repository Secret (Optional)
+
 If you want to inject the GAS URL during the build process (instead of loading it from a file):
+
 - In your GitHub repository, go to **Settings** > **Secrets and variables** > **Actions**.
 - Click **New repository secret**.
 - Name the secret `GAS_URL`.
 - Paste your full Google Apps Script deployment URL into the "Value" field.
-- *Note: You will need to update the workflow to use this secret if you choose this method.*
+- _Note: You will need to update the workflow to use this secret if you choose this method._
 
 ### 2. Using Config Files (Recommended)
+
 - The build process copies `public/config/` to the output.
 - You can commit a `public/config/config.production.js` (or similar) and update `index.html` to load it, OR
 - Rely on the fact that `config.local.js` is ignored, and you might need a way to supply config in production.
 - **Current Setup**: The app looks for `window.CONFIG`. You can create a `public/config/config.js` with your production settings and commit it, then ensure `index.html` loads it.
-
 
 ---
 
@@ -127,6 +142,7 @@ See [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for common issues and solution
 ## Optional: Authentication System
 
 The game now includes an optional authentication system that allows users to:
+
 - Continue as Guest (default, works exactly as before)
 - Register for an account to track stats across devices
 - Login to sync progress
@@ -138,6 +154,7 @@ For detailed information about the authentication system, see [AUTHENTICATION_SE
 ## Redeployment
 
 If you update `Code.gs`:
+
 1. Paste new code into Apps Script editor
 2. Click **Deploy** → **Manage Deployments**
 3. Click the edit icon on your Web App deployment
@@ -146,6 +163,7 @@ If you update `Code.gs`:
 6. Push to GitHub
 
 If you update `index.html`:
+
 1. Push to GitHub
 2. GitHub Pages auto-deploys
 3. Clear browser cache if needed

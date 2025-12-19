@@ -17,67 +17,70 @@ const AdminManager = {
   sessionExpiry: null,
   consoleInstance: null,
 
-  async login() {
+  // Helper to render the "GUI" header
+  renderHeader() {
+    console.clear();
     console.log(
-      "%c🔐 Sudoku Labs Admin Console",
-      "font-size: 20px; font-weight: bold; color: #ff0000;"
-    );
-    console.log(
-      "%cThis is a secure administrative console.",
-      "font-size: 14px; color: #ff6600;"
-    );
-    console.log(
-      "%cUnauthorized access is prohibited.",
-      "font-size: 14px; color: #ff6600;"
+      "%c🔐 Sudoku Labs Admin System",
+      "font-size: 24px; font-weight: bold; color: #4f46e5; padding: 10px; border-bottom: 2px solid #4f46e5;"
     );
     console.log("");
+  },
+
+  // Helper to render status messages
+  renderStatus(message, type = "info") {
+    const styles = {
+      info: "color: #3b82f6; font-weight: bold;",
+      success: "color: #10b981; font-weight: bold; font-size: 14px;",
+      error: "color: #ef4444; font-weight: bold;",
+      warning: "color: #f59e0b; font-weight: bold;",
+    };
+    console.log(`%c${message}`, styles[type] || styles.info);
+  },
+
+  async login() {
+    this.renderHeader();
+    this.renderStatus("Initializing secure connection...", "info");
 
     // Check if already logged in
     if (this.sessionToken && Date.now() < this.sessionExpiry) {
       const remaining = Math.floor((this.sessionExpiry - Date.now()) / 60000);
-      console.log(
-        `✓ Already authenticated. Session expires in ${remaining} minutes.`
-      );
-      console.log("Run sudokuAdmin.open() to open the console.");
+      this.renderStatus(`✓ Already authenticated. Session active for ${remaining}m`, "success");
+      console.log("");
+      console.log("%c>> Run sudokuAdmin.open() to launch interface <<", "background: #4f46e5; color: white; padding: 5px 10px; border-radius: 4px; font-weight: bold;");
       return;
     }
 
     // Prompt for credentials
     const username = prompt("Admin Username:");
     if (!username) {
-      console.log("❌ Login cancelled");
+      this.renderStatus("❌ Login cancelled", "error");
       return;
     }
 
     const password = prompt("Admin Password:");
     if (!password) {
-      console.log("❌ Login cancelled");
+      this.renderStatus("❌ Login cancelled", "error");
       return;
     }
 
+    this.renderStatus("🔒 Encrypting credentials...", "info");
+
     // Hash password (SHA-256)
-    console.log("[Debug] Hashing password...");
     const passwordHash = await this.sha256(password);
-    console.log(`[Debug] Generated Hash: ${passwordHash}`);
-
+    
     const gasUrl = window.CONFIG?.GAS_URL;
-    console.log(`[Debug] GAS URL: ${gasUrl}`);
-
     if (!gasUrl) {
-      console.error("❌ Configuration Error: GAS_URL is missing.");
+      this.renderStatus("❌ Configuration Error: GAS_URL is missing.", "error");
       console.log("Check public/config/config.local.js");
       return;
     }
 
+    this.renderStatus("📡 Connecting to secure backend...", "info");
+
     const requestUrl = `${gasUrl}?action=adminLogin&username=${encodeURIComponent(
       username
     )}&passwordHash=${passwordHash}`;
-    console.log(
-      `[Debug] Requesting: ${requestUrl.replace(
-        /passwordHash=[^&]+/,
-        "passwordHash=***"
-      )}`
-    );
 
     // Request session token from backend
     try {
@@ -86,19 +89,14 @@ const AdminManager = {
 
       const response = await fetch(requestUrl, { signal: controller.signal });
       clearTimeout(timeoutId);
-      
-      console.log(`[Debug] Response status: ${response.status}`);
 
       const text = await response.text();
-      console.log(`[Debug] Raw response: ${text.substring(0, 200)}...`);
-
       let data;
       try {
         data = JSON.parse(text);
       } catch (e) {
-        console.error(
-          "❌ Failed to parse JSON response. Server might be returning HTML error."
-        );
+        this.renderStatus("❌ Protocol Error: Invalid response from server", "error");
+        console.log("Raw response:", text.substring(0, 100));
         return;
       }
 
@@ -107,37 +105,23 @@ const AdminManager = {
         this.sessionExpiry =
           Date.now() + (window.ADMIN_CONFIG?.SESSION_TIMEOUT || 30 * 60 * 1000);
 
-        console.log(
-          "%c✓ Authentication successful!",
-          "color: #00ff00; font-weight: bold;"
-        );
-        console.log(
-          `Session expires at: ${new Date(
-            this.sessionExpiry
-          ).toLocaleTimeString()}`
-        );
+        this.renderHeader();
+        this.renderStatus("✓ ACCESS GRANTED", "success");
         console.log("");
-        console.log(
-          "%cRun sudokuAdmin.open() to access the admin console.",
-          "font-size: 14px; color: #00ffff;"
-        );
-        console.log("Run sudokuAdmin.logout() to end your session.");
+        console.log(`%cSession Token: ${this.sessionToken.substring(0, 12)}...`, "color: #6b7280; font-family: monospace;");
+        console.log(`%cExpires: ${new Date(this.sessionExpiry).toLocaleTimeString()}`, "color: #6b7280;");
+        console.log("");
+        console.log("%c>> Run sudokuAdmin.open() to launch interface <<", "background: #4f46e5; color: white; padding: 8px 16px; border-radius: 4px; font-weight: bold; font-size: 14px; display: block; margin-top: 10px;");
+        
+        // Auto-open prompt
+        console.log("");
+        console.log("%c(Or type sudokuAdmin.logout() to exit)", "color: #9ca3af; font-size: 11px;");
       } else {
-        console.error(
-          "❌ Authentication failed:",
-          data.error || "Unknown error"
-        );
+        this.renderStatus(`❌ Access Denied: ${data.error || "Invalid credentials"}`, "error");
       }
     } catch (err) {
-      console.error("❌ Login error:", err.message);
-      console.log("");
-      console.log(
-        "%cNote: Backend admin endpoints may not be deployed yet.",
-        "color: #ffff00;"
-      );
-      console.log(
-        "Verify GAS_URL is configured and admin functions are deployed."
-      );
+      this.renderStatus(`❌ Connection Failed: ${err.message}`, "error");
+      console.log("Verify backend deployment and network connection.");
     }
   },
 
@@ -244,7 +228,9 @@ const AdminManager = {
   // SHA-256 hash function
   async sha256(message) {
     if (!crypto || !crypto.subtle) {
-      console.error("❌ Web Crypto API not available. Ensure you are using HTTPS or localhost.");
+      console.error(
+        "❌ Web Crypto API not available. Ensure you are using HTTPS or localhost."
+      );
       throw new Error("Web Crypto API unavailable");
     }
     const msgBuffer = new TextEncoder().encode(message);
