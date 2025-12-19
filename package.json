@@ -5,7 +5,7 @@
   "engines": {
     "node": "20"
   },
-  "main": "index.js",
+  "main": "server/index.js",
   "scripts": {
     "dev": "vite",
     "start": "node server/index.js",
