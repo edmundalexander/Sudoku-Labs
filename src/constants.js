@@ -923,21 +923,33 @@ export const getThemeAssetSet = (visualId, audioId) => {
   // Allow all themes (including default) to use filesystem assets if they exist
   const hasFilesystemAssets = visualExists;
 
-  // Asset layout differs between local dev (assets under `/public/assets/...`)
-  // and GitHub Pages production (assets under `/assets/...`). Detect
-  // GitHub Pages by hostname and choose the correct path accordingly.
+  // Asset layout differs between local dev and production.
+  // In Vite, assets from 'public/' are served from the root '/assets/...'
+  // We use Vite's import.meta.env.BASE_URL for smart pathing that works
+  // across both local development and subdirectory deployments (like GitHub Pages).
   let assetBase = null;
   if (hasFilesystemAssets) {
-    const isGitHubPages =
-      typeof window !== "undefined" &&
-      window.location &&
-      window.location.hostname.includes("github.io");
-    const assetsRoot = isGitHubPages ? "assets/themes" : "public/assets/themes";
-    assetBase =
-      `${basePath}/${assetsRoot}/${safeVisualId}/${safeAudioId}`.replace(
-        /^\/+/,
-        "/"
-      );
+    // Get base path from Vite (build-time) or window.CONFIG (runtime fallback)
+    const buildBase = import.meta.env.BASE_URL || "./";
+    const runtimeBase = (window.CONFIG && window.CONFIG.BASE_PATH) || "";
+    
+    // Prefer runtime base if explicitly set, otherwise use build-time base
+    let base = runtimeBase || buildBase;
+    
+    // Normalize: ensure it ends with a slash if it's not empty
+    if (base && !base.endsWith("/")) base += "/";
+    
+    // Assets are always under assets/themes/ in the final build
+    const assetsRoot = "assets/themes";
+    
+    assetBase = `${base}${assetsRoot}/${safeVisualId}/${safeAudioId}`.replace(/\/+/g, "/");
+    
+    // Fix for relative paths starting with ./
+    if (assetBase.startsWith("./")) {
+      // Keep it as is
+    } else if (!assetBase.startsWith("/") && base.startsWith("/")) {
+      assetBase = "/" + assetBase;
+    }
   }
 
   const assetPaths = assetBase
