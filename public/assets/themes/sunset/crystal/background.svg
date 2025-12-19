@@ -1,12 +1,23 @@
-
-<svg xmlns='http://www.w3.org/2000/svg' width='1920' height='1080'>
-  <defs>
-    <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
-      <stop offset='0%' stop-color='#f97316'/>
-      <stop offset='100%' stop-color='#fbbf24'/>
-    </linearGradient>
-  </defs>
-  <rect x='0' y='0' width='1920' height='1080' fill='url(#g)'/>
-  <circle cx='30%' cy='40%' r='220' fill='#ffffff20' />
-  <circle cx='70%' cy='65%' r='180' fill='#ffffff10' />
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080" preserveAspectRatio="xMidYMid slice"><circle cx="1213" cy="75" r="82.8" fill="#ffffff" opacity="0.26" /><circle cx="1144.0" cy="102.6" r="55.2" fill="#ffffff" opacity="0.26" /><circle cx="1282.0" cy="102.6" r="55.2" fill="#ffffff" opacity="0.26" /><circle cx="1185.4" cy="33.6" r="69.0" fill="#ffffff" opacity="0.26" />
+<circle cx="1622" cy="335" r="80.39999999999999" fill="#ffffff" opacity="0.26" /><circle cx="1555.0" cy="361.8" r="53.6" fill="#ffffff" opacity="0.26" /><circle cx="1689.0" cy="361.8" r="53.6" fill="#ffffff" opacity="0.26" /><circle cx="1595.2" cy="294.8" r="67.0" fill="#ffffff" opacity="0.26" />
+<circle cx="450" cy="487" r="79.2" fill="#ffffff" opacity="0.23" /><circle cx="384.0" cy="513.4" r="52.800000000000004" fill="#ffffff" opacity="0.23" /><circle cx="516.0" cy="513.4" r="52.800000000000004" fill="#ffffff" opacity="0.23" /><circle cx="423.6" cy="447.4" r="66.0" fill="#ffffff" opacity="0.23" />
+<circle cx="1748" cy="44" r="58.8" fill="#ffedd5" opacity="0.24" /><circle cx="1699.0" cy="63.6" r="39.2" fill="#ffedd5" opacity="0.24" /><circle cx="1797.0" cy="63.6" r="39.2" fill="#ffedd5" opacity="0.24" /><circle cx="1728.4" cy="14.600000000000001" r="49.0" fill="#ffedd5" opacity="0.24" />
+<circle cx="1038" cy="83" r="54.0" fill="#ffffff" opacity="0.14" /><circle cx="993.0" cy="101.0" r="36.0" fill="#ffffff" opacity="0.14" /><circle cx="1083.0" cy="101.0" r="36.0" fill="#ffffff" opacity="0.14" /><circle cx="1020.0" cy="56.0" r="45.0" fill="#ffffff" opacity="0.14" />
+<circle cx="570" cy="311" r="81.6" fill="#ffffff" opacity="0.21" /><circle cx="502.0" cy="338.2" r="54.400000000000006" fill="#ffffff" opacity="0.21" /><circle cx="638.0" cy="338.2" r="54.400000000000006" fill="#ffffff" opacity="0.21" /><circle cx="542.8" cy="270.2" r="68.0" fill="#ffffff" opacity="0.21" />
+<circle cx="1548" cy="197" r="54.6" fill="#ffffff" opacity="0.14" /><circle cx="1502.5" cy="215.2" r="36.4" fill="#ffffff" opacity="0.14" /><circle cx="1593.5" cy="215.2" r="36.4" fill="#ffffff" opacity="0.14" /><circle cx="1529.8" cy="169.7" r="45.5" fill="#ffffff" opacity="0.14" />
+<circle cx="807" cy="301" r="59.4" fill="#ffffff" opacity="0.28" /><circle cx="757.5" cy="320.8" r="39.6" fill="#ffffff" opacity="0.28" /><circle cx="856.5" cy="320.8" r="39.6" fill="#ffffff" opacity="0.28" /><circle cx="787.2" cy="271.3" r="49.5" fill="#ffffff" opacity="0.28" />
+<path d="M511,467 L519.0,475.0 L527,467" stroke="#431407" stroke-width="2" fill="none" opacity="0.2" />
+<path d="M1567,483 L1575.0,491.0 L1583,483" stroke="#431407" stroke-width="2" fill="none" opacity="0.2" />
+<path d="M1055,188 L1060.5,193.5 L1066,188" stroke="#431407" stroke-width="2" fill="none" opacity="0.2" />
+<path d="M1106,345 L1115.5,354.5 L1125,345" stroke="#431407" stroke-width="2" fill="none" opacity="0.2" />
+<path d="M1015,39 L1024.5,48.5 L1034,39" stroke="#431407" stroke-width="2" fill="none" opacity="0.2" />
+<path d="M1594,284 L1601.5,291.5 L1609,284" stroke="#431407" stroke-width="2" fill="none" opacity="0.2" />
+<path d="M93,71 L100.5,78.5 L108,71" stroke="#431407" stroke-width="2" fill="none" opacity="0.2" />
+<path d="M129,408 L134.5,413.5 L140,408" stroke="#431407" stroke-width="2" fill="none" opacity="0.2" />
+<path d="M1884,103 L1890.0,109.0 L1896,103" stroke="#431407" stroke-width="2" fill="none" opacity="0.2" />
+<path d="M144,147 L150.5,153.5 L157,147" stroke="#431407" stroke-width="2" fill="none" opacity="0.2" />
+<path d="M725,524 L732.0,531.0 L739,524" stroke="#431407" stroke-width="2" fill="none" opacity="0.2" />
+<path d="M99,309 L104.0,314.0 L109,309" stroke="#431407" stroke-width="2" fill="none" opacity="0.2" />
+<path d="M1188,135 L1193.5,140.5 L1199,135" stroke="#431407" stroke-width="2" fill="none" opacity="0.2" />
+<path d="M457,143 L467.0,153.0 L477,143" stroke="#431407" stroke-width="2" fill="none" opacity="0.2" />
+<path d="M762,508 L769.5,515.5 L777,508" stroke="#431407" stroke-width="2" fill="none" opacity="0.2" /></svg>

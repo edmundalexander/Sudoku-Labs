@@ -920,7 +920,8 @@ const getThemeAssetSet = (visualId, audioId) => {
   // Use BASE_PATH from config for subdirectory deployments (e.g., GitHub Pages)
   const basePath = (window.CONFIG && window.CONFIG.BASE_PATH) || "";
   const visualExists = !!VISUAL_BASES[safeVisualId];
-  const hasFilesystemAssets = visualExists && safeVisualId !== "default";
+  // Allow all themes (including default) to use filesystem assets if they exist
+  const hasFilesystemAssets = visualExists;
 
   // Asset layout differs between local dev (assets under `/public/assets/...`)
   // and GitHub Pages production (assets under `/assets/...`). Detect

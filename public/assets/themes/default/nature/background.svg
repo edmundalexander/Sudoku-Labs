@@ -1,12 +1,20 @@
-
-<svg xmlns='http://www.w3.org/2000/svg' width='1920' height='1080'>
-  <defs>
-    <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
-      <stop offset='0%' stop-color='#3b82f6'/>
-      <stop offset='100%' stop-color='#60a5fa'/>
-    </linearGradient>
-  </defs>
-  <rect x='0' y='0' width='1920' height='1080' fill='url(#g)'/>
-  <circle cx='30%' cy='40%' r='220' fill='#ffffff20' />
-  <circle cx='70%' cy='65%' r='180' fill='#ffffff10' />
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080" preserveAspectRatio="xMidYMid slice"><polygon points="1258,482.78237760728126 1233.5,525.2176223927188 1282.5,525.2176223927188" fill="#3b82f6" opacity="0.14" transform="rotate(205 1258 504)" />
+<rect x="721" y="288" width="66" height="66" fill="#3b82f6" opacity="0.15" transform="rotate(42 754.0 321.0)" />
+<polygon points="1184,942.7201997807902 1152.5,997.2798002192098 1215.5,997.2798002192098" fill="#93c5fd" opacity="0.17" transform="rotate(293 1184 970)" />
+<rect x="1269" y="1052" width="100" height="100" fill="#93c5fd" opacity="0.20" transform="rotate(25 1319.0 1102.0)" />
+<circle cx="1758" cy="251" r="11.5" fill="#93c5fd" opacity="0.19" />
+<polygon points="113,844.8637933202392 65.5,927.1362066797608 160.5,927.1362066797608" fill="#3b82f6" opacity="0.14" transform="rotate(358 113 886)" />
+<polygon points="319,999.1746824526945 306.5,1020.8253175473055 331.5,1020.8253175473055" fill="#ffffff" opacity="0.14" transform="rotate(53 319 1010)" />
+<polygon points="657,799.9474411167423 635.0,838.0525588832577 679.0,838.0525588832577" fill="#3b82f6" opacity="0.19" transform="rotate(306 657 819)" />
+<rect x="1620" y="261" width="72" height="72" fill="#3b82f6" opacity="0.18" transform="rotate(13 1656.0 297.0)" />
+<polygon points="1571,114.19392033916137 1528.5,187.80607966083863 1613.5,187.80607966083863" fill="#93c5fd" opacity="0.11" transform="rotate(345 1571 151)" />
+<circle cx="1860" cy="447" r="21.5" fill="#3b82f6" opacity="0.14" />
+<rect x="1290" y="803" width="27" height="27" fill="#60a5fa" opacity="0.08" transform="rotate(51 1303.5 816.5)" />
+<rect x="42" y="187" width="98" height="98" fill="#60a5fa" opacity="0.17" transform="rotate(48 91.0 236.0)" />
+<circle cx="536" cy="624" r="15.5" fill="#60a5fa" opacity="0.07" />
+<circle cx="1025" cy="404" r="46.5" fill="#93c5fd" opacity="0.09" />
+<circle cx="1215" cy="556" r="18.5" fill="#ffffff" opacity="0.12" />
+<rect x="1048" y="666" width="40" height="40" fill="#93c5fd" opacity="0.09" transform="rotate(2 1068.0 686.0)" />
+<rect x="1545" y="797" width="47" height="47" fill="#60a5fa" opacity="0.12" transform="rotate(21 1568.5 820.5)" />
+<circle cx="261" cy="591" r="14.0" fill="#3b82f6" opacity="0.17" />
+<rect x="798" y="115" width="93" height="93" fill="#93c5fd" opacity="0.09" transform="rotate(42 844.5 161.5)" /></svg>
