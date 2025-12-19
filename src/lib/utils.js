@@ -257,7 +257,7 @@ export const generateLocalBoard = (difficulty) => {
     }
   }
 
-  return boardArray.map((val, index) => ({
+  const newBoard = boardArray.map((val, index) => ({
     id: index,
     row: getRow(index),
     col: getCol(index),
@@ -268,6 +268,20 @@ export const generateLocalBoard = (difficulty) => {
     isError: false,
     isHinted: false,
   }));
+
+  const solvedBoard = solution.map((val, index) => ({
+    id: index,
+    row: getRow(index),
+    col: getCol(index),
+    value: val,
+    solution: val,
+    isFixed: true,
+    notes: [],
+    isError: false,
+    isHinted: false,
+  }));
+
+  return { newBoard, solvedBoard };
 };
 
 // ============================================================================
