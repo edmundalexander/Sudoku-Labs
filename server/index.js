@@ -3,15 +3,16 @@ const path = require("path");
 const fs = require("fs");
 const cors = require("cors");
 const admin = require("firebase-admin");
-const apiRouter = require("./controllers/api");
 
-// Initialize Firebase Admin
+// Initialize Firebase Admin before loading any modules that use it
 try {
   admin.initializeApp();
   console.log("Firebase Admin initialized with default credentials");
 } catch (e) {
   console.error("Failed to initialize Firebase Admin:", e);
 }
+
+const apiRouter = require("./controllers/api");
 
 const app = express();
 
@@ -43,8 +44,8 @@ if (PUBLIC_DIR) {
     "utf8"
   );
 
-  // SPA Fallback
-  app.get("*", (req, res) => {
+  // SPA Fallback (Express 5 requires named wildcard parameter)
+  app.get("/{*path}", (req, res) => {
     res.type("html").send(indexHtml);
   });
 } else {
@@ -58,7 +59,7 @@ if (PUBLIC_DIR) {
     "Run `npm run build` before starting the server.",
   ].join("\n");
   console.error(missingBuildMessage);
-  app.get("*", (req, res) => res.status(503).send(missingBuildMessage));
+  app.get("/{*path}", (req, res) => res.status(503).send(missingBuildMessage));
 }
 
 // Start the server if run directly
