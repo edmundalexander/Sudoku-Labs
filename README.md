@@ -96,6 +96,8 @@ Configuration is managed via Environment Variables (in `apphosting.yaml` for pro
 | `ADMIN_PASSWORD_HASH` | SHA-256 hash of the admin password |
 | `ADMIN_TOKEN_SECRET` | Secret key for signing admin session tokens |
 
+_Local development note:_ The Firestore emulator listens on port **8081** to avoid clashing with the Express server on **8080** (update `firebase.json` if you need a different port).
+
 ## 🚢 Deployment
 
 Deployment is automated via Firebase App Hosting.

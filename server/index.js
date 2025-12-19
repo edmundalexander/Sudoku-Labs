@@ -44,14 +44,17 @@ if (PUBLIC_DIR) {
     res.sendFile(path.join(PUBLIC_DIR, "index.html"));
   });
 } else {
-  console.error(
-    "No built frontend found. Run `npm run build` before starting the server."
-  );
-  app.get("*", (req, res) => {
-    res
-      .status(500)
-      .send("Server misconfigured: build artifacts missing. Run `npm run build`.");
-  });
+  const checkedPaths = candidatePublicDirs
+    .map((dir) => `- ${dir}`)
+    .join("\n");
+  const missingBuildMessage = [
+    "Server misconfigured: build artifacts missing.",
+    "Checked paths:",
+    checkedPaths,
+    "Run `npm run build` before starting the server.",
+  ].join("\n");
+  console.error(missingBuildMessage);
+  app.get("*", (req, res) => res.status(503).send(missingBuildMessage));
 }
 
 // Start the server if run directly
