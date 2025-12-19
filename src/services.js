@@ -22,7 +22,9 @@ import { generateGuestId, sortLeaderboard } from "./utils.js";
 
 // GAS Backend API URL - Configure via config/config.local.js
 export const DEFAULT_GAS_URL = "";
-export const GAS_URL =
+
+// Helper to get GAS_URL dynamically to handle race conditions with config loading
+const getGasUrl = () =>
   (typeof window.CONFIG !== "undefined" && window.CONFIG.GAS_URL) ||
   DEFAULT_GAS_URL;
 
@@ -32,8 +34,9 @@ export const GAS_URL =
  */
 export const isGasEnvironment = () => {
   try {
-    if (typeof GAS_URL !== "string") return false;
-    const host = new URL(GAS_URL).host;
+    const url = getGasUrl();
+    if (typeof url !== "string" || !url) return false;
+    const host = new URL(url).host;
     return host === "script.google.com";
   } catch (e) {
     return false;
@@ -51,7 +54,8 @@ export const isGasEnvironment = () => {
  * @returns {Promise<any>} API response
  */
 export const runGasFn = async (fnName, ...args) => {
-  if (!GAS_URL) {
+  const gasUrl = getGasUrl();
+  if (!gasUrl) {
     console.error("GAS_URL not configured");
     return null;
   }
@@ -82,7 +86,7 @@ export const runGasFn = async (fnName, ...args) => {
     }
 
     const { action } = mapping;
-    const url = new URL(GAS_URL);
+    const url = new URL(gasUrl);
     url.searchParams.set("action", action);
     // Cache-bust to avoid stale GET responses (especially for auth endpoints)
     url.searchParams.set("_ts", Date.now().toString());
