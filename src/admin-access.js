@@ -114,8 +114,10 @@ const AdminManager = {
         this.sessionExpiry =
           Date.now() + (window.ADMIN_CONFIG?.SESSION_TIMEOUT || 30 * 60 * 1000);
 
-        this.renderHeader();
+        // this.renderHeader(); // Removed to prevent console grouping confusion
+        console.log("");
         this.renderStatus("✓ ACCESS GRANTED", "success");
+        console.log("----------------------------------------");
         console.log("");
         console.log(
           `%cSession Token: ${this.sessionToken.substring(0, 12)}...`,

@@ -166,9 +166,6 @@ export const UserPanel = ({ soundEnabled, onClose, appUserSession }) => {
   const handleLogout = async () => {
     setLoading(true);
     try {
-      // Small delay to show loading state
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
       if (typeof StorageService !== "undefined") {
         StorageService.clearUserSession();
       }
