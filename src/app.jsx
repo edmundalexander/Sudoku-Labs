@@ -2379,40 +2379,6 @@ const App = () => {
         </>
       )}
 
-      {/* Decorative elements layer - Procedural theme-aware shapes */}
-      {activeAssetSet.icons && activeAssetSet.icons.length > 0 && (
-        <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-          {activeAssetSet.icons.map((_, i) => {
-            const element = getThemeVisualElement(
-              activeThemeId,
-              activeSoundPackId,
-              i
-            );
-            return (
-              <div
-                key={i}
-                className={`absolute ${element.shape} ${element.animation}`}
-                style={{
-                  left: `${15 + (i % 3) * 30}%`,
-                  top: `${10 + Math.floor(i / 3) * 40}%`,
-                  width: `${element.size}px`,
-                  height: `${element.size}px`,
-                  background: element.background,
-                  opacity: element.opacity,
-                  animationDelay: `${i * 1.5}s`,
-                  animationDuration: `${8 + i * 2}s`,
-                  filter: `${element.blur}${
-                    element.filter ? " " + element.filter : ""
-                  }`,
-                  boxShadow: `0 8px 24px ${element.color}40, inset 0 0 12px ${element.color}20`,
-                  transition: "all 0.3s ease",
-                }}
-              />
-            );
-          })}
-        </div>
-      )}
-
       {/* Fallback emoji decorations (if no Material Icons available) */}
       {(!activeAssetSet.icons || activeAssetSet.icons.length === 0) &&
         activeAssetSet.decor.length > 0 && (
