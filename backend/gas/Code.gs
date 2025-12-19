@@ -1846,8 +1846,9 @@ function clearAllChat(params) {
 function runPerformMaintenance_(params) {
   // Verify token
   const token = params.token;
-  const expectedToken =
-    PropertiesService.getScriptProperties().getProperty("ADMIN_TRIGGER_TOKEN");
+  const expectedToken = PropertiesService.getScriptProperties().getProperty(
+    "ADMIN_TRIGGER_TOKEN"
+  );
 
   if (!expectedToken || token !== expectedToken) {
     return { success: false, error: "Unauthorized: Invalid or missing token" };

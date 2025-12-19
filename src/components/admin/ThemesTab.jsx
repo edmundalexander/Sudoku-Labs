@@ -1,3 +1,6 @@
+import React from "react";
+import { SOUND_PACKS, THEMES } from "../../constants.js";
+
 const ThemesTab = ({
   themes,
   setThemes,
@@ -284,4 +287,4 @@ const ThemesTab = ({
   );
 };
 
-window.ThemesTab = ThemesTab;
+export { ThemesTab };

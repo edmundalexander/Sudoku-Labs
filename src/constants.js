@@ -11,7 +11,7 @@
 // STORAGE KEYS
 // ============================================================================
 
-const KEYS = Object.freeze({
+export const KEYS = Object.freeze({
   GAME_STATE: "sudoku_v2_state",
   LEADERBOARD: "sudoku_v2_leaderboard",
   CHAT: "sudoku_v2_chat",
@@ -30,14 +30,14 @@ const KEYS = Object.freeze({
 // DIFFICULTY SETTINGS
 // ============================================================================
 
-const DIFFICULTY = Object.freeze({
+export const DIFFICULTY = Object.freeze({
   EASY: "Easy",
   MEDIUM: "Medium",
   HARD: "Hard",
   DAILY: "Daily",
 });
 
-const DIFFICULTY_REMOVE_COUNTS = Object.freeze({
+export const DIFFICULTY_REMOVE_COUNTS = Object.freeze({
   [DIFFICULTY.EASY]: 30,
   [DIFFICULTY.MEDIUM]: 45,
   [DIFFICULTY.HARD]: 55,
@@ -48,7 +48,7 @@ const DIFFICULTY_REMOVE_COUNTS = Object.freeze({
 // GAME SETTINGS
 // ============================================================================
 
-const GAME_SETTINGS = Object.freeze({
+export const GAME_SETTINGS = Object.freeze({
   MAX_MISTAKES: 3,
   CHAT_POLL_INTERVAL: 5000,
   CHAT_MAX_LENGTH: 140,
@@ -65,7 +65,7 @@ const GAME_SETTINGS = Object.freeze({
 // THEMES
 // ============================================================================
 
-const THEMES = Object.freeze({
+export const THEMES = Object.freeze({
   default: {
     id: "default",
     name: "Classic",
@@ -199,7 +199,7 @@ const THEMES = Object.freeze({
 // SOUND PACKS
 // ============================================================================
 
-const SOUND_PACKS = Object.freeze({
+export const SOUND_PACKS = Object.freeze({
   classic: {
     id: "classic",
     name: "Classic",
@@ -284,10 +284,10 @@ const SOUND_PACKS = Object.freeze({
  */
 
 // Helper to generate combination key
-const getComboKey = (visualId, audioId) => `${visualId}_${audioId}`;
+export const getComboKey = (visualId, audioId) => `${visualId}_${audioId}`;
 
 // Base visual themes (extracted from THEMES for cleaner combination logic)
-const VISUAL_BASES = Object.freeze({
+export const VISUAL_BASES = Object.freeze({
   default: {
     background:
       "bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800",
@@ -362,7 +362,7 @@ const VISUAL_BASES = Object.freeze({
  * SVG pattern generators for each theme
  * Each pattern is encoded as a data URI for direct use in backgroundImage
  */
-const SVG_PATTERNS = Object.freeze({
+export const SVG_PATTERNS = Object.freeze({
   // Default theme - clean, minimal lines with subtle geometric accents
   default_bg: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%234f46e5' stop-opacity='0.03'/%3E%3Cstop offset='100%25' stop-color='%232563eb' stop-opacity='0.01'/%3E%3C/linearGradient%3E%3Cpattern id='grid' width='40' height='40' patternUnits='userSpaceOnUse'%3E%3Cpath d='M 40 0 L 0 0 0 40' fill='none' stroke='%234f46e5' stroke-width='0.5' opacity='0.05'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='400' height='400' fill='url(%23grad)'/%3E%3Crect width='400' height='400' fill='url(%23grid)'/%3E%3Ccircle cx='200' cy='200' r='150' fill='none' stroke='%234f46e5' stroke-width='1' opacity='0.03'/%3E%3Ccircle cx='50' cy='50' r='20' fill='%234f46e5' opacity='0.02'/%3E%3Ccircle cx='350' cy='350' r='30' fill='%232563eb' opacity='0.02'/%3E%3C/svg%3E")`,
 
@@ -392,7 +392,7 @@ const SVG_PATTERNS = Object.freeze({
  * Texture patterns for board overlays
  * High-fidelity SVG textures for wood, paper, stone, etc.
  */
-const TEXTURE_PATTERNS = Object.freeze({
+export const TEXTURE_PATTERNS = Object.freeze({
   paper: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.4'/%3E%3C/svg%3E")`,
   wood: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cdefs%3E%3Cpattern id='woodGrain' width='20' height='100' patternUnits='userSpaceOnUse'%3E%3Cpath d='M0,0 Q5,25 0,50 T0,100' stroke='%23654321' stroke-width='0.5' fill='none' opacity='0.3'/%3E%3Cpath d='M10,0 Q15,25 10,50 T10,100' stroke='%23654321' stroke-width='0.5' fill='none' opacity='0.2'/%3E%3Cpath d='M20,0 Q25,25 20,50 T20,100' stroke='%23654321' stroke-width='0.5' fill='none' opacity='0.3'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23woodGrain)'/%3E%3C/svg%3E")`,
   pixel: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Crect width='4' height='4' fill='%23000' opacity='0.05'/%3E%3Crect x='4' y='4' width='4' height='4' fill='%23000' opacity='0.05'/%3E%3C/svg%3E")`,
@@ -411,7 +411,7 @@ const TEXTURE_PATTERNS = Object.freeze({
  * Material Icons for each theme combination
  * Icon names from Google Material Icons Outlined font
  */
-const MATERIAL_ICONS = Object.freeze({
+export const MATERIAL_ICONS = Object.freeze({
   // Watercolor/Zen themes - peaceful, flowing
   watercolor: ["waves", "brush", "palette", "water_droplet"],
 
@@ -444,7 +444,7 @@ const MATERIAL_ICONS = Object.freeze({
 });
 
 // Audio theme modifiers (how audio themes influence the visual rendering)
-const AUDIO_MODIFIERS = Object.freeze({
+export const AUDIO_MODIFIERS = Object.freeze({
   classic: { style: "clean", textureHint: "smooth" },
   zen: { style: "watercolor", textureHint: "paper" },
   funfair: { style: "playful", textureHint: "carnival" },
@@ -456,7 +456,7 @@ const AUDIO_MODIFIERS = Object.freeze({
 });
 
 // Board texture definitions
-const BOARD_TEXTURES = Object.freeze({
+export const BOARD_TEXTURES = Object.freeze({
   smooth: { name: "Smooth", pattern: "none", opacity: 0 },
   paper: { name: "Rice Paper", pattern: "paper", opacity: 0.15 },
   wood: { name: "Wood Grain", pattern: "wood", opacity: 0.2 },
@@ -469,7 +469,7 @@ const BOARD_TEXTURES = Object.freeze({
 });
 
 // Decorative element sets
-const DECOR_SETS = Object.freeze({
+export const DECOR_SETS = Object.freeze({
   none: [],
   bubbles: ["🫧", "💧", "🐚"],
   petals: ["🌸", "🎀", "✨"],
@@ -487,7 +487,7 @@ const DECOR_SETS = Object.freeze({
  * Maps (visualId, audioId) => unique ThemeAssetSet
  * Every permutation produces a distinct visual experience
  */
-const THEME_COMBINATIONS = Object.freeze({
+export const THEME_COMBINATIONS = Object.freeze({
   // Default visual + all audio themes
   default_classic: {
     name: "Classic Logic",
@@ -900,7 +900,7 @@ const THEME_COMBINATIONS = Object.freeze({
  * @param {string} audioId - Audio/sound pack ID
  * @returns {Object} Combined ThemeAssetSet with all styling properties
  */
-const getThemeAssetSet = (visualId, audioId) => {
+export const getThemeAssetSet = (visualId, audioId) => {
   // Validate and sanitize input IDs - ensure they're strings, not arrays or other types
   const safeVisualId =
     typeof visualId === "string" && visualId.trim()
@@ -1019,9 +1019,9 @@ const getThemeAssetSet = (visualId, audioId) => {
 // ============================================================================
 
 // Build emoji library by Unicode range
-const isEmojiChar = (ch) => /\p{Emoji}/u.test(ch);
+export const isEmojiChar = (ch) => /\p{Emoji}/u.test(ch);
 
-const buildEmojiList = (ranges) => {
+export const buildEmojiList = (ranges) => {
   const seen = new Set();
   const out = [];
   ranges.forEach(([start, end]) => {
@@ -1036,7 +1036,7 @@ const buildEmojiList = (ranges) => {
   return out;
 };
 
-const EMOJI_CATEGORIES = Object.freeze([
+export const EMOJI_CATEGORIES = Object.freeze([
   {
     id: "smileys",
     label: "Smileys",
@@ -1102,13 +1102,6 @@ const EMOJI_CATEGORIES = Object.freeze([
 ]);
 
 // Make constants available globally
-window.KEYS = KEYS;
-window.DIFFICULTY = DIFFICULTY;
-window.DIFFICULTY_REMOVE_COUNTS = DIFFICULTY_REMOVE_COUNTS;
-window.GAME_SETTINGS = GAME_SETTINGS;
-window.THEMES = THEMES;
-window.SOUND_PACKS = SOUND_PACKS;
-window.EMOJI_CATEGORIES = EMOJI_CATEGORIES;
 
 // ============================================================================
 // BADGE SYSTEM
@@ -1118,7 +1111,7 @@ window.EMOJI_CATEGORIES = EMOJI_CATEGORIES;
  * Badge definitions for achievements and milestones
  * Each badge has: id, name, description, icon, category, and criteria
  */
-const BADGES = Object.freeze({
+export const BADGES = Object.freeze({
   // ===== MILESTONE BADGES =====
   first_win: {
     id: "first_win",
@@ -1289,7 +1282,7 @@ const BADGES = Object.freeze({
 /**
  * Badge categories for organization
  */
-const BADGE_CATEGORIES = Object.freeze({
+export const BADGE_CATEGORIES = Object.freeze({
   milestone: { name: "Milestones", icon: "🎯", color: "blue" },
   difficulty: { name: "Difficulty Master", icon: "🎮", color: "purple" },
   achievement: { name: "Achievements", icon: "⭐", color: "yellow" },
@@ -1299,7 +1292,7 @@ const BADGE_CATEGORIES = Object.freeze({
 /**
  * Badge rarity levels
  */
-const BADGE_RARITY = Object.freeze({
+export const BADGE_RARITY = Object.freeze({
   common: { name: "Common", color: "bg-gray-400", textColor: "text-gray-700" },
   uncommon: {
     name: "Uncommon",
@@ -1316,18 +1309,5 @@ const BADGE_RARITY = Object.freeze({
 });
 
 // Combinatorial Theme System exports
-window.VISUAL_BASES = VISUAL_BASES;
-window.AUDIO_MODIFIERS = AUDIO_MODIFIERS;
-window.BOARD_TEXTURES = BOARD_TEXTURES;
-window.DECOR_SETS = DECOR_SETS;
-window.THEME_COMBINATIONS = THEME_COMBINATIONS;
-window.SVG_PATTERNS = SVG_PATTERNS;
-window.TEXTURE_PATTERNS = TEXTURE_PATTERNS;
-window.MATERIAL_ICONS = MATERIAL_ICONS;
-window.getComboKey = getComboKey;
-window.getThemeAssetSet = getThemeAssetSet;
 
 // Badge System exports
-window.BADGES = BADGES;
-window.BADGE_CATEGORIES = BADGE_CATEGORIES;
-window.BADGE_RARITY = BADGE_RARITY;

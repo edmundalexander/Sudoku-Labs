@@ -1,4 +1,7 @@
-const { useState, useEffect } = React;
+import React, { useState, useEffect } from "react";
+import { SoundManager } from "../sound.js";
+import { StorageService } from "../services.js";
+import { Icons } from "./Icons.jsx";
 
 const OpeningScreen = ({
   onStart,
@@ -13,7 +16,6 @@ const OpeningScreen = ({
   onShowAwards,
   userSession,
 }) => {
-  const Icons = window.Icons;
   const localStats = StorageService.getGameStats();
   const [practiceMode, setPracticeMode] = useState(false);
 
@@ -198,4 +200,4 @@ const OpeningScreen = ({
   );
 };
 
-window.OpeningScreen = OpeningScreen;
+export { OpeningScreen };

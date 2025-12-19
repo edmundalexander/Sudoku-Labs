@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sudoku Logic Lab</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" sizes="any" href="/favicon.svg?v=2" />
+    <link
+      rel="alternate icon"
+      type="image/svg+xml"
+      sizes="any"
+      href="/favicon.svg?v=2"
+    />
+    <link rel="shortcut icon" type="image/svg+xml" href="/favicon.svg?v=2" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.svg?v=2" />
+
+    <!-- Google Material Icons -->
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined"
+      rel="stylesheet"
+    />
+    <!-- Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Config Loading -->
+    <script>
+      // Default config values
+      window.CONFIG = {
+        GAS_URL: null,
+        BASE_PATH: "",
+      };
+
+      // Load config files
+      // We use a simple script tag injection to load config.local.js if it exists.
+      // This must happen before the main app loads.
+      function loadConfig(src) {
+        const script = document.createElement("script");
+        script.src = src;
+        script.async = false;
+        script.onerror = () =>
+          console.log("Config file not found (using defaults): " + src);
+        document.head.appendChild(script);
+      }
+
+      // In Vite dev, public/config is served at /config
+      // In production, it's at ./config
+      const isGitHubPages = window.location.hostname.includes("github.io");
+      // Note: Vite serves public folder at root. So config/config.local.js should be accessible at /config/config.local.js
+      // But wait, config folder is at root of workspace, NOT in public/.
+      // So Vite won't serve it by default unless I configure it or move it.
+      // The original structure had config/ at root.
+      // Python http.server served root.
+      // Vite serves root? No, Vite serves index.html and imports.
+      // Static assets should be in public.
+      // I should move config/ to public/config/ ?
+      // Or configure Vite to serve config/ folder.
+
+      // For now, let's assume I will move config to public/config.
+      // But config.local.js is gitignored.
+
+      const configPath = "/config/";
+      loadConfig(configPath + "config.local.js");
+      loadConfig(configPath + "admin.local.js");
+    </script>
+  </head>
+  <body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+    <div id="root"></div>
+
+    <!-- Prevent dark mode flash -->
+    <script>
+      (function () {
+        const savedTheme = localStorage.getItem("theme");
+        const prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)"
+        ).matches;
+        if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
+          document.documentElement.classList.add("dark");
+        }
+      })();
+    </script>
+
+    <!-- Main Entry Point -->
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

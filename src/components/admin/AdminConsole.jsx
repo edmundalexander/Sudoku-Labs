@@ -1,4 +1,11 @@
-const { useState, useEffect, useCallback, useRef } = React;
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { SOUND_PACKS, THEMES } from "../../constants.js";
+import { OverviewTab } from "./OverviewTab.jsx";
+import { ChatTab } from "./ChatTab.jsx";
+import { UsersTab } from "./UsersTab.jsx";
+import { StatsTab } from "./StatsTab.jsx";
+import { ThemesTab } from "./ThemesTab.jsx";
+import { SystemTab } from "./SystemTab.jsx";
 
 const AdminConsole = ({ onClose, sessionToken }) => {
   const [activeTab, setActiveTab] = useState("overview");
@@ -56,7 +63,7 @@ const AdminConsole = ({ onClose, sessionToken }) => {
 
   const loadSystemStats = async () => {
     try {
-      if (!CONFIG.GAS_URL) {
+      if (!window.CONFIG?.GAS_URL) {
         console.error("❌ GAS_URL not configured");
         setMessage({
           type: "error",
@@ -65,7 +72,7 @@ const AdminConsole = ({ onClose, sessionToken }) => {
         return;
       }
       const response = await fetch(
-        `${CONFIG.GAS_URL}?action=getAdminStats&token=${sessionToken}`
+        `${window.CONFIG?.GAS_URL}?action=getAdminStats&token=${sessionToken}`
       );
       const data = await response.json();
       if (data.success) {
@@ -85,11 +92,11 @@ const AdminConsole = ({ onClose, sessionToken }) => {
 
   const loadChatHistory = async () => {
     try {
-      if (!CONFIG.GAS_URL) {
+      if (!window.CONFIG?.GAS_URL) {
         return; // Already shown error in loadSystemStats
       }
       const response = await fetch(
-        `${CONFIG.GAS_URL}?action=getAdminChatHistory&token=${sessionToken}`
+        `${window.CONFIG?.GAS_URL}?action=getAdminChatHistory&token=${sessionToken}`
       );
       const data = await response.json();
       if (data.success) {
@@ -104,11 +111,11 @@ const AdminConsole = ({ onClose, sessionToken }) => {
 
   const loadUsers = async () => {
     try {
-      if (!CONFIG.GAS_URL) {
+      if (!window.CONFIG?.GAS_URL) {
         return; // Already shown error in loadSystemStats
       }
       const response = await fetch(
-        `${CONFIG.GAS_URL}?action=getAdminUsers&token=${sessionToken}`
+        `${window.CONFIG?.GAS_URL}?action=getAdminUsers&token=${sessionToken}`
       );
       const data = await response.json();
       if (data.success) {
@@ -139,7 +146,7 @@ const AdminConsole = ({ onClose, sessionToken }) => {
     try {
       const response = await fetch(
         `${
-          CONFIG.GAS_URL
+          window.CONFIG?.GAS_URL
         }?action=deleteMessages&token=${sessionToken}&messageIds=${selectedMessages.join(
           ","
         )}`
@@ -171,7 +178,7 @@ const AdminConsole = ({ onClose, sessionToken }) => {
     setLoading(true);
     try {
       const response = await fetch(
-        `${CONFIG.GAS_URL}?action=banUser&token=${sessionToken}&username=${username}`
+        `${window.CONFIG?.GAS_URL}?action=banUser&token=${sessionToken}&username=${username}`
       );
       const data = await response.json();
       if (data.success) {
@@ -203,7 +210,7 @@ const AdminConsole = ({ onClose, sessionToken }) => {
     setLoading(true);
     try {
       const response = await fetch(
-        `${CONFIG.GAS_URL}?action=unbanUser&token=${sessionToken}&username=${username}`
+        `${window.CONFIG?.GAS_URL}?action=unbanUser&token=${sessionToken}&username=${username}`
       );
       const data = await response.json();
       if (data.success) {
@@ -238,7 +245,7 @@ const AdminConsole = ({ onClose, sessionToken }) => {
     setLoading(true);
     try {
       const response = await fetch(
-        `${CONFIG.GAS_URL}?action=muteUser&token=${sessionToken}&username=${username}&duration=${duration}`
+        `${window.CONFIG?.GAS_URL}?action=muteUser&token=${sessionToken}&username=${username}&duration=${duration}`
       );
       const data = await response.json();
       if (data.success) {
@@ -282,7 +289,7 @@ const AdminConsole = ({ onClose, sessionToken }) => {
         username: statUser,
         ...statValues,
       });
-      const response = await fetch(`${CONFIG.GAS_URL}?${params}`);
+      const response = await fetch(`${window.CONFIG?.GAS_URL}?${params}`);
       const data = await response.json();
       if (data.success) {
         setMessage({ type: "success", text: `Stats updated for ${statUser}` });
@@ -369,14 +376,14 @@ const AdminConsole = ({ onClose, sessionToken }) => {
         {/* Content */}
         <div className="p-6">
           {activeTab === "overview" && (
-            <window.OverviewTab
+            <OverviewTab
               systemStats={systemStats}
               setActiveTab={setActiveTab}
             />
           )}
 
           {activeTab === "chat" && (
-            <window.ChatTab
+            <ChatTab
               chatHistory={chatHistory}
               loadChatHistory={loadChatHistory}
               chatFilter={chatFilter}
@@ -391,7 +398,7 @@ const AdminConsole = ({ onClose, sessionToken }) => {
           )}
 
           {activeTab === "users" && (
-            <window.UsersTab
+            <UsersTab
               users={users}
               loadUsers={loadUsers}
               userFilter={userFilter}
@@ -408,7 +415,7 @@ const AdminConsole = ({ onClose, sessionToken }) => {
           )}
 
           {activeTab === "stats" && (
-            <window.StatsTab
+            <StatsTab
               statUser={statUser}
               setStatUser={setStatUser}
               statValues={statValues}
@@ -419,7 +426,7 @@ const AdminConsole = ({ onClose, sessionToken }) => {
           )}
 
           {activeTab === "themes" && (
-            <window.ThemesTab
+            <ThemesTab
               themes={themes}
               setThemes={setThemes}
               soundPacks={soundPacks}
@@ -433,7 +440,7 @@ const AdminConsole = ({ onClose, sessionToken }) => {
           )}
 
           {activeTab === "system" && (
-            <window.SystemTab
+            <SystemTab
               sessionToken={sessionToken}
               loadSystemStats={loadSystemStats}
               loadChatHistory={loadChatHistory}
@@ -449,4 +456,4 @@ const AdminConsole = ({ onClose, sessionToken }) => {
   );
 };
 
-window.AdminConsole = AdminConsole;
+export { AdminConsole };

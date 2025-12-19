@@ -1,4 +1,6 @@
-const SystemTab = ({
+import React from "react";
+
+export const SystemTab = ({
   sessionToken,
   loadSystemStats,
   loadChatHistory,
@@ -17,7 +19,7 @@ const SystemTab = ({
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={async () => {
-                if (!CONFIG.GAS_URL) {
+                if (!window.CONFIG?.GAS_URL) {
                   setMessage({
                     type: "error",
                     text: "Backend URL not configured",
@@ -30,7 +32,7 @@ const SystemTab = ({
                   setLoading(true);
                   try {
                     const response = await fetch(
-                      `${CONFIG.GAS_URL}?action=clearAllChat&token=${sessionToken}`
+                      `${window.CONFIG.GAS_URL}?action=clearAllChat&token=${sessionToken}`
                     );
                     const data = await response.json();
                     if (data.success) {
@@ -90,5 +92,3 @@ const SystemTab = ({
     </div>
   );
 };
-
-window.SystemTab = SystemTab;

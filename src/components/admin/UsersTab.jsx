@@ -1,4 +1,6 @@
-const UsersTab = ({
+import React from "react";
+
+export const UsersTab = ({
   users,
   loadUsers,
   userFilter,
@@ -142,5 +144,3 @@ const UsersTab = ({
     </div>
   );
 };
-
-window.UsersTab = UsersTab;

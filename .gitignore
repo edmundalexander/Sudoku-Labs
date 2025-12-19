@@ -1,6 +1,6 @@
 # Environment & Configuration
-config/config.local.js
-config/admin.local.js
+public/config/config.local.js
+public/config/admin.local.js
 .env
 .env.local
 

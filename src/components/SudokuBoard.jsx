@@ -1,4 +1,4 @@
-const { memo } = React;
+import React, { memo } from "react";
 
 const Cell = memo(
   ({ data, isSelected, onClick, isCompletedBox, isConflicting = false }) => {
@@ -133,4 +133,4 @@ const SudokuBoard = ({
   );
 };
 
-window.SudokuBoard = SudokuBoard;
+export { SudokuBoard };

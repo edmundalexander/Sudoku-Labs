@@ -1,3 +1,65 @@
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  memo,
+  useMemo,
+  Component,
+} from "react";
+import ReactDOM from "react-dom/client";
+import {
+  KEYS,
+  THEMES,
+  SOUND_PACKS,
+  BADGES,
+  BADGE_CATEGORIES,
+  BADGE_RARITY,
+  EMOJI_CATEGORIES,
+  GAME_SETTINGS,
+  getThemeAssetSet,
+} from "./constants.js";
+import {
+  validateUsername,
+  formatTime,
+  formatDate,
+  generateGuestId,
+  getRow,
+  getCol,
+  getBox,
+  isValidMove,
+  getRemainingNumbers,
+  getCompletedBoxes,
+  generateLocalBoard,
+  triggerConfetti,
+  sortLeaderboard,
+} from "./utils.js";
+import { SoundManager } from "./sound.js";
+import {
+  runGasFn,
+  StorageService,
+  LeaderboardService,
+  ChatService,
+  isGasEnvironment,
+  isUserAuthenticated,
+  UnlockService,
+  logError,
+  getChatMessages,
+  saveScore,
+  BadgeService,
+  postChatMessage,
+  getLeaderboard,
+} from "./services.js";
+import { Icons } from "./components/Icons.jsx";
+import { UserPanel } from "./components/UserPanel.jsx";
+import { ProfileViewModal } from "./components/ProfileViewModal.jsx";
+import { OpeningScreen } from "./components/OpeningScreen.jsx";
+import { ClosingScreen } from "./components/ClosingScreen.jsx";
+import { AwardsZone } from "./components/AwardsZone.jsx";
+import { SudokuBoard } from "./components/SudokuBoard.jsx";
+import { ErrorBoundary } from "./components/ErrorBoundary.jsx";
+import { AdminConsole } from "./components/admin/AdminConsole.jsx";
+
 /**
  * Sudoku Logic Lab - Main Application (React Components Only)
  *
@@ -12,9 +74,6 @@
  *
  * @version 2.3.0
  */
-
-const { useState, useEffect, useCallback, useRef, memo, useMemo, Component } =
-  React;
 
 // Debug helper - enable by setting window.DEBUG = true in config.local.js or when running locally
 const DEBUG = Boolean(
@@ -46,7 +105,6 @@ if (
 
 // ErrorBoundary component moved to src/components/ErrorBoundary.jsx
 // It is now loaded via index.html and available as window.ErrorBoundary
-// const ErrorBoundary = window.ErrorBoundary; // Already global
 
 // ============================================================================
 // PROCEDURAL THEME-AWARE VISUAL ELEMENT GENERATOR
@@ -394,11 +452,9 @@ console.log(
 
 // SudokuBoard component moved to src/components/SudokuBoard.jsx
 // It is now loaded via index.html and available as window.SudokuBoard
-// const SudokuBoard = window.SudokuBoard; // Already global
 
 // Icons component moved to src/components/Icons.jsx
 // It is now loaded via index.html and available as window.Icons
-const Icons = window.Icons;
 
 const CHAT_POLL_INTERVAL = 5000;
 
@@ -418,25 +474,20 @@ const FullScreenLoader = ({ message = "Loading..." }) => (
 // --- AWARDS ZONE (Themes + Sound Packs) ---
 // AwardsZone component moved to src/components/AwardsZone.jsx
 // It is now loaded via index.html and available as window.AwardsZone
-// const AwardsZone = window.AwardsZone; // Already global
 
 // --- USER PANEL COMPONENT ---
 // UserPanel component moved to src/components/UserPanel.jsx
 // It is now loaded via index.html and available as window.UserPanel
-const UserPanel = window.UserPanel;
 
 // Profile View Modal - for viewing other users' profiles
 // ProfileViewModal component moved to src/components/ProfileViewModal.jsx
 // It is now loaded via index.html and available as window.ProfileViewModal
-const ProfileViewModal = window.ProfileViewModal;
 
 // OpeningScreen component moved to src/components/OpeningScreen.jsx
 // It is now loaded via index.html and available as window.OpeningScreen
-// const OpeningScreen = window.OpeningScreen; // Already global
 
 // ClosingScreen component moved to src/components/ClosingScreen.jsx
 // It is now loaded via index.html and available as window.ClosingScreen
-// const ClosingScreen = window.ClosingScreen; // Already global
 
 const App = () => {
   const [view, setView] = useState("menu");
@@ -471,6 +522,7 @@ const App = () => {
   const [appUserSession, setAppUserSession] = useState(
     StorageService.getUserSession()
   );
+  const userId = appUserSession?.userId || StorageService.getUserId();
   const [isHydrating, setIsHydrating] = useState(true);
   const [viewingProfile, setViewingProfile] = useState(null); // For viewing other users' profiles
   const [profileLoading, setProfileLoading] = useState(false);
@@ -2100,7 +2152,7 @@ const App = () => {
   };
 
   const remaining = getRemainingNumbers();
-  const userId = StorageService.getCurrentUserId();
+  // userId is already defined at the top of the component
 
   // Compute active theme asset set (must be before any conditional returns)
   const activeAssetSet = useMemo(() => {
@@ -3763,9 +3815,4 @@ const AppLoader = () => {
   return <App />;
 };
 
-const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(
-  <ErrorBoundary>
-    <AppLoader />
-  </ErrorBoundary>
-);
+export default AppLoader;

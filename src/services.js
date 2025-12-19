@@ -7,20 +7,30 @@
  * @version 2.3.0
  */
 
+import {
+  KEYS,
+  GAME_SETTINGS,
+  THEMES,
+  SOUND_PACKS,
+  BADGES,
+} from "./constants.js";
+import { generateGuestId, sortLeaderboard } from "./utils.js";
+
 // ============================================================================
 // CONFIGURATION
 // ============================================================================
 
 // GAS Backend API URL - Configure via config/config.local.js
-const DEFAULT_GAS_URL = "";
-const GAS_URL =
-  (typeof CONFIG !== "undefined" && CONFIG.GAS_URL) || DEFAULT_GAS_URL;
+export const DEFAULT_GAS_URL = "";
+export const GAS_URL =
+  (typeof window.CONFIG !== "undefined" && window.CONFIG.GAS_URL) ||
+  DEFAULT_GAS_URL;
 
 /**
  * Check if GAS backend is properly configured
  * @returns {boolean} Whether GAS is available
  */
-const isGasEnvironment = () => {
+export const isGasEnvironment = () => {
   try {
     if (typeof GAS_URL !== "string") return false;
     const host = new URL(GAS_URL).host;
@@ -40,7 +50,7 @@ const isGasEnvironment = () => {
  * @param {Object} args - Arguments to pass
  * @returns {Promise<any>} API response
  */
-const runGasFn = async (fnName, ...args) => {
+export const runGasFn = async (fnName, ...args) => {
   if (!GAS_URL) {
     console.error("GAS_URL not configured");
     return null;
@@ -122,7 +132,7 @@ const runGasFn = async (fnName, ...args) => {
  * Retry wrapper for GAS calls that may fail transiently (network/CORS/etc).
  * Usage: await robustRunGasFn('updateUserProfile', { ... }, { retries: 2, backoff: 300 });
  */
-const robustRunGasFn = async (fnName, args = {}, opts = {}) => {
+export const robustRunGasFn = async (fnName, args = {}, opts = {}) => {
   const retries = Number(opts.retries || 2);
   const backoff = Number(opts.backoff || 300);
   let attempt = 0;
@@ -140,14 +150,13 @@ const robustRunGasFn = async (fnName, args = {}, opts = {}) => {
 };
 
 // Expose to global for quick access
-window.robustRunGasFn = robustRunGasFn;
 
 /**
  * Log an error to the backend
  * @param {string} message - Error message
  * @param {Error} error - Error object
  */
-const logError = async (message, error) => {
+export const logError = async (message, error) => {
   console.log(message, error);
   try {
     await runGasFn("logClientError", {
@@ -165,7 +174,7 @@ const logError = async (message, error) => {
 // LOCAL STORAGE SERVICE
 // ============================================================================
 
-const StorageService = {
+export const StorageService = {
   /**
    * Check if localStorage is available and has space
    * @returns {boolean} Whether localStorage is usable
@@ -595,7 +604,7 @@ const StorageService = {
 // LEADERBOARD SERVICE
 // ============================================================================
 
-const LeaderboardService = {
+export const LeaderboardService = {
   /**
    * Get local leaderboard
    * @returns {Array} Leaderboard entries
@@ -649,7 +658,7 @@ const LeaderboardService = {
 // CHAT SERVICE
 // ============================================================================
 
-const ChatService = {
+export const ChatService = {
   /**
    * Get local chat messages
    * @returns {Array} Chat messages
@@ -741,7 +750,7 @@ const ChatService = {
 // UNLOCK SERVICE
 // ============================================================================
 
-const UnlockService = {
+export const UnlockService = {
   /**
    * Check for theme unlocks based on stats
    * @param {Object} stats - Game stats
@@ -831,38 +840,38 @@ const UnlockService = {
  * Get leaderboard (convenience wrapper)
  * @returns {Promise<Array>} Leaderboard entries
  */
-const getLeaderboard = () => LeaderboardService.get();
+export const getLeaderboard = () => LeaderboardService.get();
 
 /**
  * Save score (convenience wrapper)
  * @param {Object} entry - Score entry
  */
-const saveScore = (entry) => LeaderboardService.saveScore(entry);
+export const saveScore = (entry) => LeaderboardService.saveScore(entry);
 
 /**
  * Get chat messages (convenience wrapper)
  * @returns {Promise<Array>} Chat messages
  */
-const getChatMessages = () => ChatService.getMessages();
+export const getChatMessages = () => ChatService.getMessages();
 
 /**
  * Post chat message (convenience wrapper)
  * @param {Object} msg - Message to post
  * @returns {Promise<Array>} Updated chat messages
  */
-const postChatMessage = (msg) => ChatService.postMessage(msg);
+export const postChatMessage = (msg) => ChatService.postMessage(msg);
 
 /**
  * Check if user is authenticated (convenience wrapper)
  * @returns {boolean} Whether user is authenticated
  */
-const isUserAuthenticated = () => StorageService.isUserAuthenticated();
+export const isUserAuthenticated = () => StorageService.isUserAuthenticated();
 
 // ============================================================================
 // BADGE SERVICE
 // ============================================================================
 
-const BadgeService = {
+export const BadgeService = {
   /**
    * Get user's badges from local storage
    * @returns {Array} Array of badge objects with id and awardedAt
@@ -1075,19 +1084,5 @@ const BadgeService = {
 };
 
 // Make services available globally
-window.GAS_URL = GAS_URL;
-window.isGasEnvironment = isGasEnvironment;
-window.runGasFn = runGasFn;
-window.logError = logError;
-window.StorageService = StorageService;
-window.LeaderboardService = LeaderboardService;
-window.ChatService = ChatService;
-window.UnlockService = UnlockService;
-window.BadgeService = BadgeService;
 
 // Convenience wrappers
-window.getLeaderboard = getLeaderboard;
-window.saveScore = saveScore;
-window.getChatMessages = getChatMessages;
-window.postChatMessage = postChatMessage;
-window.isUserAuthenticated = isUserAuthenticated;

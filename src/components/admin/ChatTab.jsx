@@ -1,4 +1,6 @@
-const ChatTab = ({
+import React from "react";
+
+export const ChatTab = ({
   chatHistory,
   loadChatHistory,
   chatFilter,
@@ -137,5 +139,3 @@ const ChatTab = ({
     </div>
   );
 };
-
-window.ChatTab = ChatTab;

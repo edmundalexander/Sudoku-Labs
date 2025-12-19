@@ -5,6 +5,7 @@ Complete guide to setting up the Google Apps Script backend for Sudoku Logic Lab
 ## Overview
 
 The backend provides:
+
 - Sudoku puzzle generation
 - Leaderboard persistence (Google Sheets)
 - Chat system
@@ -29,12 +30,14 @@ The backend provides:
 4. Copy the Sheet ID from the URL
 
 **URL Format:**
+
 ```
 https://docs.google.com/spreadsheets/d/[SHEET_ID]/edit
                                       ^^^^^^^^^^^^
 ```
 
 **Example Sheet ID:**
+
 ```
 ABC123xyz_EXAMPLE_SHEET_ID_456def
 ```
@@ -61,13 +64,13 @@ This is just an example - your actual Sheet ID will be different.
 In the Apps Script editor, find line ~15:
 
 ```javascript
-const SHEET_ID = '1QU6QNWy6w6CNivq-PvmVJNcM1tUFWgQFzpN01Mo7QFs';
+const SHEET_ID = "1QU6QNWy6w6CNivq-PvmVJNcM1tUFWgQFzpN01Mo7QFs";
 ```
 
 Replace the value with your Sheet ID from Step 1:
 
 ```javascript
-const SHEET_ID = 'YOUR_SHEET_ID_HERE';
+const SHEET_ID = "YOUR_SHEET_ID_HERE";
 ```
 
 **Save** again (Ctrl+S / Cmd+S).
@@ -86,6 +89,7 @@ const SHEET_ID = 'YOUR_SHEET_ID_HERE';
 6. You should see "Setup completed successfully"
 
 **Verify:** Check your Google Sheet—it should now have 3 sheets:
+
 - Leaderboard
 - Chat
 - Logs
@@ -99,16 +103,18 @@ To enable admin features, you must set **Script Properties** in your GAS project
 3. Click **Edit script properties** and add the following:
 
 #### A. For Admin Console (Human Login)
-| Property | Value | Description |
-|----------|-------|-------------|
-| `ADMIN_USERNAME` | `admin` (or your choice) | Username for browser login |
-| `ADMIN_PASSWORD_HASH` | `[SHA-256 Hash]` | Hash of your password |
+
+| Property              | Value                    | Description                |
+| --------------------- | ------------------------ | -------------------------- |
+| `ADMIN_USERNAME`      | `admin` (or your choice) | Username for browser login |
+| `ADMIN_PASSWORD_HASH` | `[SHA-256 Hash]`         | Hash of your password      |
 
 > **Generate Hash**: Use an [Online SHA-256 Generator](https://emn178.github.io/online-tools/sha256.html). Enter your password and copy the result.
 
 #### B. For Maintenance Automation (Bot Access)
-| Property | Value | Description |
-|----------|-------|-------------|
+
+| Property              | Value             | Description                        |
+| --------------------- | ----------------- | ---------------------------------- |
 | `ADMIN_TRIGGER_TOKEN` | `[Random String]` | Secret token for automated scripts |
 
 > **Generate Token**: You can use a UUID or any long random string.
@@ -134,6 +140,7 @@ To enable admin features, you must set **Script Properties** in your GAS project
 ### Step 7: Save Deployment URL
 
 The deployment URL looks like:
+
 ```
 https://script.google.com/macros/s/AKfycbzXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX/exec
 ```
@@ -150,7 +157,7 @@ https://script.google.com/macros/s/AKfycbzXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 3. Edit `config/config.local.js`:
    ```javascript
    const CONFIG = {
-     GAS_URL: 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_URL/exec',
+     GAS_URL: "https://script.google.com/macros/s/YOUR_DEPLOYMENT_URL/exec",
    };
    ```
 4. Replace with your actual deployment URL from Step 7
@@ -172,6 +179,7 @@ curl "$GAS_URL?action=ping"
 ```
 
 Or use the diagnostic script:
+
 ```bash
 ./diagnostic.sh
 ```
@@ -182,8 +190,8 @@ Or use the diagnostic script:
 2. Open browser console (F12)
 3. Run this test:
    ```javascript
-   fetch(CONFIG.GAS_URL + '?action=ping')
-     .then(r => r.json())
+   fetch(CONFIG.GAS_URL + "?action=ping")
+     .then((r) => r.json())
      .then(console.log);
    ```
 4. You should see: `{ok: true, timestamp: "..."}`
@@ -219,7 +227,8 @@ Or use the diagnostic script:
 
 **Cause:** Deployment access is not set to "Anyone".
 
-**Solution:** 
+**Solution:**
+
 1. Go to **Deploy** → **Manage deployments**
 2. Click edit icon ✏️
 3. Change "Who has access" to **Anyone**
@@ -230,6 +239,7 @@ Or use the diagnostic script:
 **Cause:** Script doesn't have permission to access the Sheet.
 
 **Solution:**
+
 1. Re-run the authorization flow
 2. Ensure "Execute as: Me" in deployment settings
 3. Check Sheet ID is correct
@@ -237,11 +247,13 @@ Or use the diagnostic script:
 ### Issue: curl Returns Empty or Error
 
 **Possible causes:**
+
 - Wrong deployment URL
 - Deployment not set to "Anyone"
 - Backend has errors
 
 **Debug:**
+
 1. Check Apps Script execution logs
 2. Verify deployment URL
 3. Test ping endpoint first
@@ -256,11 +268,14 @@ The backend uses a single entry point (`doGet`) that routes requests based on th
 ```javascript
 function doGet(e) {
   const action = e.parameter.action;
-  
-  switch(action) {
-    case 'ping': return ping();
-    case 'generateSudoku': return generateSudoku(e.parameter.difficulty);
-    case 'getLeaderboard': return getLeaderboardData();
+
+  switch (action) {
+    case "ping":
+      return ping();
+    case "generateSudoku":
+      return generateSudoku(e.parameter.difficulty);
+    case "getLeaderboard":
+      return getLeaderboardData();
     // ... more actions
   }
 }
@@ -303,8 +318,9 @@ If you update the backend code:
 5. **Deploy** → **Manage deployments**
 6. Click edit icon ✏️ on your deployment
 7. Click **Update** (deployment URL stays the same)
-   
+
    OR create a new deployment (new URL):
+
 8. **Deploy** → **New deployment**
 9. Follow steps 6-8 above
 10. Update `config/config.local.js` with new URL if changed
@@ -314,8 +330,9 @@ If you update the backend code:
 ### Custom Sheet Names
 
 By default, sheets are named:
+
 - Leaderboard
-- Chat  
+- Chat
 - Logs
 
 To customize, edit `setupSheets_()` in `Code.gs`:
@@ -323,11 +340,11 @@ To customize, edit `setupSheets_()` in `Code.gs`:
 ```javascript
 function setupSheets_() {
   const ss = SpreadsheetApp.openById(SHEET_ID);
-  
+
   // Custom names
-  getOrCreateSheet_(ss, 'MyLeaderboard');
-  getOrCreateSheet_(ss, 'MyChat');
-  getOrCreateSheet_(ss, 'MyLogs');
+  getOrCreateSheet_(ss, "MyLeaderboard");
+  getOrCreateSheet_(ss, "MyChat");
+  getOrCreateSheet_(ss, "MyLogs");
 }
 ```
 
@@ -338,11 +355,13 @@ Then update references throughout the code.
 For dev/staging/prod environments:
 
 **Option 1: Multiple Sheets**
+
 - One Sheet per environment
 - Update Sheet ID in code
 - Deploy separately
 
 **Option 2: Multiple Deployments**
+
 - Same code
 - Different deployments
 - Same Sheet or different Sheets
@@ -350,10 +369,12 @@ For dev/staging/prod environments:
 ### Backup Strategy
 
 **Manual Backup:**
+
 1. In Google Sheet: **File** → **Download** → **CSV** (for each sheet)
 2. Store backups regularly
 
 **Automated Backup:**
+
 - Use Google Sheets API
 - Set up scheduled exports
 - Store in Google Drive or external storage
@@ -362,12 +383,12 @@ For dev/staging/prod environments:
 
 Google Apps Script has daily quotas:
 
-| Resource | Free Tier |
-|----------|-----------|
-| URL Fetch calls | 20,000/day |
-| Script runtime | 6 min/execution |
-| Triggers | 90 min/day |
-| Simultaneous executions | 30 |
+| Resource                | Free Tier       |
+| ----------------------- | --------------- |
+| URL Fetch calls         | 20,000/day      |
+| Script runtime          | 6 min/execution |
+| Triggers                | 90 min/day      |
+| Simultaneous executions | 30              |
 
 These limits are sufficient for typical game usage (100s-1000s of players/day).
 

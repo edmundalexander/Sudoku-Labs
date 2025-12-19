@@ -4,8 +4,15 @@
  * Displays a read-only profile view for other users.
  */
 
-window.ProfileViewModal = ({ profile, onClose, soundEnabled, loading }) => {
-  const Icons = window.Icons;
+import React, { Component } from "react";
+import { Icons } from "./Icons.jsx";
+
+export const ProfileViewModal = ({
+  profile,
+  onClose,
+  soundEnabled,
+  loading,
+}) => {
   if (loading) {
     return (
       <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm animate-fade-in">

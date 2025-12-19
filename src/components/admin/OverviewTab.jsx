@@ -1,4 +1,6 @@
-const OverviewTab = ({ systemStats, setActiveTab }) => {
+import React from "react";
+
+export const OverviewTab = ({ systemStats, setActiveTab }) => {
   return (
     <div>
       <h2 className="text-xl font-bold mb-4">System Overview</h2>
@@ -73,5 +75,3 @@ const OverviewTab = ({ systemStats, setActiveTab }) => {
     </div>
   );
 };
-
-window.OverviewTab = OverviewTab;

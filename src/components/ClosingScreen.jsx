@@ -1,4 +1,8 @@
-const { useEffect } = React;
+import React, { useEffect } from "react";
+import { BADGES, SOUND_PACKS, THEMES } from "../constants.js";
+import { triggerConfetti } from "../utils.js";
+import { SoundManager } from "../sound.js";
+import { Icons } from "./Icons.jsx";
 
 const ClosingScreen = ({
   status,
@@ -13,7 +17,6 @@ const ClosingScreen = ({
   newlyUnlockedSoundPacks,
   newlyAwardedBadges,
 }) => {
-  const Icons = window.Icons;
   const isWin = status === "won";
 
   useEffect(() => {
@@ -47,6 +50,7 @@ const ClosingScreen = ({
         {newlyUnlockedThemes && newlyUnlockedThemes.length > 0 && (
           <div className="my-3 sm:my-4 p-3 sm:p-4 bg-gradient-to-r from-purple-50 via-pink-50 to-purple-50 dark:from-purple-900/40 dark:via-pink-900/30 dark:to-purple-900/40 rounded-xl border-2 border-purple-400 dark:border-purple-600 animate-pulse-glow relative overflow-hidden">
             {/* Sparkle overlay */}
+
             <div className="absolute inset-0 pointer-events-none">
               <div className="absolute top-2 left-4 w-2 h-2 bg-yellow-400 rounded-full animate-ping"></div>
               <div
@@ -274,4 +278,4 @@ const ClosingScreen = ({
   );
 };
 
-window.ClosingScreen = ClosingScreen;
+export { ClosingScreen };

@@ -4,7 +4,9 @@
  * Collection of SVG icons used throughout the application.
  */
 
-window.Icons = {
+import React, { Component } from 'react';
+
+export const Icons = {
   Undo: () => (
     <svg
       xmlns="http://www.w3.org/2000/svg"

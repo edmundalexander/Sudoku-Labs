@@ -4,10 +4,18 @@
  * Handles user authentication (login/register) and profile display.
  */
 
-const { useState, useEffect, useRef } = React;
+import React, { useState, useEffect, useRef, Component } from "react";
+import { BADGES } from "../constants.js";
+import { SoundManager } from "../sound.js";
+import {
+  StorageService,
+  isGasEnvironment,
+  runGasFn,
+  BadgeService,
+} from "../services.js";
+import { Icons } from "./Icons.jsx";
 
-window.UserPanel = ({ soundEnabled, onClose, appUserSession }) => {
-  const Icons = window.Icons;
+export const UserPanel = ({ soundEnabled, onClose, appUserSession }) => {
   const [mode, setMode] = useState("menu"); // menu, login, register
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");

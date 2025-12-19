@@ -1,4 +1,6 @@
-const StatsTab = ({
+import React from "react";
+
+export const StatsTab = ({
   statUser,
   setStatUser,
   statValues,
@@ -54,5 +56,3 @@ const StatsTab = ({
     </div>
   );
 };
-
-window.StatsTab = StatsTab;

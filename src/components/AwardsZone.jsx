@@ -1,4 +1,8 @@
-const { useState, useEffect, useMemo } = React;
+import React, { useState, useEffect, useMemo } from "react";
+import { SOUND_PACKS, THEMES, getThemeAssetSet } from "../constants.js";
+import { SoundManager } from "../sound.js";
+import { StorageService } from "../services.js";
+import { Icons } from "./Icons.jsx";
 
 const AwardsZone = ({
   soundEnabled,
@@ -10,7 +14,6 @@ const AwardsZone = ({
   unlockedPacks,
   onSelectPack,
 }) => {
-  const Icons = window.Icons;
   const [stats, setStats] = useState(StorageService.getGameStats());
 
   // Compute current asset set for the preview
@@ -303,4 +306,4 @@ const AwardsZone = ({
   );
 };
 
-window.AwardsZone = AwardsZone;
+export { AwardsZone };

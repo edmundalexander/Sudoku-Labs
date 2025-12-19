@@ -5,6 +5,7 @@ This directory stores sensitive configuration that should NOT be committed to Gi
 ## Configuration Files
 
 ### 1. Main Application Config (`config.local.js`)
+
 Controls the connection to the backend API.
 
 - **Template**: `config.example.js`
@@ -14,6 +15,7 @@ Controls the connection to the backend API.
   - `BASE_PATH`: Subdirectory path (e.g., `/Sudoku-Labs`) for GitHub Pages.
 
 ### 2. Admin & Maintenance Config (`admin.local.js`)
+
 Controls administrative access and automated maintenance tasks.
 
 - **Template**: `admin.example.js`
@@ -29,6 +31,7 @@ Controls administrative access and automated maintenance tasks.
 We use two separate authentication systems for different purposes:
 
 ### A. Admin Console Login (Human Access)
+
 Used by humans to access the UI-based Admin Console in the browser.
 
 - **Usage**: `sudokuAdmin.login()` in browser console.
@@ -39,6 +42,7 @@ Used by humans to access the UI-based Admin Console in the browser.
 - **Setup**: See [docs/ADMIN_CONSOLE.md](../docs/ADMIN_CONSOLE.md).
 
 ### B. Maintenance Automation (Bot Access)
+
 Used by automated scripts (e.g., GitHub Actions, cron jobs) to trigger maintenance tasks.
 
 - **Usage**: Server-to-server HTTP requests.
@@ -55,15 +59,17 @@ Used by automated scripts (e.g., GitHub Actions, cron jobs) to trigger maintenan
 ### For Developers
 
 1. **First time setup:**
+
    ```bash
    cp config/config.example.js config/config.local.js
    ```
 
 2. **Fill in your values in `config.local.js`:**
+
    ```javascript
    const CONFIG = {
-     GAS_URL: 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec',
-     BASE_PATH: '', // Empty for localhost or root domain
+     GAS_URL: "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec",
+     BASE_PATH: "", // Empty for localhost or root domain
    };
    ```
 
@@ -77,15 +83,17 @@ Used by automated scripts (e.g., GitHub Actions, cron jobs) to trigger maintenan
 If deploying to a subdirectory (e.g., GitHub Pages at `username.github.io/Sudoku-Labs`):
 
 1. **Use the production template:**
+
    ```bash
    cp config/config.production.example.js config/config.local.js
    ```
 
 2. **Update `config.local.js` with your subdirectory:**
+
    ```javascript
    const CONFIG = {
-     GAS_URL: 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec',
-     BASE_PATH: '/Sudoku-Labs', // Your subdirectory name
+     GAS_URL: "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec",
+     BASE_PATH: "/Sudoku-Labs", // Your subdirectory name
    };
    ```
 

@@ -1,4 +1,5 @@
-const { Component } = React;
+import React, { Component } from "react";
+import { logError } from "../services.js";
 
 let __errorCodeCounter = 0;
 const makeErrorCode = () => {
@@ -7,7 +8,7 @@ const makeErrorCode = () => {
   return `E-${ts}-${seq}`;
 };
 
-class ErrorBoundary extends Component {
+export class ErrorBoundary extends Component {
   constructor(props) {
     super(props);
     this.state = { hasError: false, error: null, code: null, stack: null };
@@ -112,5 +113,3 @@ class ErrorBoundary extends Component {
     return this.props.children;
   }
 }
-
-window.ErrorBoundary = ErrorBoundary;
