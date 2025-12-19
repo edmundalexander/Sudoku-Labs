@@ -45,9 +45,15 @@ const AdminManager = {
     // Check if already logged in
     if (this.sessionToken && Date.now() < this.sessionExpiry) {
       const remaining = Math.floor((this.sessionExpiry - Date.now()) / 60000);
-      this.renderStatus(`✓ Already authenticated. Session active for ${remaining}m`, "success");
+      this.renderStatus(
+        `✓ Already authenticated. Session active for ${remaining}m`,
+        "success"
+      );
       console.log("");
-      console.log("%c>> Run sudokuAdmin.open() to launch interface <<", "background: #4f46e5; color: white; padding: 5px 10px; border-radius: 4px; font-weight: bold;");
+      console.log(
+        "%c>> Run sudokuAdmin.open() to launch interface <<",
+        "background: #4f46e5; color: white; padding: 5px 10px; border-radius: 4px; font-weight: bold;"
+      );
       return;
     }
 
@@ -68,7 +74,7 @@ const AdminManager = {
 
     // Hash password (SHA-256)
     const passwordHash = await this.sha256(password);
-    
+
     const gasUrl = window.CONFIG?.GAS_URL;
     if (!gasUrl) {
       this.renderStatus("❌ Configuration Error: GAS_URL is missing.", "error");
@@ -95,7 +101,10 @@ const AdminManager = {
       try {
         data = JSON.parse(text);
       } catch (e) {
-        this.renderStatus("❌ Protocol Error: Invalid response from server", "error");
+        this.renderStatus(
+          "❌ Protocol Error: Invalid response from server",
+          "error"
+        );
         console.log("Raw response:", text.substring(0, 100));
         return;
       }
@@ -108,16 +117,31 @@ const AdminManager = {
         this.renderHeader();
         this.renderStatus("✓ ACCESS GRANTED", "success");
         console.log("");
-        console.log(`%cSession Token: ${this.sessionToken.substring(0, 12)}...`, "color: #6b7280; font-family: monospace;");
-        console.log(`%cExpires: ${new Date(this.sessionExpiry).toLocaleTimeString()}`, "color: #6b7280;");
+        console.log(
+          `%cSession Token: ${this.sessionToken.substring(0, 12)}...`,
+          "color: #6b7280; font-family: monospace;"
+        );
+        console.log(
+          `%cExpires: ${new Date(this.sessionExpiry).toLocaleTimeString()}`,
+          "color: #6b7280;"
+        );
         console.log("");
-        console.log("%c>> Run sudokuAdmin.open() to launch interface <<", "background: #4f46e5; color: white; padding: 8px 16px; border-radius: 4px; font-weight: bold; font-size: 14px; display: block; margin-top: 10px;");
-        
+        console.log(
+          "%c>> Run sudokuAdmin.open() to launch interface <<",
+          "background: #4f46e5; color: white; padding: 8px 16px; border-radius: 4px; font-weight: bold; font-size: 14px; display: block; margin-top: 10px;"
+        );
+
         // Auto-open prompt
         console.log("");
-        console.log("%c(Or type sudokuAdmin.logout() to exit)", "color: #9ca3af; font-size: 11px;");
+        console.log(
+          "%c(Or type sudokuAdmin.logout() to exit)",
+          "color: #9ca3af; font-size: 11px;"
+        );
       } else {
-        this.renderStatus(`❌ Access Denied: ${data.error || "Invalid credentials"}`, "error");
+        this.renderStatus(
+          `❌ Access Denied: ${data.error || "Invalid credentials"}`,
+          "error"
+        );
       }
     } catch (err) {
       this.renderStatus(`❌ Connection Failed: ${err.message}`, "error");
