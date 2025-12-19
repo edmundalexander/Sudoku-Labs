@@ -1,5 +1,5 @@
 import React from "react";
-import { SOUND_PACKS, THEMES } from "../../constants.js";
+import { SOUND_PACKS, THEMES } from "../../lib/constants.js";
 
 const ThemesTab = ({
   themes,
@@ -280,7 +280,7 @@ const ThemesTab = ({
         <p className="text-blue-200 text-sm">
           <strong>ℹ️ Note:</strong> Changes made here only affect the admin
           panel display. To permanently update defaults, export these changes
-          and update src/constants.js THEMES and SOUND_PACKS objects.
+          and update src/lib/constants.js THEMES and SOUND_PACKS objects.
         </p>
       </div>
     </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { SoundManager } from "../sound.js";
-import { StorageService } from "../services.js";
+import { SoundManager } from "../lib/sound.js";
+import { StorageService } from "../lib/services.js";
 import { Icons } from "./Icons.jsx";
 
 const OpeningScreen = ({

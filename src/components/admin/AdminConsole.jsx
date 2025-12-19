@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { SOUND_PACKS, THEMES } from "../../constants.js";
+import { SOUND_PACKS, THEMES } from "../../lib/constants.js";
 import { OverviewTab } from "./OverviewTab.jsx";
 import { ChatTab } from "./ChatTab.jsx";
 import { UsersTab } from "./UsersTab.jsx";

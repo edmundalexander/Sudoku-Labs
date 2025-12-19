@@ -5,14 +5,14 @@
  */
 
 import React, { useState, useEffect, useRef, Component } from "react";
-import { BADGES } from "../constants.js";
-import { SoundManager } from "../sound.js";
+import { BADGES } from "../lib/constants.js";
+import { SoundManager } from "../lib/sound.js";
 import {
   StorageService,
   isBackendAvailable,
   runApiFn,
   BadgeService,
-} from "../services.js";
+} from "../lib/services.js";
 import { Icons } from "./Icons.jsx";
 
 export const UserPanel = ({
