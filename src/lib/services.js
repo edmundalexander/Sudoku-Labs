@@ -276,12 +276,11 @@ export const StorageService = {
 
   // --- Theme ---
   saveTheme: (themeId) => StorageService.set(KEYS.THEME, themeId),
-  getTheme: () => StorageService.get(KEYS.THEME) || 'default',
+  getTheme: () => StorageService.get(KEYS.THEME) || "default",
 
   // --- Sound ---
   saveSoundPack: (packId) => StorageService.set(KEYS.SOUND_PACK, packId),
-  getSoundPack: () =>
-    StorageService.get(KEYS.SOUND_PACK) || 'classic',
+  getSoundPack: () => StorageService.get(KEYS.SOUND_PACK) || "classic",
 
   // --- Campaign Progress ---
   saveCampaignProgress: (progress) =>
@@ -330,23 +329,23 @@ export const StorageService = {
   saveUnlockedThemes: (themes) =>
     StorageService.set(KEYS.UNLOCKED_THEMES, themes),
   getUnlockedThemes: () =>
-    StorageService.get(KEYS.UNLOCKED_THEMES) || ['default'],
+    StorageService.get(KEYS.UNLOCKED_THEMES) || ["default"],
 
   // --- Active Theme ---
   saveActiveTheme: (themeId) => StorageService.set(KEYS.ACTIVE_THEME, themeId),
-  getActiveTheme: () => StorageService.get(KEYS.ACTIVE_THEME) || 'default',
+  getActiveTheme: () => StorageService.get(KEYS.ACTIVE_THEME) || "default",
 
   // --- Unlocked Sound Packs ---
   saveUnlockedSoundPacks: (packs) =>
     StorageService.set(KEYS.UNLOCKED_SOUND_PACKS, packs),
   getUnlockedSoundPacks: () =>
-    StorageService.get(KEYS.UNLOCKED_SOUND_PACKS) || ['classic'],
+    StorageService.get(KEYS.UNLOCKED_SOUND_PACKS) || ["classic"],
 
   // --- Active Sound Pack ---
   saveActiveSoundPack: (packId) =>
     StorageService.set(KEYS.ACTIVE_SOUND_PACK, packId),
   getActiveSoundPack: () =>
-    StorageService.get(KEYS.ACTIVE_SOUND_PACK) || 'classic',
+    StorageService.get(KEYS.ACTIVE_SOUND_PACK) || "classic",
 
   // --- Game Stats ---
   saveGameStats: (stats) => StorageService.set(KEYS.GAME_STATS, stats),
@@ -355,7 +354,7 @@ export const StorageService = {
   // --- Preferences (sound, darkMode, theme) ---
   savePreferences: (prefs) => StorageService.set(KEYS.PREFERENCES, prefs),
   getPreferences: () => {
-    const defaults = { sound: true, darkMode: false, theme: 'default' };
+    const defaults = { sound: true, darkMode: false, theme: "default" };
     return { ...defaults, ...StorageService.get(KEYS.PREFERENCES) };
   },
 
@@ -373,7 +372,10 @@ export const StorageService = {
       totalTime: (current.totalTime || 0) + (gameStats.time || 0),
     };
     // Update best time if applicable
-    if (gameStats.time && (!current.bestTime || gameStats.time < current.bestTime)) {
+    if (
+      gameStats.time &&
+      (!current.bestTime || gameStats.time < current.bestTime)
+    ) {
       newStats.bestTime = gameStats.time;
     }
     StorageService.saveStats(newStats);

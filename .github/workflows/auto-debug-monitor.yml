@@ -521,41 +521,44 @@ jobs:
             } catch (e) {}
 
             // Create the issue
-            const issueTitle = `[Auto-Debug] ${primaryIssue.title}`;
-            const issueBody = `## 🤖 Auto-Detected Issue
-
-**Type:** ${primaryIssue.type.toUpperCase()}
-**Detected at:** ${new Date().toISOString()}
-**Impact:** ${primaryIssue.impact}
-
-### Problem
-${primaryIssue.title}
-
-### Details
-\`\`\`
-${primaryIssue.detail}
-\`\`\`
-
-### All Issues Detected (${issues.length} total)
-${issues.map((i, idx) => `${idx + 1}. **[${i.type.toUpperCase()}]** ${i.title}`).join('\n')}
-
-### Diagnostic Summary
-- Critical issues: ${criticalIssues.length}
-- Warning issues: ${warningIssues.length}
-
-### Instructions for Agent
-1. Analyze the error details above
-2. Check the relevant source files
-3. Implement a fix
-4. Test locally if possible
-5. Create a PR with the fix
-
----
-*Auto-detected by comprehensive health check workflow*`;
+            const issueTitle = '[Auto-Debug] ' + primaryIssue.title;
+            const issueBody = [
+              '## 🤖 Auto-Detected Issue',
+              '',
+              '**Type:** ' + primaryIssue.type.toUpperCase(),
+              '**Detected at:** ' + new Date().toISOString(),
+              '**Impact:** ' + primaryIssue.impact,
+              '',
+              '### Problem',
+              primaryIssue.title,
+              '',
+              '### Details',
+              '```',
+              primaryIssue.detail,
+              '```',
+              '',
+              '### All Issues Detected (' + issues.length + ' total)',
+              issues.map((i, idx) => (idx + 1) + '. **[' + i.type.toUpperCase() + ']** ' + i.title).join('\n'),
+              '',
+              '### Diagnostic Summary',
+              '- Critical issues: ' + criticalIssues.length,
+              '- Warning issues: ' + warningIssues.length,
+              '',
+              '### Instructions for Agent',
+              '1. Analyze the error details above',
+              '2. Check the relevant source files',
+              '3. Implement a fix',
+              '4. Test locally if possible',
+              '5. Create a PR with the fix',
+              '',
+              '---',
+              '*Auto-detected by comprehensive health check workflow*'
+            ].join('\n');
 
             try {
+              const escaped = issueBody.replace(/'/g, "'\\''");
               const result = execSync(
-                `gh issue create --repo ${CONFIG.owner}/${CONFIG.repo} --title "${issueTitle.replace(/"/g, '\\"')}" --body "${issueBody.replace(/"/g, '\\"').replace(/`/g, '\\`')}" --label "${CONFIG.labels.autoDetected},${CONFIG.labels.awaitingAgent}"`,
+                "gh issue create --repo " + CONFIG.owner + "/" + CONFIG.repo + " --title '" + issueTitle.replace(/'/g, "'\\''") + "' --body '" + escaped + "' --label '" + CONFIG.labels.autoDetected + "," + CONFIG.labels.awaitingAgent + "'",
                 { encoding: 'utf8' }
               );
               console.log(`\n📝 Created issue: ${result.trim()}`);

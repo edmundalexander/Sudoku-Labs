@@ -31,9 +31,7 @@ jobs:
             
             # Close the issue and remove agent-working label
             gh issue close "$ISSUE_NUM" --repo ${{ github.repository }} \
-              --comment "✅ **Fixed by PR #${{ github.event.pull_request.number }}**
-
-This issue has been automatically closed as the fix has been merged."
+              --comment '✅ **Fixed by PR #${{ github.event.pull_request.number }}** - This issue has been automatically closed as the fix has been merged.'
             
             gh issue edit "$ISSUE_NUM" --repo ${{ github.repository }} \
               --remove-label "agent-working"

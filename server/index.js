@@ -49,15 +49,13 @@ if (PUBLIC_DIR) {
   app.get("/{*path}", (req, res, next) => {
     // If the request is for a static asset (has a file extension), let it 404 naturally
     if (req.path.match(/\.[a-zA-Z0-9]+$/)) {
-      return res.status(404).send('Not found');
+      return res.status(404).send("Not found");
     }
     // Otherwise serve the SPA
     res.type("html").send(indexHtml);
   });
 } else {
-  const checkedPaths = candidatePublicDirs
-    .map((dir) => `- ${dir}`)
-    .join("\n");
+  const checkedPaths = candidatePublicDirs.map((dir) => `- ${dir}`).join("\n");
   const missingBuildMessage = [
     "Server misconfigured: build artifacts missing.",
     "Checked paths:",

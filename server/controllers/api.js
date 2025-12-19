@@ -18,7 +18,9 @@ function getDb() {
 const FIREBASE_WEB_API_KEY = process.env.FIREBASE_WEB_API_KEY;
 
 if (!FIREBASE_WEB_API_KEY) {
-  console.warn("WARNING: FIREBASE_WEB_API_KEY is not set. Auth features will fail.");
+  console.warn(
+    "WARNING: FIREBASE_WEB_API_KEY is not set. Auth features will fail."
+  );
 }
 
 // Helper to sanitize input (basic XSS prevention)
@@ -35,7 +37,7 @@ function sanitizeInput(str, maxLength) {
 
 // Helper to validate userId is not empty
 function validateUserId(userId) {
-  return userId && typeof userId === 'string' && userId.trim().length > 0;
+  return userId && typeof userId === "string" && userId.trim().length > 0;
 }
 
 // --- Implementation Functions ---
@@ -101,13 +103,15 @@ async function postChat(params) {
 
 async function logError(params) {
   const { type, message, userAgent, count } = params;
-  await getDb().collection("logs").add({
-    type: sanitizeInput(type, 20),
-    message: sanitizeInput(message, 200),
-    userAgent: sanitizeInput(userAgent, 100),
-    count: Number(count) || 1,
-    timestamp: admin.firestore.FieldValue.serverTimestamp(),
-  });
+  await getDb()
+    .collection("logs")
+    .add({
+      type: sanitizeInput(type, 20),
+      message: sanitizeInput(message, 200),
+      userAgent: sanitizeInput(userAgent, 100),
+      count: Number(count) || 1,
+      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    });
   return { logged: true };
 }
 
@@ -225,10 +229,10 @@ async function loginUser(params) {
 
 async function getUserProfile(params) {
   const userId = sanitizeInput(params.userId, 50);
-  
+
   if (!validateUserId(userId)) {
-    console.warn('getUserProfile called with invalid userId');
-    return { success: false, error: 'Invalid user ID' };
+    console.warn("getUserProfile called with invalid userId");
+    return { success: false, error: "Invalid user ID" };
   }
 
   // Try by ID first
@@ -257,12 +261,12 @@ async function getUserProfile(params) {
 
 async function updateUserProfile(params) {
   const userId = sanitizeInput(params.userId, 50);
-  
+
   if (!validateUserId(userId)) {
-    console.warn('updateUserProfile called with invalid userId');
-    return { success: false, error: 'Invalid user ID' };
+    console.warn("updateUserProfile called with invalid userId");
+    return { success: false, error: "Invalid user ID" };
   }
-  
+
   const docRef = getDb().collection("users").doc(userId);
   const doc = await docRef.get();
 
@@ -300,12 +304,12 @@ async function updateUserProfile(params) {
 
 async function getUserState(params) {
   const userId = sanitizeInput(params.userId, 50);
-  
+
   if (!validateUserId(userId)) {
-    console.warn('getUserState called with invalid userId');
-    return { success: false, error: 'Invalid user ID' };
+    console.warn("getUserState called with invalid userId");
+    return { success: false, error: "Invalid user ID" };
   }
-  
+
   const doc = await getDb().collection("userState").doc(userId).get();
 
   if (!doc.exists) {
@@ -317,30 +321,33 @@ async function getUserState(params) {
 
 async function saveUserState(params) {
   const userId = sanitizeInput(params.userId, 50);
-  
+
   if (!validateUserId(userId)) {
-    console.warn('saveUserState called with invalid userId');
-    return { success: false, error: 'Invalid user ID' };
+    console.warn("saveUserState called with invalid userId");
+    return { success: false, error: "Invalid user ID" };
   }
-  
+
   const stateData = {
     ...params,
     lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
   };
   delete stateData.action; // Remove action param
 
-  await getDb().collection("userState").doc(userId).set(stateData, { merge: true });
+  await getDb()
+    .collection("userState")
+    .doc(userId)
+    .set(stateData, { merge: true });
   return { success: true };
 }
 
 async function getUserBadges(params) {
   const userId = sanitizeInput(params.userId, 50);
-  
+
   if (!validateUserId(userId)) {
-    console.warn('getUserBadges called with invalid userId');
-    return { success: false, badges: [], error: 'Invalid user ID' };
+    console.warn("getUserBadges called with invalid userId");
+    return { success: false, badges: [], error: "Invalid user ID" };
   }
-  
+
   const doc = await getDb().collection("users").doc(userId).get();
   if (!doc.exists) return { success: false, badges: [] };
   return { success: true, badges: doc.data().badges || [] };
@@ -349,10 +356,10 @@ async function getUserBadges(params) {
 async function awardBadge(params) {
   const userId = sanitizeInput(params.userId, 50);
   const badgeId = sanitizeInput(params.badgeId, 50);
-  
+
   if (!validateUserId(userId)) {
-    console.warn('awardBadge called with invalid userId');
-    return { success: false, error: 'Invalid user ID' };
+    console.warn("awardBadge called with invalid userId");
+    return { success: false, error: "Invalid user ID" };
   }
 
   const userRef = getDb().collection("users").doc(userId);
@@ -387,7 +394,7 @@ async function verifyAdminToken(idToken) {
 
     // Check if user exists in the admins collection with isAdmin: true
     const adminDoc = await getDb().collection("admins").doc(uid).get();
-    
+
     if (!adminDoc.exists) {
       return { valid: false, error: "User is not an admin" };
     }
@@ -431,7 +438,10 @@ async function adminLogin(params) {
   }
 
   if (!FIREBASE_WEB_API_KEY) {
-    return { success: false, error: "Server configuration error: Missing API Key" };
+    return {
+      success: false,
+      error: "Server configuration error: Missing API Key",
+    };
   }
 
   try {
@@ -450,7 +460,7 @@ async function adminLogin(params) {
 
     // Verify admin status in Firestore
     const adminDoc = await getDb().collection("admins").doc(uid).get();
-    
+
     if (!adminDoc.exists) {
       return { success: false, error: "User is not an admin" };
     }

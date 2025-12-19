@@ -332,11 +332,5 @@ jobs:
           gh issue create \
             --repo ${{ github.repository }} \
             --title "[Health Check] Manual check detected failures" \
-            --body "A manual health check run detected failures. Please investigate.
-
-**Check Type:** ${{ inputs.check_type }}
-**Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
----
-*Triggered by manual workflow dispatch*" \
+            --body "A manual health check run detected failures. Please investigate. Check Type: ${{ inputs.check_type }}. Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
             --label "auto-detected,awaiting-agent"

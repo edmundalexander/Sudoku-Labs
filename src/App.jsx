@@ -91,10 +91,18 @@ const App = () => {
   const [practiceMode, setPracticeMode] = useState(false);
   const [theme, setTheme] = useState(StorageService.getPreferences().theme);
   const [showAdminConsole, setShowAdminConsole] = useState(false);
-  const [activeThemeId, setActiveThemeId] = useState(StorageService.getActiveTheme() || 'default');
-  const [unlockedThemes, setUnlockedThemes] = useState(StorageService.getUnlockedThemes() || ['default']);
-  const [activePackId, setActivePackId] = useState(StorageService.getActiveSoundPack() || 'classic');
-  const [unlockedPacks, setUnlockedPacks] = useState(StorageService.getUnlockedSoundPacks() || ['classic']);
+  const [activeThemeId, setActiveThemeId] = useState(
+    StorageService.getActiveTheme() || "default"
+  );
+  const [unlockedThemes, setUnlockedThemes] = useState(
+    StorageService.getUnlockedThemes() || ["default"]
+  );
+  const [activePackId, setActivePackId] = useState(
+    StorageService.getActiveSoundPack() || "classic"
+  );
+  const [unlockedPacks, setUnlockedPacks] = useState(
+    StorageService.getUnlockedSoundPacks() || ["classic"]
+  );
 
   // Load sound preferences
   useEffect(() => {
@@ -121,7 +129,7 @@ const App = () => {
         // Here we would ideally validate the token with the backend
         // For now, we trust the local storage
       }
-      
+
       // Load leaderboard and chat if available
       try {
         if (await isBackendAvailable()) {
@@ -152,10 +160,10 @@ const App = () => {
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (currentScreen !== "game" || isPaused || isGameWon) return;
-      
+
       // Admin console shortcut (Ctrl+Alt+A)
-      if (e.ctrlKey && e.altKey && (e.key === 'a' || e.key === 'A')) {
-        setShowAdminConsole(prev => !prev);
+      if (e.ctrlKey && e.altKey && (e.key === "a" || e.key === "A")) {
+        setShowAdminConsole((prev) => !prev);
         return;
       }
 
@@ -211,7 +219,7 @@ const App = () => {
       // In a real app, this might come from the server or a more sophisticated generator
       // Using a simplified generator for this demo
       const { newBoard, solvedBoard } = generateLocalBoard(diff);
-      
+
       setBoard(newBoard);
       setInitialBoard([...newBoard]);
       setSolution(solvedBoard);
@@ -223,10 +231,10 @@ const App = () => {
       setIsGameWon(false);
       setIsPaused(false);
       setCurrentScreen("game");
-      
+
       // Increment games started stat
       StorageService.incrementGamesStarted();
-      
+
       StorageService.saveGameState({
         board: newBoard,
         initialBoard: [...newBoard],
@@ -236,7 +244,7 @@ const App = () => {
         timer: 0,
         notes: Array(81).fill([]),
         isGameWon: false,
-        practiceMode: practice
+        practiceMode: practice,
       });
     } catch (error) {
       console.error("Failed to start game:", error);
@@ -270,14 +278,19 @@ const App = () => {
   };
 
   const handleNumberInput = (number) => {
-    if (selectedCell === null || isGameWon || initialBoard[selectedCell] !== null) return;
+    if (
+      selectedCell === null ||
+      isGameWon ||
+      initialBoard[selectedCell] !== null
+    )
+      return;
 
     if (noteMode) {
       if (number === null) {
-         // Clear notes
-         const newNotes = [...notes];
-         newNotes[selectedCell] = [];
-         setNotes(newNotes);
+        // Clear notes
+        const newNotes = [...notes];
+        newNotes[selectedCell] = [];
+        setNotes(newNotes);
       } else {
         // Toggle note
         const newNotes = [...notes];
@@ -307,7 +320,7 @@ const App = () => {
 
     // Check correctness
     const isCorrect = number === solution[selectedCell];
-    
+
     if (!practiceMode && !isCorrect) {
       setMistakes((prev) => prev + 1);
       if (soundEnabled) SoundManager.play("error");
@@ -332,59 +345,59 @@ const App = () => {
 
     // Simple implementation: clear notes in related cells
     // (A more advanced implementation would be specific about which notes to remove)
-    
+
     setNotes(newNotes);
 
     // Check for win
     if (newBoard.every((cell, idx) => cell === solution[idx])) {
       handleGameWin();
     }
-    
+
     // Save state
     StorageService.saveGameState({
-        board: newBoard,
-        initialBoard,
-        solution,
-        difficulty,
-        mistakes: !practiceMode && !isCorrect ? mistakes + 1 : mistakes,
-        timer,
-        notes: newNotes,
-        isGameWon: false,
-        practiceMode
+      board: newBoard,
+      initialBoard,
+      solution,
+      difficulty,
+      mistakes: !practiceMode && !isCorrect ? mistakes + 1 : mistakes,
+      timer,
+      notes: newNotes,
+      isGameWon: false,
+      practiceMode,
     });
   };
-  
+
   const handleGameWin = () => {
     setIsGameWon(true);
     triggerConfetti();
     if (soundEnabled) SoundManager.play("win");
-    
+
     // Update stats
     StorageService.updateStats({
-        difficulty,
-        time: timer,
-        mistakes,
-        perfect: mistakes === 0
+      difficulty,
+      time: timer,
+      mistakes,
+      perfect: mistakes === 0,
     });
-    
+
     // Clear saved game
     StorageService.clearGameState();
 
     // Submit score if online
     if (userSession && !practiceMode) {
-        saveScore({
-            username: userSession.username,
-            difficulty,
-            time: timer,
-            mistakes
-        }).then(() => {
-            // Refresh leaderboard
-             getLeaderboard().then(setLeaderboardData);
-        });
+      saveScore({
+        username: userSession.username,
+        difficulty,
+        time: timer,
+        mistakes,
+      }).then(() => {
+        // Refresh leaderboard
+        getLeaderboard().then(setLeaderboardData);
+      });
     }
 
     setTimeout(() => {
-        setCurrentScreen("closing");
+      setCurrentScreen("closing");
     }, 2000);
   };
 
@@ -394,75 +407,81 @@ const App = () => {
   };
 
   const handleHint = () => {
-      // Find an empty cell
-      const emptyIndices = board.map((val, idx) => val === null ? idx : null).filter(val => val !== null);
-      if (emptyIndices.length === 0) return;
-      
-      const randomIdx = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
-      
-      const newBoard = [...board];
-      newBoard[randomIdx] = solution[randomIdx];
-      setBoard(newBoard);
-      
-      // Add time penalty
-      setTimer(prev => prev + 30); 
-      
-      if (soundEnabled) SoundManager.play("hint");
+    // Find an empty cell
+    const emptyIndices = board
+      .map((val, idx) => (val === null ? idx : null))
+      .filter((val) => val !== null);
+    if (emptyIndices.length === 0) return;
+
+    const randomIdx =
+      emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+
+    const newBoard = [...board];
+    newBoard[randomIdx] = solution[randomIdx];
+    setBoard(newBoard);
+
+    // Add time penalty
+    setTimer((prev) => prev + 30);
+
+    if (soundEnabled) SoundManager.play("hint");
   };
 
   const handleUndo = () => {
-      // Basic undo implementation could be added here
-      // For now just a placeholder
-      if (soundEnabled) SoundManager.play("uiTap");
+    // Basic undo implementation could be added here
+    // For now just a placeholder
+    if (soundEnabled) SoundManager.play("uiTap");
   };
 
   const toggleSound = () => {
-      const newState = !soundEnabled;
-      setSoundEnabled(newState);
-      StorageService.savePreferences({ sound: newState, darkMode, theme });
+    const newState = !soundEnabled;
+    setSoundEnabled(newState);
+    StorageService.savePreferences({ sound: newState, darkMode, theme });
   };
-  
+
   const toggleDarkMode = () => {
-      const newState = !darkMode;
-      setDarkMode(newState);
-      StorageService.savePreferences({ sound: soundEnabled, darkMode: newState, theme });
+    const newState = !darkMode;
+    setDarkMode(newState);
+    StorageService.savePreferences({
+      sound: soundEnabled,
+      darkMode: newState,
+      theme,
+    });
   };
 
   const handleAuth = async (type, data) => {
-      setLoading(true);
-      try {
-          // Simulate auth for now or use real backend
-          // const res = await runApiFn(...)
-          
-          // Mock successful login
-          const mockUser = { username: data.username, token: "mock-token" };
-          setUserSession(mockUser);
-          StorageService.saveUser(mockUser);
-          setShowAuthModal(null);
-          
-      } catch (err) {
-          alert("Authentication failed: " + err.message);
-      } finally {
-          setLoading(false);
-      }
+    setLoading(true);
+    try {
+      // Simulate auth for now or use real backend
+      // const res = await runApiFn(...)
+
+      // Mock successful login
+      const mockUser = { username: data.username, token: "mock-token" };
+      setUserSession(mockUser);
+      StorageService.saveUser(mockUser);
+      setShowAuthModal(null);
+    } catch (err) {
+      alert("Authentication failed: " + err.message);
+    } finally {
+      setLoading(false);
+    }
   };
-  
+
   const handleLogout = () => {
-      setUserSession(null);
-      StorageService.clearUser();
-      setShowUserPanel(false);
+    setUserSession(null);
+    StorageService.clearUser();
+    setShowUserPanel(false);
   };
 
   const handleSelectTheme = (themeId) => {
     setActiveThemeId(themeId);
     StorageService.saveActiveTheme(themeId);
-    if (soundEnabled) SoundManager.play('select');
+    if (soundEnabled) SoundManager.play("select");
   };
 
   const handleSelectPack = (packId) => {
     setActivePackId(packId);
     StorageService.saveActiveSoundPack(packId);
-    if (soundEnabled) SoundManager.play('select');
+    if (soundEnabled) SoundManager.play("select");
   };
 
   return (
@@ -489,10 +508,10 @@ const App = () => {
           {/* Header */}
           <header className="p-2 sm:p-4 flex justify-between items-center bg-white dark:bg-gray-800 shadow-sm z-10">
             <div className="flex items-center gap-2 sm:gap-4">
-              <button 
+              <button
                 onClick={() => {
-                   setCurrentScreen("opening");
-                   setIsPaused(true);
+                  setCurrentScreen("opening");
+                  setIsPaused(true);
                 }}
                 className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
@@ -501,147 +520,199 @@ const App = () => {
               <div>
                 <h1 className="text-xl font-bold hidden sm:block">Sudoku</h1>
                 <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                       difficulty === 'Easy' ? 'bg-green-100 text-green-700' :
-                       difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
-                       'bg-red-100 text-red-700'
-                   }`}>
-                       {difficulty}
-                   </span>
-                   {practiceMode && <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-[10px]">Practice</span>}
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                      difficulty === "Easy"
+                        ? "bg-green-100 text-green-700"
+                        : difficulty === "Medium"
+                        ? "bg-yellow-100 text-yellow-700"
+                        : "bg-red-100 text-red-700"
+                    }`}
+                  >
+                    {difficulty}
+                  </span>
+                  {practiceMode && (
+                    <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-[10px]">
+                      Practice
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
 
             <div className="flex items-center gap-4">
-               <div className="flex flex-col items-end">
-                  <div className="text-lg font-mono font-bold tabular-nums">
-                      {formatTime(timer)}
-                  </div>
-                  <div className="text-xs text-gray-500">
-                     Mistakes: <span className={mistakes > 0 ? "text-red-500 font-bold" : ""}>{mistakes}</span>/3
-                  </div>
-               </div>
-               <button
-                 onClick={() => setIsPaused(!isPaused)}
-                 className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
-               >
-                 {isPaused ? <Icons.Play /> : <Icons.Pause />}
-               </button>
+              <div className="flex flex-col items-end">
+                <div className="text-lg font-mono font-bold tabular-nums">
+                  {formatTime(timer)}
+                </div>
+                <div className="text-xs text-gray-500">
+                  Mistakes:{" "}
+                  <span
+                    className={mistakes > 0 ? "text-red-500 font-bold" : ""}
+                  >
+                    {mistakes}
+                  </span>
+                  /3
+                </div>
+              </div>
+              <button
+                onClick={() => setIsPaused(!isPaused)}
+                className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
+              >
+                {isPaused ? <Icons.Play /> : <Icons.Pause />}
+              </button>
             </div>
           </header>
 
           {/* Main Game Area */}
           <main className="flex-1 overflow-hidden relative flex flex-col md:flex-row items-center justify-center gap-4 p-2 sm:p-4">
-             <div className="w-full max-w-md md:max-w-lg aspect-square flex-shrink-0">
-                 <SudokuBoard
-                    board={board}
-                    initialBoard={initialBoard}
-                    notes={notes}
-                    selectedCell={selectedCell}
-                    onCellClick={handleCellClick}
-                    mistakes={mistakes} // Pass to highlight errors if needed
-                    isPaused={isPaused}
-                 />
-             </div>
-             
-             {/* Controls */}
-             <div className="w-full max-w-md flex flex-col gap-4">
-                 <div className="grid grid-cols-4 gap-2">
-                     <button onClick={handleUndo} className="flex flex-col items-center justify-center p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                        <Icons.Undo />
-                        <span className="text-[10px] uppercase font-bold mt-1">Undo</span>
-                     </button>
-                     <button onClick={() => {
-                        const newBoard = [...board];
-                        if (selectedCell !== null && initialBoard[selectedCell] === null) {
-                            newBoard[selectedCell] = null;
-                            setBoard(newBoard);
-                            // Also clear notes
-                            const newNotes = [...notes];
-                            newNotes[selectedCell] = [];
-                            setNotes(newNotes);
-                        }
-                     }} className="flex flex-col items-center justify-center p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                        <Icons.Erase />
-                        <span className="text-[10px] uppercase font-bold mt-1">Erase</span>
-                     </button>
-                     <button onClick={toggleNoteMode} className={`flex flex-col items-center justify-center p-2 rounded-xl transition-colors ${noteMode ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>
-                        <Icons.Note />
-                        <span className="text-[10px] uppercase font-bold mt-1">Notes</span>
-                     </button>
-                     <button onClick={handleHint} className="flex flex-col items-center justify-center p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                        <Icons.Hint />
-                        <span className="text-[10px] uppercase font-bold mt-1">Hint</span>
-                     </button>
-                 </div>
-                 
-                 {/* Number Pad */}
-                 <div className="grid grid-cols-9 gap-1 sm:gap-2">
-                     {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
-                         <button
-                            key={num}
-                            onClick={() => handleNumberInput(num)}
-                            className="aspect-[4/5] rounded-lg bg-white dark:bg-gray-800 border-b-4 border-gray-200 dark:border-gray-700 active:border-b-0 active:translate-y-[4px] transition-all text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center"
-                         >
-                             {num}
-                         </button>
-                     ))}
-                 </div>
-             </div>
+            <div className="w-full max-w-md md:max-w-lg aspect-square flex-shrink-0">
+              <SudokuBoard
+                board={board}
+                initialBoard={initialBoard}
+                notes={notes}
+                selectedCell={selectedCell}
+                onCellClick={handleCellClick}
+                mistakes={mistakes} // Pass to highlight errors if needed
+                isPaused={isPaused}
+              />
+            </div>
+
+            {/* Controls */}
+            <div className="w-full max-w-md flex flex-col gap-4">
+              <div className="grid grid-cols-4 gap-2">
+                <button
+                  onClick={handleUndo}
+                  className="flex flex-col items-center justify-center p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <Icons.Undo />
+                  <span className="text-[10px] uppercase font-bold mt-1">
+                    Undo
+                  </span>
+                </button>
+                <button
+                  onClick={() => {
+                    const newBoard = [...board];
+                    if (
+                      selectedCell !== null &&
+                      initialBoard[selectedCell] === null
+                    ) {
+                      newBoard[selectedCell] = null;
+                      setBoard(newBoard);
+                      // Also clear notes
+                      const newNotes = [...notes];
+                      newNotes[selectedCell] = [];
+                      setNotes(newNotes);
+                    }
+                  }}
+                  className="flex flex-col items-center justify-center p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <Icons.Erase />
+                  <span className="text-[10px] uppercase font-bold mt-1">
+                    Erase
+                  </span>
+                </button>
+                <button
+                  onClick={toggleNoteMode}
+                  className={`flex flex-col items-center justify-center p-2 rounded-xl transition-colors ${
+                    noteMode
+                      ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30"
+                      : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  <Icons.Note />
+                  <span className="text-[10px] uppercase font-bold mt-1">
+                    Notes
+                  </span>
+                </button>
+                <button
+                  onClick={handleHint}
+                  className="flex flex-col items-center justify-center p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <Icons.Hint />
+                  <span className="text-[10px] uppercase font-bold mt-1">
+                    Hint
+                  </span>
+                </button>
+              </div>
+
+              {/* Number Pad */}
+              <div className="grid grid-cols-9 gap-1 sm:gap-2">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                  <button
+                    key={num}
+                    onClick={() => handleNumberInput(num)}
+                    className="aspect-[4/5] rounded-lg bg-white dark:bg-gray-800 border-b-4 border-gray-200 dark:border-gray-700 active:border-b-0 active:translate-y-[4px] transition-all text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center"
+                  >
+                    {num}
+                  </button>
+                ))}
+              </div>
+            </div>
           </main>
         </div>
       )}
 
       {currentScreen === "closing" && (
-          <ClosingScreen
-            timer={timer}
-            mistakes={mistakes}
-            difficulty={difficulty}
-            onHome={() => setCurrentScreen("opening")}
-            onNewGame={() => startGame(difficulty, practiceMode)}
-            isNewBest={false} // logic to check best score needed
-          />
+        <ClosingScreen
+          timer={timer}
+          mistakes={mistakes}
+          difficulty={difficulty}
+          onHome={() => setCurrentScreen("opening")}
+          onNewGame={() => startGame(difficulty, practiceMode)}
+          isNewBest={false} // logic to check best score needed
+        />
       )}
 
       {showUserPanel && (
-          <div className="fixed inset-0 z-50 flex justify-end">
-              <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setShowUserPanel(false)}></div>
-              <div className="relative w-full max-w-sm h-full bg-white dark:bg-gray-900 shadow-2xl animate-slide-in-right overflow-y-auto">
-                 <UserPanel 
-                    user={userSession} 
-                    onClose={() => setShowUserPanel(false)}
-                    onLogout={handleLogout}
-                    stats={StorageService.getGameStats()}
-                    history={[]} // Load history
-                 />
-              </div>
+        <div className="fixed inset-0 z-50 flex justify-end">
+          <div
+            className="absolute inset-0 bg-black/20 backdrop-blur-sm"
+            onClick={() => setShowUserPanel(false)}
+          ></div>
+          <div className="relative w-full max-w-sm h-full bg-white dark:bg-gray-900 shadow-2xl animate-slide-in-right overflow-y-auto">
+            <UserPanel
+              user={userSession}
+              onClose={() => setShowUserPanel(false)}
+              onLogout={handleLogout}
+              stats={StorageService.getGameStats()}
+              history={[]} // Load history
+            />
           </div>
+        </div>
       )}
 
       {showAwards && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-              <div className="absolute inset-0 bg-black/40 backdrop-blur-md" onClick={() => setShowAwards(false)}></div>
-              <div className="relative w-full max-w-4xl h-[80vh] bg-white dark:bg-gray-900 rounded-3xl shadow-2xl overflow-hidden animate-scale-up">
-                 <AwardsZone 
-                   onClose={() => setShowAwards(false)}
-                   soundEnabled={soundEnabled}
-                   activeThemeId={activeThemeId}
-                   unlockedThemes={unlockedThemes}
-                   onSelectTheme={handleSelectTheme}
-                   activePackId={activePackId}
-                   unlockedPacks={unlockedPacks}
-                   onSelectPack={handleSelectPack}
-                 />
-              </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-md"
+            onClick={() => setShowAwards(false)}
+          ></div>
+          <div className="relative w-full max-w-4xl h-[80vh] bg-white dark:bg-gray-900 rounded-3xl shadow-2xl overflow-hidden animate-scale-up">
+            <AwardsZone
+              onClose={() => setShowAwards(false)}
+              soundEnabled={soundEnabled}
+              activeThemeId={activeThemeId}
+              unlockedThemes={unlockedThemes}
+              onSelectTheme={handleSelectTheme}
+              activePackId={activePackId}
+              unlockedPacks={unlockedPacks}
+              onSelectPack={handleSelectPack}
+            />
           </div>
+        </div>
       )}
 
       {showAdminConsole && (
-          <div className="fixed inset-0 z-[100] bg-black/90 text-green-400 font-mono p-4 overflow-auto">
-             <button onClick={() => setShowAdminConsole(false)} className="absolute top-4 right-4 text-white">Close</button>
-             <AdminConsole />
-          </div>
+        <div className="fixed inset-0 z-[100] bg-black/90 text-green-400 font-mono p-4 overflow-auto">
+          <button
+            onClick={() => setShowAdminConsole(false)}
+            className="absolute top-4 right-4 text-white"
+          >
+            Close
+          </button>
+          <AdminConsole />
+        </div>
       )}
     </div>
   );

@@ -44,20 +44,23 @@ jobs:
             --add-label "agent-working"
           
           # Add comment to trigger Copilot coding agent
+          COMMENT_BODY=$(cat << 'ENDCOMMENT'
+          🤖 **Copilot Coding Agent Assigned**
+
+          This issue has been automatically assigned to the Copilot coding agent.
+
+          The agent will:
+          - Analyze the error from Firebase logs
+          - Search the codebase for the root cause
+          - Implement a fix
+          - Open a Pull Request
+
+          @copilot Please fix this issue. Analyze the error message, find the root cause in the codebase, and create a PR with the fix.
+          ENDCOMMENT
+          )
           gh issue comment ${{ github.event.issue.number }} \
             --repo ${{ github.repository }} \
-            --body "🤖 **Copilot Coding Agent Assigned**
-
-This issue has been automatically assigned to the Copilot coding agent.
-
-The agent will:
-1. Analyze the error from Firebase logs
-2. Search the codebase for the root cause
-3. Implement a fix
-4. Open a Pull Request
-
----
-@copilot Please fix this issue. Analyze the error message, find the root cause in the codebase, and create a PR with the fix."
+            --body "$COMMENT_BODY"
 
       - name: Queue if conflict exists
         if: steps.check.outputs.should_assign == 'false'
@@ -66,6 +69,4 @@ The agent will:
         run: |
           gh issue comment ${{ github.event.issue.number }} \
             --repo ${{ github.repository }} \
-            --body "⏳ **Queued for Agent**
-
-Another issue is currently being worked on by the coding agent. This issue will be picked up automatically when the current work is complete."
+            --body "⏳ **Queued for Agent** - Another issue is currently being worked on. This will be picked up automatically when the current work is complete."
