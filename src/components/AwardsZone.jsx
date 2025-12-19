@@ -48,52 +48,64 @@ const AwardsZone = ({
       isThemeUnlocked(themeId)
     )
       return null;
+    const totalWins = stats.totalWins || 0;
+    const hardWins = stats.hardWins || 0;
+    const perfectWins = stats.perfectWins || 0;
+    const easyWins = stats.easyWins || 0;
+    const mediumWins = stats.mediumWins || 0;
+    const fastWins = stats.fastWins || 0;
     switch (themeId) {
       case "ocean":
-        return `${Math.min(stats.totalWins, 5)}/5 wins`;
+        return `${Math.min(totalWins, 5)}/5 wins`;
       case "forest":
-        return `${Math.min(stats.totalWins, 10)}/10 wins`;
+        return `${Math.min(totalWins, 10)}/10 wins`;
       case "sunset":
-        return stats.hardWins >= 1
+        return hardWins >= 1
           ? "Unlocked!"
-          : `${stats.hardWins}/1 Hard win`;
+          : `${hardWins}/1 Hard win`;
       case "midnight":
-        return stats.perfectWins >= 1
+        return perfectWins >= 1
           ? "Unlocked!"
-          : `${stats.perfectWins}/1 perfect win`;
+          : `${perfectWins}/1 perfect win`;
       case "sakura":
-        return `${Math.min(stats.easyWins, 3)}/3 Easy wins`;
+        return `${Math.min(easyWins, 3)}/3 Easy wins`;
       case "volcano":
-        return `${Math.min(stats.mediumWins, 3)}/3 Medium wins`;
+        return `${Math.min(mediumWins, 3)}/3 Medium wins`;
       case "arctic":
-        return stats.fastWins >= 1
+        return fastWins >= 1
           ? "Unlocked!"
-          : `${stats.fastWins}/1 fast win`;
+          : `${fastWins}/1 fast win`;
       default:
         return null;
     }
   };
 
   const getPackProgress = (packId) => {
+    const totalWins = stats.totalWins || 0;
+    const hardWins = stats.hardWins || 0;
+    const perfectWins = stats.perfectWins || 0;
+    const easyWins = stats.easyWins || 0;
+    const mediumWins = stats.mediumWins || 0;
+    const fastWins = stats.fastWins || 0;
     switch (packId) {
       case "funfair":
-        return `${Math.min(stats.totalWins, 3)}/3 wins`;
+        return `${Math.min(totalWins, 3)}/3 wins`;
       case "retro":
-        return `${Math.min(stats.easyWins, 3)}/3 Easy wins`;
+        return `${Math.min(easyWins, 3)}/3 Easy wins`;
       case "space":
-        return stats.hardWins >= 1
+        return hardWins >= 1
           ? "Unlocked!"
-          : `${stats.hardWins}/1 Hard win`;
+          : `${hardWins}/1 Hard win`;
       case "nature":
-        return `${Math.min(stats.mediumWins, 3)}/3 Medium wins`;
+        return `${Math.min(mediumWins, 3)}/3 Medium wins`;
       case "crystal":
-        return stats.perfectWins >= 1
+        return perfectWins >= 1
           ? "Unlocked!"
-          : `${stats.perfectWins}/1 perfect win`;
+          : `${perfectWins}/1 perfect win`;
       case "minimal":
-        return stats.fastWins >= 1
+        return fastWins >= 1
           ? "Unlocked!"
-          : `${stats.fastWins}/1 win ≤3min`;
+          : `${fastWins}/1 win ≤3min`;
       default:
         return null;
     }

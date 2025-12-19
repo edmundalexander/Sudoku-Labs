@@ -349,7 +349,21 @@ export const StorageService = {
 
   // --- Game Stats ---
   saveGameStats: (stats) => StorageService.set(KEYS.GAME_STATS, stats),
-  getGameStats: () => StorageService.get(KEYS.GAME_STATS) || {},
+  getGameStats: () => {
+    const defaults = {
+      totalWins: 0,
+      easyWins: 0,
+      mediumWins: 0,
+      hardWins: 0,
+      perfectWins: 0,
+      fastWins: 0,
+      gamesStarted: 0,
+      gamesCompleted: 0,
+      totalTime: 0,
+      bestTime: null,
+    };
+    return { ...defaults, ...StorageService.get(KEYS.GAME_STATS) };
+  },
 
   // --- Preferences (sound, darkMode, theme) ---
   savePreferences: (prefs) => StorageService.set(KEYS.PREFERENCES, prefs),
