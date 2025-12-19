@@ -219,6 +219,10 @@ const App = () => {
       setIsGameWon(false);
       setIsPaused(false);
       setCurrentScreen("game");
+      
+      // Increment games started stat
+      StorageService.incrementGamesStarted();
+      
       StorageService.saveGameState({
         board: newBoard,
         initialBoard: [...newBoard],

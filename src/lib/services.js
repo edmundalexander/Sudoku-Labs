@@ -373,12 +373,11 @@ export const StorageService = {
   getUser: () => StorageService.get(KEYS.USER_SESSION),
   clearUser: () => StorageService.remove(KEYS.USER_SESSION),
 
-  // --- Update Stats ---
+  // --- Update Stats (called when game is won) ---
   updateStats: (gameStats) => {
     const current = StorageService.getStats();
     const newStats = {
       ...current,
-      gamesStarted: (current.gamesStarted || 0) + 1,
       gamesWon: (current.gamesWon || 0) + 1,
       totalTime: (current.totalTime || 0) + (gameStats.time || 0),
     };
@@ -386,6 +385,17 @@ export const StorageService = {
     if (gameStats.time && (!current.bestTime || gameStats.time < current.bestTime)) {
       newStats.bestTime = gameStats.time;
     }
+    StorageService.saveStats(newStats);
+    return newStats;
+  },
+
+  // --- Increment Games Started (called when game begins) ---
+  incrementGamesStarted: () => {
+    const current = StorageService.getStats();
+    const newStats = {
+      ...current,
+      gamesStarted: (current.gamesStarted || 0) + 1,
+    };
     StorageService.saveStats(newStats);
     return newStats;
   },
