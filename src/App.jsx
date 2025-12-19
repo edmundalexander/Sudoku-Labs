@@ -104,9 +104,23 @@ const App = () => {
     StorageService.getUnlockedSoundPacks() || ["classic"]
   );
 
+  // Helper to get the correct value from a solution cell
+  const getSolutionValue = (solutionCell) => {
+    if (!solutionCell) return null;
+    // Solution cells have both .value and .solution properties from generateLocalBoard
+    // .solution is the definitive answer, .value is also set to the same in the solved board
+    return solutionCell.solution ?? solutionCell.value ?? null;
+  };
+
   // Merge notes into board cells for rendering
   const boardWithNotes = useMemo(() => {
-    if (!board || board.length === 0 || !Array.isArray(board) || typeof board[0] !== 'object') {
+    // Check if board has valid cell objects (not null or primitive values)
+    if (!board || board.length === 0 || !Array.isArray(board)) {
+      return board;
+    }
+    // Check if the first non-null cell is an object
+    const hasValidCells = board.some(cell => cell !== null && typeof cell === 'object');
+    if (!hasValidCells) {
       return board;
     }
     return board.map((cell, index) => ({
@@ -338,9 +352,9 @@ const App = () => {
       return;
     }
 
-    // Check correctness - solution contains cell objects, compare with .value or .solution
+    // Check correctness - use helper to get the correct solution value
     const solutionCell = solution[selectedCell];
-    const correctValue = solutionCell?.value || solutionCell?.solution;
+    const correctValue = getSolutionValue(solutionCell);
     const isCorrect = number === correctValue;
 
     if (!practiceMode && !isCorrect) {
@@ -375,11 +389,9 @@ const App = () => {
 
     setNotes(newNotes);
 
-    // Check for win - compare .value properties of cell objects
+    // Check for win - compare cell values with solution values
     const hasWon = newBoard.every((cell, idx) => {
-      const solutionCell = solution[idx];
-      const correctValue = solutionCell?.value || solutionCell?.solution;
-      return cell.value === correctValue;
+      return cell.value === getSolutionValue(solution[idx]);
     });
     if (hasWon) {
       handleGameWin();
@@ -448,9 +460,8 @@ const App = () => {
     const randomIdx =
       emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
 
-    // Get the correct value from solution
-    const solutionCell = solution[randomIdx];
-    const correctValue = solutionCell?.value || solutionCell?.solution;
+    // Get the correct value from solution using helper
+    const correctValue = getSolutionValue(solution[randomIdx]);
 
     // Update the cell with the hint
     const newBoard = board.map((cell, idx) => {
