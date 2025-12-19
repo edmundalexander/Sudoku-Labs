@@ -229,7 +229,7 @@ export const getCompletedBoxes = (board) => {
 // ============================================================================
 
 /**
- * Generate a local Sudoku board (fallback when GAS unavailable)
+ * Generate a local Sudoku board (fallback when Backend unavailable)
  * @param {string} difficulty - Difficulty level
  * @returns {Array<Object>} Array of cell objects
  */

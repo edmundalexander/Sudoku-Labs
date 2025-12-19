@@ -225,14 +225,14 @@ window.runDebugTests = async function () {
   };
 
   try {
-    // Test 1: Check GAS configuration
-    dlog("%cTest 1: GAS Configuration...", "font-weight: bold");
+    // Test 1: Check Backend configuration
+    dlog("%cTest 1: Backend Configuration...", "font-weight: bold");
     if (isBackendAvailable()) {
-      console.log("✅ GAS_URL is configured and valid");
-      results.passed.push("GAS Configuration");
+      console.log("✅ Backend URL is configured and valid");
+      results.passed.push("Backend Configuration");
     } else {
-      console.log("⚠️  GAS_URL not configured - using local fallback");
-      results.warnings.push("GAS not configured");
+      console.log("⚠️  Backend URL not configured - using local fallback");
+      results.warnings.push("Backend not configured");
     }
 
     // Test 2: Ping backend (if configured)
@@ -265,7 +265,7 @@ window.runDebugTests = async function () {
       console.log("   User ID:", session.userId);
       results.passed.push("User Session");
 
-      // Test 4: Get user profile (if GAS configured)
+      // Test 4: Get user profile (if Backend configured)
       if (isBackendAvailable()) {
         console.log(
           "\n%cTest 4: Fetching User Profile...",
@@ -1159,7 +1159,7 @@ const App = () => {
       let retries = 0;
       const maxRetries = 3;
 
-      // Try GAS backend with retries
+      // Try Backend with retries
       while (!newBoard && retries < maxRetries) {
         try {
           newBoard = await runApiFn("generateSudoku", diff);
@@ -1176,14 +1176,17 @@ const App = () => {
             );
 
             if (!isValid) {
-              console.warn("Invalid board structure received from GAS");
+              console.warn("Invalid board structure received from Backend");
               newBoard = null;
             }
           } else {
             newBoard = null;
           }
         } catch (err) {
-          console.warn(`GAS generation attempt ${retries + 1} failed:`, err);
+          console.warn(
+            `Backend generation attempt ${retries + 1} failed:`,
+            err
+          );
           newBoard = null;
         }
 
@@ -1198,7 +1201,7 @@ const App = () => {
 
       if (!newBoard) {
         console.warn(
-          "GAS generation failed after retries, falling back to local generator"
+          "Backend generation failed after retries, falling back to local generator"
         );
         // Fallback to local generator
         newBoard = generateLocalBoard(diff);

@@ -1,34 +1,14 @@
-const functions = require("firebase-functions");
+const express = require("express");
 const admin = require("firebase-admin");
-const cors = require("cors")({ origin: true });
-const sudoku = require("./sudoku");
 const axios = require("axios");
-const path = require("path");
+const sudoku = require("../lib/sudoku");
 
-// Initialize Firebase Admin
-// In Cloud Run (App Hosting), we should rely on ADC (Application Default Credentials)
-// The service account file is likely not present in the container unless we copy it,
-// and using ADC is the preferred method.
-try {
-  admin.initializeApp();
-  console.log("Firebase Admin initialized with default credentials");
-} catch (e) {
-  console.error("Failed to initialize Firebase Admin:", e);
-}
-
+const router = express.Router();
 const db = admin.firestore();
 
 // --- CONFIGURATION ---
-// IMPORTANT: Set this via: firebase functions:config:set auth.api_key="YOUR_WEB_API_KEY"
-// Or hardcode it temporarily for testing (NOT RECOMMENDED FOR PRODUCTION)
-let FIREBASE_WEB_API_KEY;
-try {
-  FIREBASE_WEB_API_KEY = functions.config().auth
-    ? functions.config().auth.api_key
-    : process.env.FIREBASE_WEB_API_KEY;
-} catch (e) {
-  FIREBASE_WEB_API_KEY = process.env.FIREBASE_WEB_API_KEY;
-}
+// IMPORTANT: Set this via environment variables in production
+const FIREBASE_WEB_API_KEY = process.env.FIREBASE_WEB_API_KEY;
 
 // Helper to sanitize input (basic XSS prevention)
 function sanitizeInput(str, maxLength) {
@@ -41,119 +21,6 @@ function sanitizeInput(str, maxLength) {
     .replace(/'/g, "&#039;");
   return maxLength ? s.substring(0, maxLength) : s;
 }
-
-exports.api = functions.https.onRequest((req, res) => {
-  cors(req, res, async () => {
-    // Support both GET (query) and POST (body)
-    const params = req.method === "GET" ? req.query : req.body;
-    const action = params.action;
-
-    try {
-      let result;
-      switch (action) {
-        case "generateSudoku":
-          const difficulty = params.difficulty || "Easy";
-          result = sudoku.generateSudoku(difficulty);
-          break;
-
-        case "getLeaderboard":
-          result = await getLeaderboard();
-          break;
-
-        case "saveScore":
-          result = await saveScore(params);
-          break;
-
-        case "getChat":
-          result = await getChat();
-          break;
-
-        case "postChat":
-          result = await postChat(params);
-          break;
-
-        case "logError":
-          result = await logError(params);
-          break;
-
-        case "register":
-          result = await registerUser(params);
-          break;
-
-        case "login":
-          result = await loginUser(params);
-          break;
-
-        case "getUserProfile":
-          result = await getUserProfile(params);
-          break;
-
-        case "updateUserProfile":
-          result = await updateUserProfile(params);
-          break;
-
-        case "getUserState":
-          result = await getUserState(params);
-          break;
-
-        case "saveUserState":
-          result = await saveUserState(params);
-          break;
-
-        case "getUserBadges":
-          result = await getUserBadges(params);
-          break;
-
-        case "awardBadge":
-          result = await awardBadge(params);
-          break;
-
-        // --- Admin Endpoints ---
-        case "adminLogin":
-          result = await adminLogin(params);
-          break;
-        case "getAdminStats":
-          result = await getAdminStats(params);
-          break;
-        case "getAdminChatHistory":
-          result = await getAdminChatHistory(params);
-          break;
-        case "getAdminUsers":
-          result = await getAdminUsers(params);
-          break;
-        case "deleteMessages":
-          result = await deleteMessages(params);
-          break;
-        case "banUser":
-          result = await banUser(params);
-          break;
-        case "unbanUser":
-          result = await unbanUser(params);
-          break;
-        case "muteUser":
-          result = await muteUser(params);
-          break;
-        case "updateUserStats":
-          result = await updateUserStats(params);
-          break;
-        case "clearAllChat":
-          result = await clearAllChat(params);
-          break;
-
-        case "ping":
-          result = { ok: true, timestamp: new Date().toISOString() };
-          break;
-
-        default:
-          result = { error: "Unknown action: " + action };
-      }
-      res.json(result);
-    } catch (error) {
-      console.error("API Error:", error);
-      res.status(500).json({ error: "Server error: " + error.toString() });
-    }
-  });
-});
 
 // --- Implementation Functions ---
 
@@ -519,8 +386,6 @@ async function getAdminUsers(params) {
   const snapshot = await db.collection("users").limit(100).get();
   const users = snapshot.docs.map((doc) => doc.data());
 
-  // Get banned/muted users (stored in a separate collection or flag)
-  // For now, we'll just return empty lists as we haven't implemented banning logic fully
   return { success: true, users, bannedUsers: [], mutedUsers: [] };
 }
 
@@ -579,3 +444,117 @@ async function clearAllChat(params) {
 
   return { success: true };
 }
+
+// --- Route Handler ---
+
+router.all("/", async (req, res) => {
+  const params = req.method === "GET" ? req.query : req.body;
+  const action = params.action;
+
+  try {
+    let result;
+    switch (action) {
+      case "generateSudoku":
+        const difficulty = params.difficulty || "Easy";
+        result = sudoku.generateSudoku(difficulty);
+        break;
+
+      case "getLeaderboard":
+        result = await getLeaderboard();
+        break;
+
+      case "saveScore":
+        result = await saveScore(params);
+        break;
+
+      case "getChat":
+        result = await getChat();
+        break;
+
+      case "postChat":
+        result = await postChat(params);
+        break;
+
+      case "logError":
+        result = await logError(params);
+        break;
+
+      case "register":
+        result = await registerUser(params);
+        break;
+
+      case "login":
+        result = await loginUser(params);
+        break;
+
+      case "getUserProfile":
+        result = await getUserProfile(params);
+        break;
+
+      case "updateUserProfile":
+        result = await updateUserProfile(params);
+        break;
+
+      case "getUserState":
+        result = await getUserState(params);
+        break;
+
+      case "saveUserState":
+        result = await saveUserState(params);
+        break;
+
+      case "getUserBadges":
+        result = await getUserBadges(params);
+        break;
+
+      case "awardBadge":
+        result = await awardBadge(params);
+        break;
+
+      // --- Admin Endpoints ---
+      case "adminLogin":
+        result = await adminLogin(params);
+        break;
+      case "getAdminStats":
+        result = await getAdminStats(params);
+        break;
+      case "getAdminChatHistory":
+        result = await getAdminChatHistory(params);
+        break;
+      case "getAdminUsers":
+        result = await getAdminUsers(params);
+        break;
+      case "deleteMessages":
+        result = await deleteMessages(params);
+        break;
+      case "banUser":
+        result = await banUser(params);
+        break;
+      case "unbanUser":
+        result = await unbanUser(params);
+        break;
+      case "muteUser":
+        result = await muteUser(params);
+        break;
+      case "updateUserStats":
+        result = await updateUserStats(params);
+        break;
+      case "clearAllChat":
+        result = await clearAllChat(params);
+        break;
+
+      case "ping":
+        result = { ok: true, timestamp: new Date().toISOString() };
+        break;
+
+      default:
+        result = { error: "Unknown action: " + action };
+    }
+    res.json(result);
+  } catch (error) {
+    console.error("API Error:", error);
+    res.status(500).json({ error: "Server error: " + error.toString() });
+  }
+});
+
+module.exports = router;

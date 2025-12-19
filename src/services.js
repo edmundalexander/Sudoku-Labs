@@ -1,10 +1,10 @@
 /**
  * Sudoku Logic Lab - Services (API & Storage)
  *
- * API service layer for GAS/Firebase Cloud Functions backend communication and local storage management.
+ * API service layer for Firebase App Hosting backend communication and local storage management.
  * This file uses plain JavaScript (no JSX) and can be loaded before React.
  *
- * @version 3.2.0 (API Refactor)
+ * @version 4.0.0 (Firebase Native)
  */
 
 import {
@@ -20,31 +20,22 @@ import { generateGuestId, sortLeaderboard } from "./utils.js";
 // CONFIGURATION
 // ============================================================================
 
-// Backend API URL - Configure via config/config.local.js
-export const DEFAULT_API_URL = "";
+// Backend API URL - Defaults to relative path for same-origin hosting
+export const DEFAULT_API_URL = "/api";
 
-// Helper to get API_URL dynamically to handle race conditions with config loading
+// Helper to get API_URL dynamically
 const getApiUrl = () =>
   (typeof window.CONFIG !== "undefined" && window.CONFIG.API_URL) ||
-  (typeof window.CONFIG !== "undefined" && window.CONFIG.GAS_URL) || // Fallback for legacy config
   DEFAULT_API_URL;
 
 /**
  * Check if Backend is properly configured
  * @returns {boolean} Whether Backend URL is available
  */
-export const isBackendAvailable = () => {
-  try {
-    const url = getApiUrl();
-    if (typeof url !== "string" || !url) return false;
-    return true;
-  } catch (e) {
-    return false;
-  }
-};
+export const isBackendAvailable = () => true; // Always available in unified hosting
 
 // Legacy alias for backward compatibility
-export const isGasEnvironment = isBackendAvailable;
+export const isGasEnvironment = () => false; // No longer using GAS
 
 // ============================================================================
 // API SERVICE
@@ -58,52 +49,26 @@ export const isGasEnvironment = isBackendAvailable;
  */
 export const runApiFn = async (fnName, ...args) => {
   const apiUrl = getApiUrl();
-  if (!apiUrl) {
-    console.error("Backend URL not configured");
-    return null;
-  }
-
-  // Detect if we are still using GAS (legacy) or Firebase (modern)
-  const isLegacyGas = apiUrl.includes("script.google.com");
 
   try {
     // Map function names to API actions
     const actionMap = {
       generateSudoku: { action: "generateSudoku", method: "GET" },
       getLeaderboardData: { action: "getLeaderboard", method: "GET" },
-      saveLeaderboardScore: {
-        action: "saveScore",
-        method: isLegacyGas ? "GET" : "POST",
-      },
+      saveLeaderboardScore: { action: "saveScore", method: "POST" },
       getChatData: { action: "getChat", method: "GET" },
-      postChatData: {
-        action: "postChat",
-        method: isLegacyGas ? "GET" : "POST",
-      },
-      logClientError: {
-        action: "logError",
-        method: isLegacyGas ? "GET" : "POST",
-      },
-      registerUser: {
-        action: "register",
-        method: isLegacyGas ? "GET" : "POST",
-      },
-      loginUser: { action: "login", method: isLegacyGas ? "GET" : "POST" },
+      postChatData: { action: "postChat", method: "POST" },
+      logClientError: { action: "logError", method: "POST" },
+      registerUser: { action: "register", method: "POST" },
+      loginUser: { action: "login", method: "POST" },
       getUserProfile: { action: "getUserProfile", method: "GET" },
-      updateUserProfile: {
-        action: "updateUserProfile",
-        method: isLegacyGas ? "GET" : "POST",
-      },
+      updateUserProfile: { action: "updateUserProfile", method: "POST" },
       getUserState: { action: "getUserState", method: "GET" },
-      saveUserState: {
-        action: "saveUserState",
-        method: isLegacyGas ? "GET" : "POST",
-      },
+      saveUserState: { action: "saveUserState", method: "POST" },
+
       getUserBadges: { action: "getUserBadges", method: "GET" },
-      awardBadge: {
-        action: "awardBadge",
-        method: isLegacyGas ? "GET" : "POST",
-      },
+      awardBadge: { action: "awardBadge", method: "POST" },
+      ping: { action: "ping", method: "GET" },
     };
 
     const mapping = actionMap[fnName];
@@ -113,10 +78,14 @@ export const runApiFn = async (fnName, ...args) => {
     }
 
     const { action, method } = mapping;
-    const url = new URL(apiUrl);
 
-    // For GET requests or GAS, append params to URL
+    // Handle relative URLs correctly
+    const url = new URL(apiUrl, window.location.origin);
+
+    // For GET requests, append params to URL
     if (method === "GET") {
+      // For Express backend, we can use query params or path params
+      // Keeping query params for compatibility with the new controller
       url.searchParams.set("action", action);
       url.searchParams.set("_ts", Date.now().toString());
 
@@ -139,11 +108,15 @@ export const runApiFn = async (fnName, ...args) => {
       cache: "no-store",
     };
 
-    // For POST requests (Firebase only), send JSON body
+    // For POST requests, send JSON body
     if (method === "POST") {
       fetchOptions.headers = {
         "Content-Type": "application/json",
       };
+      // Include action in body for the controller to route if needed,
+      // though the controller might look at query param too.
+      // Let's ensure the controller handles it.
+      // Based on my previous edit to api.js, it looks at req.query.action or req.body.action.
       const body = { action, ...args[0] };
       fetchOptions.body = JSON.stringify(body);
     }
