@@ -2,8 +2,8 @@ name: Auto Debug Monitor
 
 on:
   schedule:
-    # Run every 15 minutes
-    - cron: '*/15 * * * *'
+    # Run every 10 minutes for faster detection
+    - cron: '*/10 * * * *'
   workflow_dispatch:
     inputs:
       force_check:
@@ -30,7 +30,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm install @google-cloud/logging @octokit/rest
+          npm install @google-cloud/logging puppeteer
 
       - name: Create Firebase credentials file
         env:
@@ -38,22 +38,24 @@ jobs:
         run: |
           echo "$FIREBASE_SERVICE_ACCOUNT" > /tmp/firebase-sa.json
 
-      - name: Run Error Detection
+      - name: Run Comprehensive Health Check
         id: detect
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GOOGLE_APPLICATION_CREDENTIALS: /tmp/firebase-sa.json
         run: |
-          node << 'EOF'
+          node << 'HEALTHCHECK_EOF'
           const { Logging } = require('@google-cloud/logging');
-          const { Octokit } = require('@octokit/rest');
+          const puppeteer = require('puppeteer');
+          const https = require('https');
           const fs = require('fs');
 
           const CONFIG = {
             projectId: 'sudoku-labs',
+            appUrl: 'https://sudoku--sudoku-labs.europe-west4.hosted.app',
             owner: 'edmund-alexander',
             repo: 'Sudoku-Labs',
-            lookbackMinutes: 20,
+            lookbackMinutes: 15,
             labels: {
               autoDetected: 'auto-detected',
               inProgress: 'agent-working',
@@ -61,134 +63,554 @@ jobs:
             }
           };
 
-          async function main() {
-            const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
-            const logging = new Logging({ projectId: CONFIG.projectId });
+          const issues = [];
 
-            // Check if there's already an issue being worked on
-            const { data: inProgressIssues } = await octokit.issues.listForRepo({
-              owner: CONFIG.owner,
-              repo: CONFIG.repo,
-              labels: CONFIG.labels.inProgress,
-              state: 'open'
+          // HTTP request helper
+          function httpGet(url, timeout = 15000) {
+            return new Promise((resolve, reject) => {
+              const req = https.get(url, { timeout }, (res) => {
+                let data = '';
+                res.on('data', chunk => data += chunk);
+                res.on('end', () => resolve({ 
+                  status: res.statusCode, 
+                  headers: res.headers, 
+                  body: data 
+                }));
+              });
+              req.on('error', reject);
+              req.on('timeout', () => { req.destroy(); reject(new Error('Request timeout')); });
             });
+          }
 
-            if (inProgressIssues.length > 0) {
-              console.log(`⏸️  Agent already working on issue #${inProgressIssues[0].number}. Skipping.`);
-              fs.appendFileSync(process.env.GITHUB_OUTPUT, 'action=skip\n');
-              return;
-            }
-
-            // Fetch recent errors from Firebase logs
-            const log = logging.log('apphosting.googleapis.com%2Fapp');
-            const since = new Date(Date.now() - CONFIG.lookbackMinutes * 60000).toISOString();
+          // ============================================
+          // TEST 1: Basic HTTP & Asset Loading
+          // ============================================
+          async function testHTTPEndpoints() {
+            console.log('\n📡 TEST 1: HTTP Endpoints & Assets\n');
             
-            const [entries] = await log.getEntries({
-              filter: `timestamp >= "${since}" AND severity >= "ERROR"`,
-              orderBy: 'timestamp desc',
-              pageSize: 50
-            });
-
-            if (entries.length === 0) {
-              console.log('✅ No errors found in the last 20 minutes.');
-              fs.appendFileSync(process.env.GITHUB_OUTPUT, 'action=none\n');
-              return;
-            }
-
-            // Group and deduplicate errors
-            const errorMap = new Map();
-            for (const entry of entries) {
-              const msg = typeof entry.data === 'string' ? entry.data : JSON.stringify(entry.data);
-              const key = msg.substring(0, 100); // Group by first 100 chars
-              if (!errorMap.has(key)) {
-                errorMap.set(key, {
-                  message: msg,
-                  count: 1,
-                  firstSeen: entry.metadata.timestamp,
-                  severity: entry.metadata.severity
+            // Test homepage loads
+            try {
+              const indexRes = await httpGet(CONFIG.appUrl);
+              if (indexRes.status !== 200) {
+                issues.push({
+                  type: 'critical',
+                  title: 'Homepage returns non-200 status',
+                  detail: `Status: ${indexRes.status}`,
+                  impact: 'Users cannot access the application'
                 });
+                console.log(`❌ Homepage: Status ${indexRes.status}`);
+              } else if (!indexRes.body.includes('<div id="root">')) {
+                issues.push({
+                  type: 'critical',
+                  title: 'Homepage missing React root element',
+                  detail: 'HTML does not contain <div id="root">',
+                  impact: 'React app cannot mount - white screen'
+                });
+                console.log('❌ Homepage: Missing #root element');
               } else {
-                errorMap.get(key).count++;
+                console.log('✅ Homepage: Returns 200 with #root');
+              }
+
+              // Extract and test JS bundle
+              const jsMatch = indexRes.body.match(/src="([^"]+\.js)"/);
+              if (jsMatch) {
+                const jsUrl = `${CONFIG.appUrl}${jsMatch[1]}`;
+                const jsRes = await httpGet(jsUrl);
+                
+                if (jsRes.status !== 200) {
+                  issues.push({
+                    type: 'critical',
+                    title: 'JavaScript bundle returns non-200',
+                    detail: `${jsMatch[1]} returned status ${jsRes.status}`,
+                    impact: 'App cannot load - white screen'
+                  });
+                  console.log(`❌ JS Bundle: Status ${jsRes.status}`);
+                } else if (!jsRes.headers['content-type']?.includes('javascript')) {
+                  issues.push({
+                    type: 'critical',
+                    title: 'JavaScript bundle has wrong MIME type',
+                    detail: `Expected javascript, got: ${jsRes.headers['content-type']}`,
+                    impact: 'Browser rejects script - white screen'
+                  });
+                  console.log(`❌ JS Bundle: Wrong MIME type: ${jsRes.headers['content-type']}`);
+                } else if (jsRes.body.length < 1000) {
+                  issues.push({
+                    type: 'critical',
+                    title: 'JavaScript bundle suspiciously small',
+                    detail: `Bundle size: ${jsRes.body.length} bytes`,
+                    impact: 'App may not have built correctly'
+                  });
+                  console.log(`❌ JS Bundle: Too small (${jsRes.body.length} bytes)`);
+                } else {
+                  console.log(`✅ JS Bundle: OK (${Math.round(jsRes.body.length/1024)}KB)`);
+                }
+              } else {
+                issues.push({
+                  type: 'critical',
+                  title: 'No JavaScript bundle found in HTML',
+                  detail: 'HTML does not reference any .js file',
+                  impact: 'App cannot run - white screen'
+                });
+                console.log('❌ JS Bundle: Not found in HTML');
+              }
+
+              // Extract and test CSS bundle
+              const cssMatch = indexRes.body.match(/href="([^"]+\.css)"/);
+              if (cssMatch) {
+                const cssUrl = `${CONFIG.appUrl}${cssMatch[1]}`;
+                const cssRes = await httpGet(cssUrl);
+                
+                if (cssRes.status !== 200 || !cssRes.headers['content-type']?.includes('css')) {
+                  issues.push({
+                    type: 'warning',
+                    title: 'CSS bundle loading issue',
+                    detail: `Status: ${cssRes.status}, Type: ${cssRes.headers['content-type']}`,
+                    impact: 'Styling may be broken'
+                  });
+                  console.log(`⚠️ CSS Bundle: Issue detected`);
+                } else {
+                  console.log(`✅ CSS Bundle: OK (${Math.round(cssRes.body.length/1024)}KB)`);
+                }
+              }
+            } catch (err) {
+              issues.push({
+                type: 'critical',
+                title: 'Failed to connect to application',
+                detail: err.message,
+                impact: 'Application may be down'
+              });
+              console.log(`❌ Connection failed: ${err.message}`);
+            }
+          }
+
+          // ============================================
+          // TEST 2: API Endpoints
+          // ============================================
+          async function testAPIs() {
+            console.log('\n📡 TEST 2: API Endpoints\n');
+            
+            const endpoints = [
+              { name: 'Ping', path: '/api?action=ping', expect: 'ok', critical: true },
+              { name: 'Generate Sudoku', path: '/api?action=generateSudoku&difficulty=Easy', expect: '"id"', critical: true },
+              { name: 'Leaderboard', path: '/api?action=getLeaderboard', expect: '[', critical: false },
+            ];
+
+            for (const ep of endpoints) {
+              try {
+                const res = await httpGet(`${CONFIG.appUrl}${ep.path}`);
+                if (res.status !== 200) {
+                  issues.push({
+                    type: ep.critical ? 'critical' : 'warning',
+                    title: `API ${ep.name} returns error`,
+                    detail: `Status: ${res.status}, Body: ${res.body.substring(0, 200)}`,
+                    impact: ep.critical ? 'Core functionality broken' : 'Feature degraded'
+                  });
+                  console.log(`❌ ${ep.name}: Status ${res.status}`);
+                } else if (!res.body.includes(ep.expect)) {
+                  issues.push({
+                    type: ep.critical ? 'critical' : 'warning',
+                    title: `API ${ep.name} returns unexpected response`,
+                    detail: `Expected "${ep.expect}" in response, got: ${res.body.substring(0, 100)}`,
+                    impact: 'API may be malfunctioning'
+                  });
+                  console.log(`❌ ${ep.name}: Unexpected response`);
+                } else {
+                  console.log(`✅ ${ep.name}: OK`);
+                }
+              } catch (err) {
+                issues.push({
+                  type: ep.critical ? 'critical' : 'warning',
+                  title: `API ${ep.name} request failed`,
+                  detail: err.message,
+                  impact: ep.critical ? 'Core functionality broken' : 'Feature degraded'
+                });
+                console.log(`❌ ${ep.name}: ${err.message}`);
               }
             }
+          }
 
-            // Check for existing issues with similar errors
-            const { data: existingIssues } = await octokit.issues.listForRepo({
-              owner: CONFIG.owner,
-              repo: CONFIG.repo,
-              labels: CONFIG.labels.autoDetected,
-              state: 'all',
-              per_page: 50
-            });
+          // ============================================
+          // TEST 3: Browser Rendering (Puppeteer)
+          // ============================================
+          async function testBrowserRendering() {
+            console.log('\n🖥️ TEST 3: Browser Rendering\n');
+            
+            let browser;
+            try {
+              browser = await puppeteer.launch({
+                headless: 'new',
+                args: ['--no-sandbox', '--disable-setuid-sandbox']
+              });
+              
+              const page = await browser.newPage();
+              const consoleErrors = [];
+              const networkErrors = [];
+              
+              // Capture console errors
+              page.on('console', msg => {
+                if (msg.type() === 'error') {
+                  consoleErrors.push(msg.text());
+                }
+              });
+              
+              // Capture failed requests
+              page.on('requestfailed', req => {
+                networkErrors.push(`${req.url()} - ${req.failure()?.errorText}`);
+              });
 
-            const existingTitles = existingIssues.map(i => i.title.toLowerCase());
+              // Navigate with timeout
+              const response = await page.goto(CONFIG.appUrl, { 
+                waitUntil: 'networkidle2',
+                timeout: 30000 
+              });
 
-            // Find new errors that don't have issues yet
-            const newErrors = [];
-            for (const [key, error] of errorMap) {
-              const errorSignature = key.toLowerCase().substring(0, 50);
-              const hasExisting = existingTitles.some(t => t.includes(errorSignature.substring(0, 30)));
-              if (!hasExisting) {
-                newErrors.push(error);
+              if (!response || response.status() !== 200) {
+                issues.push({
+                  type: 'critical',
+                  title: 'Page failed to load in browser',
+                  detail: `Status: ${response?.status() || 'no response'}`,
+                  impact: 'Users see error or blank page'
+                });
+                console.log(`❌ Page load: Failed`);
+              } else {
+                console.log(`✅ Page load: Status ${response.status()}`);
               }
-            }
 
-            if (newErrors.length === 0) {
-              console.log('✅ All detected errors already have issues.');
+              // Wait for React to render
+              await page.waitForTimeout(3000);
+              
+              // Check if #root has content
+              const rootContent = await page.evaluate(() => {
+                const root = document.getElementById('root');
+                return {
+                  exists: !!root,
+                  hasChildren: root ? root.children.length : 0,
+                  innerHTML: root ? root.innerHTML.substring(0, 500) : '',
+                  bodyText: document.body.innerText.substring(0, 200)
+                };
+              });
+
+              if (!rootContent.exists) {
+                issues.push({
+                  type: 'critical',
+                  title: 'React root element not found',
+                  detail: 'DOM does not contain #root element',
+                  impact: 'White screen - React cannot mount'
+                });
+                console.log('❌ #root: Not found');
+              } else if (rootContent.hasChildren === 0) {
+                issues.push({
+                  type: 'critical',
+                  title: 'React app did not render',
+                  detail: '#root element is empty after page load',
+                  impact: 'White screen - React failed to render'
+                });
+                console.log('❌ #root: Empty (white screen detected)');
+              } else {
+                console.log(`✅ #root: Has ${rootContent.hasChildren} children`);
+              }
+
+              // Check for specific UI elements that should exist
+              const uiElements = await page.evaluate(() => {
+                return {
+                  hasTitle: document.title.includes('Sudoku'),
+                  hasButton: document.querySelectorAll('button').length > 0,
+                  hasText: document.body.innerText.length > 50
+                };
+              });
+
+              if (!uiElements.hasButton && !uiElements.hasText) {
+                issues.push({
+                  type: 'critical',
+                  title: 'UI elements not rendering',
+                  detail: 'No buttons or meaningful text content found',
+                  impact: 'App appears blank or broken to users'
+                });
+                console.log('❌ UI Elements: None found');
+              } else {
+                console.log(`✅ UI Elements: Buttons=${uiElements.hasButton}, Text=${uiElements.hasText}`);
+              }
+
+              // Report console errors
+              if (consoleErrors.length > 0) {
+                const errorSample = consoleErrors.slice(0, 3).join('\n');
+                issues.push({
+                  type: 'warning',
+                  title: `Browser console errors detected (${consoleErrors.length})`,
+                  detail: errorSample,
+                  impact: 'May indicate JavaScript runtime errors'
+                });
+                console.log(`⚠️ Console errors: ${consoleErrors.length}`);
+                consoleErrors.slice(0, 3).forEach(e => console.log(`   - ${e.substring(0, 100)}`));
+              } else {
+                console.log('✅ Console: No errors');
+              }
+
+              // Report network errors
+              if (networkErrors.length > 0) {
+                issues.push({
+                  type: 'warning',
+                  title: `Network requests failed (${networkErrors.length})`,
+                  detail: networkErrors.slice(0, 3).join('\n'),
+                  impact: 'Some resources may not be loading'
+                });
+                console.log(`⚠️ Network errors: ${networkErrors.length}`);
+              } else {
+                console.log('✅ Network: All requests succeeded');
+              }
+
+              // Take screenshot for debugging
+              await page.screenshot({ path: '/tmp/screenshot.png', fullPage: true });
+              console.log('📸 Screenshot saved to /tmp/screenshot.png');
+
+            } catch (err) {
+              issues.push({
+                type: 'critical',
+                title: 'Browser rendering test failed',
+                detail: err.message,
+                impact: 'Could not verify app renders correctly'
+              });
+              console.log(`❌ Browser test failed: ${err.message}`);
+            } finally {
+              if (browser) await browser.close();
+            }
+          }
+
+          // ============================================
+          // TEST 4: Firebase Logs (All Levels)
+          // ============================================
+          async function testFirebaseLogs() {
+            console.log('\n📋 TEST 4: Firebase Logs Analysis\n');
+            
+            try {
+              const logging = new Logging({ projectId: CONFIG.projectId });
+              const log = logging.log('apphosting.googleapis.com%2Fapp');
+              const since = new Date(Date.now() - CONFIG.lookbackMinutes * 60000).toISOString();
+              
+              const [entries] = await log.getEntries({
+                filter: `timestamp >= "${since}"`,
+                orderBy: 'timestamp desc',
+                pageSize: 200
+              });
+
+              const errors = entries.filter(e => e.metadata.severity === 'ERROR');
+              const warnings = entries.filter(e => e.metadata.severity === 'WARNING');
+              
+              // Check for problematic INFO level messages
+              const problematicPatterns = [
+                { pattern: /invalid.*userId/i, title: 'Invalid userId errors', impact: 'User features broken' },
+                { pattern: /documentPath.*not.*valid/i, title: 'Firestore path errors', impact: 'Database operations failing' },
+                { pattern: /Firebase.*not.*exist/i, title: 'Firebase initialization error', impact: 'Backend may crash' },
+                { pattern: /ECONNREFUSED|ETIMEDOUT/i, title: 'Connection errors', impact: 'External services unreachable' },
+                { pattern: /TypeError|ReferenceError|SyntaxError/i, title: 'JavaScript runtime error', impact: 'Code execution failing' },
+                { pattern: /Cannot read.*undefined|null/i, title: 'Null reference error', impact: 'Code crash' },
+                { pattern: /STARTUP.*failed/i, title: 'Container startup failure', impact: 'App not running' },
+                { pattern: /memory.*exceeded|OOM/i, title: 'Memory issues', impact: 'App may crash' },
+              ];
+
+              // Check all entries (including INFO) for problematic patterns
+              for (const entry of entries) {
+                const msg = typeof entry.data === 'string' ? entry.data : JSON.stringify(entry.data);
+                
+                for (const { pattern, title, impact } of problematicPatterns) {
+                  if (pattern.test(msg)) {
+                    // Avoid duplicates
+                    if (!issues.some(i => i.title === title)) {
+                      issues.push({
+                        type: entry.metadata.severity === 'ERROR' ? 'critical' : 'warning',
+                        title: title,
+                        detail: msg.substring(0, 300),
+                        impact: impact
+                      });
+                    }
+                  }
+                }
+              }
+
+              // Report ERROR level logs
+              if (errors.length > 0) {
+                const errorMsgs = errors.map(e => typeof e.data === 'string' ? e.data : JSON.stringify(e.data));
+                const uniqueErrors = [...new Set(errorMsgs.map(m => m.substring(0, 100)))];
+                
+                uniqueErrors.forEach(errSig => {
+                  if (!issues.some(i => i.detail?.includes(errSig.substring(0, 50)))) {
+                    const fullError = errorMsgs.find(m => m.startsWith(errSig.substring(0, 50)));
+                    issues.push({
+                      type: 'critical',
+                      title: 'Backend ERROR in logs',
+                      detail: fullError?.substring(0, 300) || errSig,
+                      impact: 'Backend functionality may be broken'
+                    });
+                  }
+                });
+                console.log(`❌ Errors: ${errors.length} found`);
+              } else {
+                console.log('✅ Errors: None');
+              }
+
+              // Check for startup failures
+              const startupFailures = entries.filter(e => {
+                const msg = typeof e.data === 'string' ? e.data : '';
+                return msg.includes('STARTUP') && msg.includes('failed');
+              });
+
+              const startupSuccesses = entries.filter(e => {
+                const msg = typeof e.data === 'string' ? e.data : '';
+                return msg.includes('STARTUP') && msg.includes('succeeded');
+              });
+
+              console.log(`📊 Startups: ${startupSuccesses.length} succeeded, ${startupFailures.length} failed`);
+
+              if (startupFailures.length > startupSuccesses.length) {
+                issues.push({
+                  type: 'critical',
+                  title: 'More startup failures than successes',
+                  detail: `${startupFailures.length} failures vs ${startupSuccesses.length} successes`,
+                  impact: 'Container stability issues'
+                });
+              }
+
+            } catch (err) {
+              console.log(`⚠️ Could not fetch logs: ${err.message}`);
+            }
+          }
+
+          // ============================================
+          // ISSUE CREATION
+          // ============================================
+          async function createIssueIfNeeded() {
+            if (issues.length === 0) {
+              console.log('\n✅ All checks passed! No issues to report.');
               fs.appendFileSync(process.env.GITHUB_OUTPUT, 'action=none\n');
               return;
             }
 
-            // Create issue for the most critical/frequent error
-            const primaryError = newErrors.sort((a, b) => b.count - a.count)[0];
+            // Check if agent is already working
+            const { execSync } = require('child_process');
+            try {
+              const working = execSync(
+                `gh issue list --repo ${CONFIG.owner}/${CONFIG.repo} --label ${CONFIG.labels.inProgress} --state open --json number`,
+                { encoding: 'utf8' }
+              );
+              if (JSON.parse(working).length > 0) {
+                console.log('\n⏸️ Agent already working on an issue. Skipping issue creation.');
+                fs.appendFileSync(process.env.GITHUB_OUTPUT, 'action=skip\n');
+                return;
+              }
+            } catch (e) {}
+
+            // Prioritize: critical > warning
+            const criticalIssues = issues.filter(i => i.type === 'critical');
+            const warningIssues = issues.filter(i => i.type === 'warning');
             
-            const issueBody = `## 🤖 Auto-Detected Error
+            const primaryIssue = criticalIssues[0] || warningIssues[0];
+            
+            // Check for existing similar issues
+            try {
+              const existing = execSync(
+                `gh issue list --repo ${CONFIG.owner}/${CONFIG.repo} --label ${CONFIG.labels.autoDetected} --state all --json title --limit 50`,
+                { encoding: 'utf8' }
+              );
+              const existingTitles = JSON.parse(existing).map(i => i.title.toLowerCase());
+              
+              if (existingTitles.some(t => t.includes(primaryIssue.title.toLowerCase().substring(0, 30)))) {
+                console.log('\n⏭️ Similar issue already exists. Skipping.');
+                fs.appendFileSync(process.env.GITHUB_OUTPUT, 'action=skip\n');
+                return;
+              }
+            } catch (e) {}
 
+            // Create the issue
+            const issueTitle = `[Auto-Debug] ${primaryIssue.title}`;
+            const issueBody = `## 🤖 Auto-Detected Issue
+
+**Type:** ${primaryIssue.type.toUpperCase()}
 **Detected at:** ${new Date().toISOString()}
-**Occurrences:** ${primaryError.count} times in last ${CONFIG.lookbackMinutes} minutes
-**Severity:** ${primaryError.severity}
+**Impact:** ${primaryIssue.impact}
 
-### Error Message
+### Problem
+${primaryIssue.title}
+
+### Details
 \`\`\`
-${primaryError.message.substring(0, 2000)}
+${primaryIssue.detail}
 \`\`\`
 
-### Context
-- **Source:** Firebase App Hosting Logs
-- **Project:** sudoku-labs
-- **Region:** europe-west4
+### All Issues Detected (${issues.length} total)
+${issues.map((i, idx) => `${idx + 1}. **[${i.type.toUpperCase()}]** ${i.title}`).join('\n')}
+
+### Diagnostic Summary
+- Critical issues: ${criticalIssues.length}
+- Warning issues: ${warningIssues.length}
 
 ### Instructions for Agent
-1. Analyze the error and identify the root cause
-2. Implement a fix
-3. Test the fix locally if possible
-4. Create a PR with the fix
+1. Analyze the error details above
+2. Check the relevant source files
+3. Implement a fix
+4. Test locally if possible
+5. Create a PR with the fix
 
 ---
-*This issue was automatically created by the Auto Debug Monitor workflow.*
-*Label \`${CONFIG.labels.inProgress}\` will be added when an agent starts working.*
-`;
+*Auto-detected by comprehensive health check workflow*`;
 
-            const issueTitle = `[Auto-Debug] ${primaryError.message.substring(0, 80)}...`;
+            try {
+              const result = execSync(
+                `gh issue create --repo ${CONFIG.owner}/${CONFIG.repo} --title "${issueTitle.replace(/"/g, '\\"')}" --body "${issueBody.replace(/"/g, '\\"').replace(/`/g, '\\`')}" --label "${CONFIG.labels.autoDetected},${CONFIG.labels.awaitingAgent}"`,
+                { encoding: 'utf8' }
+              );
+              console.log(`\n📝 Created issue: ${result.trim()}`);
+              fs.appendFileSync(process.env.GITHUB_OUTPUT, 'action=created\n');
+            } catch (err) {
+              console.log(`\n❌ Failed to create issue: ${err.message}`);
+              fs.appendFileSync(process.env.GITHUB_OUTPUT, 'action=error\n');
+            }
+          }
+
+          // ============================================
+          // MAIN
+          // ============================================
+          async function main() {
+            console.log('🔍 COMPREHENSIVE HEALTH CHECK');
+            console.log(`   Time: ${new Date().toISOString()}`);
+            console.log(`   Target: ${CONFIG.appUrl}\n`);
+            console.log('='.repeat(60));
+
+            await testHTTPEndpoints();
+            await testAPIs();
+            await testBrowserRendering();
+            await testFirebaseLogs();
+
+            console.log('\n' + '='.repeat(60));
+            console.log('SUMMARY');
+            console.log('='.repeat(60));
+            console.log(`Total issues found: ${issues.length}`);
+            console.log(`  Critical: ${issues.filter(i => i.type === 'critical').length}`);
+            console.log(`  Warning: ${issues.filter(i => i.type === 'warning').length}`);
             
-            const { data: newIssue } = await octokit.issues.create({
-              owner: CONFIG.owner,
-              repo: CONFIG.repo,
-              title: issueTitle,
-              body: issueBody,
-              labels: [CONFIG.labels.autoDetected, CONFIG.labels.awaitingAgent]
-            });
+            if (issues.length > 0) {
+              console.log('\nIssues:');
+              issues.forEach((i, idx) => {
+                console.log(`  ${idx + 1}. [${i.type.toUpperCase()}] ${i.title}`);
+              });
+            }
 
-            console.log(`📝 Created issue #${newIssue.number}: ${issueTitle}`);
-            fs.appendFileSync(process.env.GITHUB_OUTPUT, `action=created\n`);
-            fs.appendFileSync(process.env.GITHUB_OUTPUT, `issue_number=${newIssue.number}\n`);
+            await createIssueIfNeeded();
           }
 
           main().catch(err => {
-            console.error('Monitor failed:', err);
+            console.error('Health check failed:', err);
             process.exit(1);
           });
-          EOF
+          HEALTHCHECK_EOF
+
+      - name: Upload Screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-screenshot
+          path: /tmp/screenshot.png
+          retention-days: 3
+          if-no-files-found: ignore
 
       - name: Cleanup credentials
         if: always()
