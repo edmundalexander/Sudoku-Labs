@@ -34,9 +34,6 @@ const getApiUrl = () =>
  */
 export const isBackendAvailable = () => true; // Always available in unified hosting
 
-// Legacy alias for backward compatibility
-export const isGasEnvironment = () => false; // No longer using GAS
-
 // ============================================================================
 // API SERVICE
 // ============================================================================
@@ -139,9 +136,6 @@ export const runApiFn = async (fnName, ...args) => {
   }
 };
 
-// Legacy alias
-export const runGasFn = runApiFn;
-
 /**
  * Retry wrapper for API calls
  */
@@ -158,9 +152,6 @@ export const robustRunApiFn = async (fnName, args = {}, opts = {}) => {
     }
   }
 };
-
-// Legacy alias
-export const robustRunGasFn = robustRunApiFn;
 
 // ============================================================================
 // HIGH-LEVEL SERVICES (App.jsx Compatibility)
@@ -410,5 +401,4 @@ export const StorageService = {
 
 // Export to window for global access if needed
 window.runApiFn = runApiFn;
-window.runGasFn = runGasFn; // Deprecated
 window.StorageService = StorageService;

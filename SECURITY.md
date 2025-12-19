@@ -63,28 +63,28 @@ Sudoku Logic Lab is designed with privacy and security in mind:
 
 If you're contributing or deploying your own instance:
 
-#### Backend Security (Google Apps Script)
+#### Backend Security (Firebase/Express)
 
 1. **Input Sanitization**
-   - All user inputs are sanitized using `sanitizeInput_()` function
+   - All user inputs are sanitized using `sanitizeInput()` function
    - Maximum length limits enforced on all text fields
-   - See `apps_script/Code.gs` for implementation details
+   - See `server/controllers/api.js` for implementation details
 
 2. **Configuration Security**
-   - Never commit `config/config.local.js` - it's gitignored
+   - Never commit configuration files with secrets - they're gitignored
    - Never hardcode API keys or credentials
    - Use environment variables for sensitive data in CI/CD
 
 3. **Deployment Settings**
-   - Deploy as "Web App" with "Execute as: Me"
-   - Access: "Anyone" (required for anonymous public access)
-   - Use a dedicated Google account for production deployments
-   - Regularly review Apps Script execution logs
+   - Firebase App Hosting uses Cloud Run with automatic HTTPS
+   - Admin authentication uses Firebase Auth with Firestore role verification
+   - Use a dedicated Firebase project for production deployments
+   - Regularly review Cloud Run execution logs
 
 4. **Data Access**
-   - Google Sheets data is only accessible through the Apps Script API
-   - No direct database credentials are exposed
-   - Rate limiting is handled by Google Apps Script quotas
+   - Firestore data is protected by security rules
+   - Admin operations require Firebase Auth ID token verification
+   - Rate limiting is handled by Cloud Run quotas
 
 #### Frontend Security
 
@@ -94,8 +94,8 @@ If you're contributing or deploying your own instance:
    - External scripts loaded from trusted CDNs only
 
 2. **Configuration**
-   - `config/config.local.js` must never be committed
-   - Use `config/config.example.js` as template
+   - Configuration files must never be committed
+   - Use environment variables for production
    - See `config/README.md` for setup instructions
 
 3. **Dependencies**
@@ -105,9 +105,9 @@ If you're contributing or deploying your own instance:
 
 #### Credential Management
 
-1. **Clasp Credentials**
-   - `.clasp.json` and `.clasprc.json` are gitignored
-   - Clean up credentials after deployment (see `scripts/deploy-gas.js`)
+1. **Firebase Credentials**
+   - Service account credentials are gitignored
+   - Use Firebase App Hosting secrets for production
    - Never store credentials in repository
 
 2. **GitHub Secrets**
@@ -117,9 +117,9 @@ If you're contributing or deploying your own instance:
 
 ### Known Security Limitations
 
-1. **Public API**: The Google Apps Script API is publicly accessible
+1. **Public API**: The backend API is publicly accessible
    - This is by design for anonymous gameplay
-   - Rate limiting depends on Google's quotas
+   - Rate limiting depends on Cloud Run quotas
    - Input validation prevents injection attacks
 
 2. **Client-Side Validation**: Game logic runs in browser
@@ -127,7 +127,7 @@ If you're contributing or deploying your own instance:
    - Server validates all submissions
    - Leaderboard scores can be verified
 
-3. **Anonymous Users**: No authentication system
+3. **Anonymous Users**: No authentication system required for gameplay
    - Users can use any name for leaderboard
    - No user account security to manage
    - Chat is moderated by community standards
@@ -143,11 +143,11 @@ If you're contributing or deploying your own instance:
 
 ### When Deploying
 
-- Use HTTPS for all deployments (GitHub Pages and Apps Script URLs are HTTPS by default)
+- Use HTTPS for all deployments (Firebase App Hosting is HTTPS by default)
 - Regularly update your deployment with latest security patches
-- Monitor Apps Script execution logs for suspicious activity
-- Keep your Google account secure (2FA enabled)
-- Review Google Sheets access permissions periodically
+- Monitor Cloud Run execution logs for suspicious activity
+- Keep your Firebase project secure (IAM roles properly configured)
+- Review Firestore security rules periodically
 
 ### Regular Maintenance
 
@@ -158,7 +158,7 @@ If you're contributing or deploying your own instance:
 
 ## Resources
 
-- [Google Apps Script Security](https://developers.google.com/apps-script/guides/security)
+- [Firebase Security Documentation](https://firebase.google.com/docs/rules)
 - [GitHub Security Best Practices](https://docs.github.com/en/code-security)
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
 

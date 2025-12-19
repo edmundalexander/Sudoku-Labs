@@ -9,7 +9,3 @@ env:
     value: "8080"
   - variable: FIREBASE_WEB_API_KEY
     secret: FIREBASE_WEB_API_KEY
-  - variable: ADMIN_PASSWORD_HASH
-    secret: ADMIN_PASSWORD_HASH
-  - variable: ADMIN_TOKEN_SECRET
-    secret: ADMIN_TOKEN_SECRET

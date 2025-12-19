@@ -92,9 +92,14 @@ Configuration is managed via Environment Variables (in `apphosting.yaml` for pro
 
 | Variable | Description |
 | :--- | :--- |
-| `FIREBASE_WEB_API_KEY` | Required for client-side Auth operations (Sign-in) |
-| `ADMIN_PASSWORD_HASH` | SHA-256 hash of the admin password |
-| `ADMIN_TOKEN_SECRET` | Secret key for signing admin session tokens |
+| `FIREBASE_WEB_API_KEY` | Required for Firebase Auth operations (Sign-in) |
+
+### Admin Access
+
+Admin authentication is now handled through Firebase Auth with Firestore-based role verification:
+- Admins log in using their Firebase Auth email/password credentials
+- Admin status is verified via the `admins` collection in Firestore (`isAdmin: true`)
+- No environment secrets required for admin access
 
 _Local development note:_ The Firestore emulator listens on port **8081** to avoid clashing with the Express server on **8080** (update `firebase.json` if you need a different port).
 
@@ -109,7 +114,7 @@ Deployment is automated via Firebase App Hosting.
 
 ## 🔒 Security
 
-- **Admin Access**: Protected by SHA-256 password hash and server-side token verification.
+- **Admin Access**: Protected by Firebase Auth with Firestore-based role verification (`admins` collection).
 - **Input Sanitization**: All user inputs (chat, scores) are sanitized on the server to prevent XSS.
 - **Environment Variables**: Sensitive credentials are stored in the environment, not hardcoded.
 
