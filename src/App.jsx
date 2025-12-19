@@ -104,6 +104,17 @@ const App = () => {
     StorageService.getUnlockedSoundPacks() || ["classic"]
   );
 
+  // Merge notes into board cells for rendering
+  const boardWithNotes = useMemo(() => {
+    if (!board || board.length === 0 || !Array.isArray(board) || typeof board[0] !== 'object') {
+      return board;
+    }
+    return board.map((cell, index) => ({
+      ...cell,
+      notes: notes[index] || [],
+    }));
+  }, [board, notes]);
+
   // Load sound preferences
   useEffect(() => {
     SoundManager.init(soundEnabled);
@@ -278,10 +289,14 @@ const App = () => {
   };
 
   const handleNumberInput = (number) => {
+    // Check if cell is fixed (either from initialBoard or board.isFixed)
+    const cell = board[selectedCell];
+    const isFixed = cell?.isFixed || (initialBoard[selectedCell]?.isFixed);
+    
     if (
       selectedCell === null ||
       isGameWon ||
-      initialBoard[selectedCell] !== null
+      isFixed
     )
       return;
 
@@ -308,18 +323,25 @@ const App = () => {
 
     // Move logic
     if (number === null) {
-      // Clear cell
-      if (board[selectedCell] !== null) {
-        const newBoard = [...board];
-        newBoard[selectedCell] = null;
+      // Clear cell - update the cell's value while preserving other properties
+      const cell = board[selectedCell];
+      if (cell && cell.value !== null) {
+        const newBoard = board.map((c, idx) => {
+          if (idx === selectedCell) {
+            return { ...c, value: null };
+          }
+          return c;
+        });
         setBoard(newBoard);
         if (soundEnabled) SoundManager.play("erase");
       }
       return;
     }
 
-    // Check correctness
-    const isCorrect = number === solution[selectedCell];
+    // Check correctness - solution contains cell objects, compare with .value or .solution
+    const solutionCell = solution[selectedCell];
+    const correctValue = solutionCell?.value || solutionCell?.solution;
+    const isCorrect = number === correctValue;
 
     if (!practiceMode && !isCorrect) {
       setMistakes((prev) => prev + 1);
@@ -333,8 +355,13 @@ const App = () => {
       if (soundEnabled) SoundManager.play("place");
     }
 
-    const newBoard = [...board];
-    newBoard[selectedCell] = number;
+    // Update the cell's value while preserving other properties
+    const newBoard = board.map((cell, idx) => {
+      if (idx === selectedCell) {
+        return { ...cell, value: number };
+      }
+      return cell;
+    });
     setBoard(newBoard);
 
     // Auto-remove notes in row/col/box
@@ -348,8 +375,13 @@ const App = () => {
 
     setNotes(newNotes);
 
-    // Check for win
-    if (newBoard.every((cell, idx) => cell === solution[idx])) {
+    // Check for win - compare .value properties of cell objects
+    const hasWon = newBoard.every((cell, idx) => {
+      const solutionCell = solution[idx];
+      const correctValue = solutionCell?.value || solutionCell?.solution;
+      return cell.value === correctValue;
+    });
+    if (hasWon) {
       handleGameWin();
     }
 
@@ -407,17 +439,26 @@ const App = () => {
   };
 
   const handleHint = () => {
-    // Find an empty cell
+    // Find an empty cell (cells where value is null)
     const emptyIndices = board
-      .map((val, idx) => (val === null ? idx : null))
+      .map((cell, idx) => (cell?.value === null ? idx : null))
       .filter((val) => val !== null);
     if (emptyIndices.length === 0) return;
 
     const randomIdx =
       emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
 
-    const newBoard = [...board];
-    newBoard[randomIdx] = solution[randomIdx];
+    // Get the correct value from solution
+    const solutionCell = solution[randomIdx];
+    const correctValue = solutionCell?.value || solutionCell?.solution;
+
+    // Update the cell with the hint
+    const newBoard = board.map((cell, idx) => {
+      if (idx === randomIdx) {
+        return { ...cell, value: correctValue, isHinted: true };
+      }
+      return cell;
+    });
     setBoard(newBoard);
 
     // Add time penalty
@@ -568,13 +609,10 @@ const App = () => {
           <main className="flex-1 overflow-hidden relative flex flex-col md:flex-row items-center justify-center gap-4 p-2 sm:p-4">
             <div className="w-full max-w-md md:max-w-lg aspect-square flex-shrink-0">
               <SudokuBoard
-                board={board}
-                initialBoard={initialBoard}
-                notes={notes}
-                selectedCell={selectedCell}
+                board={boardWithNotes}
+                selectedId={selectedCell}
                 onCellClick={handleCellClick}
-                mistakes={mistakes} // Pass to highlight errors if needed
-                isPaused={isPaused}
+                completedBoxes={getCompletedBoxes(board)}
               />
             </div>
 
@@ -592,12 +630,18 @@ const App = () => {
                 </button>
                 <button
                   onClick={() => {
-                    const newBoard = [...board];
+                    const cell = board[selectedCell];
                     if (
                       selectedCell !== null &&
-                      initialBoard[selectedCell] === null
+                      cell &&
+                      !cell.isFixed
                     ) {
-                      newBoard[selectedCell] = null;
+                      const newBoard = board.map((c, idx) => {
+                        if (idx === selectedCell) {
+                          return { ...c, value: null };
+                        }
+                        return c;
+                      });
                       setBoard(newBoard);
                       // Also clear notes
                       const newNotes = [...notes];
