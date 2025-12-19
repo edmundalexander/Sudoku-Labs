@@ -1843,7 +1843,16 @@ function clearAllChat(params) {
  *
  * This function is intended to be run from the Apps Script editor or via an admin call.
  */
-function performMaintenance(params) {
+function runPerformMaintenance_(params) {
+  // Verify token
+  const token = params.token;
+  const expectedToken =
+    PropertiesService.getScriptProperties().getProperty("ADMIN_TRIGGER_TOKEN");
+
+  if (!expectedToken || token !== expectedToken) {
+    return { success: false, error: "Unauthorized: Invalid or missing token" };
+  }
+
   const results = { updatedRows: 0, errors: [] };
   try {
     const ss = SpreadsheetApp.openById(SHEET_ID);
