@@ -15,7 +15,7 @@ const CONFIG = {
 
   // Base path for GitHub Pages deployment
   // Production URL: https://edmund-alexander.github.io/Sudoku-Labs/
-  BASE_PATH: '/Sudoku-Labs',
+  BASE_PATH: "/Sudoku-Labs",
 };
 
 // Make CONFIG available globally
