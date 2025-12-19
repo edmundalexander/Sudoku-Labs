@@ -2,6 +2,9 @@
   "name": "sudoku-labs",
   "version": "1.0.0",
   "description": "A modern, browser-based Sudoku game with leaderboard, chat, and campaign features. Built with React and Google Apps Script.",
+  "engines": {
+    "node": "20"
+  },
   "main": "server.js",
   "directories": {
     "doc": "docs"

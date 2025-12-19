@@ -3,8 +3,24 @@ const fs = require("fs");
 const path = require("path");
 const url = require("url");
 
-const PORT = process.env.PORT || 8080;
-const PUBLIC_DIR = path.join(__dirname, "dist");
+// Global error handlers to prevent silent crashes
+process.on('uncaughtException', (err) => {
+  console.error('CRITICAL ERROR: Uncaught Exception:', err);
+  // Don't exit immediately to allow logs to flush? 
+  // But usually we should exit.
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('CRITICAL ERROR: Unhandled Rejection:', reason);
+});
+
+const PORT = parseInt(process.env.PORT) || 8080;
+const HOST = '0.0.0.0'; // Explicitly bind to all interfaces
+const PUBLIC_DIR = path.join(__dirname, 'dist');
+
+console.log(`Starting server initialization...`);
+console.log(`Environment: PORT=${PORT}, NODE_ENV=${process.env.NODE_ENV}`);
 
 // --- Backend Logic Integration ---
 let apiHandler = null;
@@ -116,6 +132,6 @@ const server = http.createServer((req, res) => {
   });
 });
 
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+server.listen(PORT, HOST, () => {
+  console.log(`Server running and listening on http://${HOST}:${PORT}`);
 });
