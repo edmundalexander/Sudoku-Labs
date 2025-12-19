@@ -1,0 +1,236 @@
+name: Manual Health Check
+
+on:
+  workflow_dispatch:
+    inputs:
+      check_type:
+        description: 'Type of check to run'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - api-only
+          - logs-only
+          - frontend-only
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install @google-cloud/logging
+
+      - name: Create Firebase credentials
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: echo "$FIREBASE_SERVICE_ACCOUNT" > /tmp/firebase-sa.json
+
+      - name: Run Health Check
+        id: health
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: /tmp/firebase-sa.json
+          CHECK_TYPE: ${{ inputs.check_type }}
+        run: |
+          node << 'EOF'
+          const https = require('https');
+          const { Logging } = require('@google-cloud/logging');
+          const fs = require('fs');
+
+          const APP_URL = 'https://sudoku--sudoku-labs.europe-west4.hosted.app';
+          const checkType = process.env.CHECK_TYPE || 'full';
+          const results = { passed: [], failed: [] };
+
+          function httpGet(url) {
+            return new Promise((resolve, reject) => {
+              https.get(url, { timeout: 10000 }, (res) => {
+                let data = '';
+                res.on('data', chunk => data += chunk);
+                res.on('end', () => resolve({ status: res.statusCode, headers: res.headers, body: data }));
+              }).on('error', reject).on('timeout', () => reject(new Error('Timeout')));
+            });
+          }
+
+          async function checkAPIs() {
+            console.log('\n📡 API CHECKS\n');
+            
+            const endpoints = [
+              { name: 'Ping', url: `${APP_URL}/api?action=ping`, expect: 'ok' },
+              { name: 'Generate Sudoku', url: `${APP_URL}/api?action=generateSudoku&difficulty=Easy`, expect: 'id' },
+              { name: 'Leaderboard', url: `${APP_URL}/api?action=getLeaderboard`, expect: '[' }
+            ];
+
+            for (const ep of endpoints) {
+              try {
+                const res = await httpGet(ep.url);
+                if (res.status === 200 && res.body.includes(ep.expect)) {
+                  console.log(`✅ ${ep.name}: PASS`);
+                  results.passed.push(ep.name);
+                } else {
+                  console.log(`❌ ${ep.name}: FAIL (status: ${res.status})`);
+                  results.failed.push({ name: ep.name, reason: `Status ${res.status}` });
+                }
+              } catch (err) {
+                console.log(`❌ ${ep.name}: FAIL (${err.message})`);
+                results.failed.push({ name: ep.name, reason: err.message });
+              }
+            }
+          }
+
+          async function checkFrontend() {
+            console.log('\n🖥️ FRONTEND CHECKS\n');
+            
+            try {
+              const indexRes = await httpGet(APP_URL);
+              if (indexRes.status === 200 && indexRes.body.includes('<div id="root">')) {
+                console.log('✅ Index HTML: PASS');
+                results.passed.push('Index HTML');
+                
+                // Extract and check JS asset
+                const jsMatch = indexRes.body.match(/src="([^"]+\.js)"/);
+                if (jsMatch) {
+                  const jsRes = await httpGet(`${APP_URL}${jsMatch[1]}`);
+                  if (jsRes.status === 200 && jsRes.headers['content-type']?.includes('javascript')) {
+                    console.log('✅ JS Bundle: PASS');
+                    results.passed.push('JS Bundle');
+                  } else {
+                    console.log(`❌ JS Bundle: FAIL (MIME: ${jsRes.headers['content-type']})`);
+                    results.failed.push({ name: 'JS Bundle', reason: `Wrong MIME type: ${jsRes.headers['content-type']}` });
+                  }
+                }
+                
+                // Extract and check CSS asset
+                const cssMatch = indexRes.body.match(/href="([^"]+\.css)"/);
+                if (cssMatch) {
+                  const cssRes = await httpGet(`${APP_URL}${cssMatch[1]}`);
+                  if (cssRes.status === 200 && cssRes.headers['content-type']?.includes('css')) {
+                    console.log('✅ CSS Bundle: PASS');
+                    results.passed.push('CSS Bundle');
+                  } else {
+                    console.log(`❌ CSS Bundle: FAIL`);
+                    results.failed.push({ name: 'CSS Bundle', reason: 'Failed to load' });
+                  }
+                }
+              } else {
+                console.log('❌ Index HTML: FAIL');
+                results.failed.push({ name: 'Index HTML', reason: `Status ${indexRes.status}` });
+              }
+            } catch (err) {
+              console.log(`❌ Frontend: FAIL (${err.message})`);
+              results.failed.push({ name: 'Frontend', reason: err.message });
+            }
+          }
+
+          async function checkLogs() {
+            console.log('\n📋 LOG CHECKS\n');
+            
+            try {
+              const logging = new Logging({ projectId: 'sudoku-labs' });
+              const log = logging.log('apphosting.googleapis.com%2Fapp');
+              const since = new Date(Date.now() - 3600000).toISOString();
+              
+              const [entries] = await log.getEntries({
+                filter: `timestamp >= "${since}"`,
+                orderBy: 'timestamp desc',
+                pageSize: 100
+              });
+
+              const errors = entries.filter(e => e.metadata.severity === 'ERROR');
+              const startups = entries.filter(e => {
+                const msg = typeof e.data === 'string' ? e.data : '';
+                return msg.includes('STARTUP TCP probe succeeded');
+              });
+
+              console.log(`Total logs (1h): ${entries.length}`);
+              console.log(`Errors: ${errors.length}`);
+              console.log(`Successful startups: ${startups.length}`);
+
+              if (errors.length === 0) {
+                console.log('✅ No errors in logs: PASS');
+                results.passed.push('No Errors');
+              } else {
+                console.log(`❌ Found ${errors.length} errors: FAIL`);
+                results.failed.push({ name: 'Error-free logs', reason: `${errors.length} errors found` });
+                
+                // Show first error
+                const firstError = errors[0];
+                const msg = typeof firstError.data === 'string' ? firstError.data : JSON.stringify(firstError.data);
+                console.log(`  First error: ${msg.substring(0, 100)}...`);
+              }
+
+              if (startups.length > 0) {
+                console.log('✅ Container startups: PASS');
+                results.passed.push('Container Health');
+              }
+            } catch (err) {
+              console.log(`⚠️ Could not fetch logs: ${err.message}`);
+            }
+          }
+
+          async function main() {
+            console.log('🔍 SUDOKU LABS HEALTH CHECK');
+            console.log(`   Check type: ${checkType}`);
+            console.log(`   Time: ${new Date().toISOString()}\n`);
+
+            if (checkType === 'full' || checkType === 'api-only') await checkAPIs();
+            if (checkType === 'full' || checkType === 'frontend-only') await checkFrontend();
+            if (checkType === 'full' || checkType === 'logs-only') await checkLogs();
+
+            console.log('\n' + '='.repeat(50));
+            console.log('SUMMARY');
+            console.log('='.repeat(50));
+            console.log(`✅ Passed: ${results.passed.length}`);
+            console.log(`❌ Failed: ${results.failed.length}`);
+
+            if (results.failed.length > 0) {
+              console.log('\nFailed checks:');
+              results.failed.forEach(f => console.log(`  - ${f.name}: ${f.reason}`));
+            }
+
+            // Output for GitHub Actions
+            const output = results.failed.length === 0 ? 'healthy' : 'unhealthy';
+            fs.appendFileSync(process.env.GITHUB_OUTPUT || '/dev/null', `status=${output}\n`);
+            fs.appendFileSync(process.env.GITHUB_OUTPUT || '/dev/null', `failures=${JSON.stringify(results.failed)}\n`);
+            
+            process.exit(results.failed.length > 0 ? 1 : 0);
+          }
+
+          main().catch(err => {
+            console.error('Health check failed:', err);
+            process.exit(1);
+          });
+          EOF
+
+      - name: Cleanup
+        if: always()
+        run: rm -f /tmp/firebase-sa.json
+
+      - name: Create Issue if Unhealthy
+        if: failure()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue create \
+            --repo ${{ github.repository }} \
+            --title "[Health Check] Manual check detected failures" \
+            --body "A manual health check run detected failures. Please investigate.
+
+**Check Type:** ${{ inputs.check_type }}
+**Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+---
+*Triggered by manual workflow dispatch*" \
+            --label "auto-detected,awaiting-agent"

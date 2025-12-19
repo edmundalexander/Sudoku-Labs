@@ -1,0 +1,71 @@
+name: Assign Copilot Agent to Issue
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  assign-agent:
+    # Only trigger when 'awaiting-agent' label is added
+    if: github.event.label.name == 'awaiting-agent'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check for conflicts
+        id: check
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Check if any other issue has 'agent-working' label
+          WORKING=$(gh issue list --repo ${{ github.repository }} --label "agent-working" --state open --json number | jq length)
+          
+          if [ "$WORKING" -gt "0" ]; then
+            echo "⏸️ Another issue is being worked on. Will wait."
+            echo "should_assign=false" >> $GITHUB_OUTPUT
+          else
+            echo "✅ No conflicts. Assigning agent."
+            echo "should_assign=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update labels for agent assignment
+        if: steps.check.outputs.should_assign == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Remove awaiting-agent, add agent-working
+          gh issue edit ${{ github.event.issue.number }} \
+            --repo ${{ github.repository }} \
+            --remove-label "awaiting-agent" \
+            --add-label "agent-working"
+          
+          # Add comment to trigger Copilot coding agent
+          gh issue comment ${{ github.event.issue.number }} \
+            --repo ${{ github.repository }} \
+            --body "🤖 **Copilot Coding Agent Assigned**
+
+This issue has been automatically assigned to the Copilot coding agent.
+
+The agent will:
+1. Analyze the error from Firebase logs
+2. Search the codebase for the root cause
+3. Implement a fix
+4. Open a Pull Request
+
+---
+@copilot Please fix this issue. Analyze the error message, find the root cause in the codebase, and create a PR with the fix."
+
+      - name: Queue if conflict exists
+        if: steps.check.outputs.should_assign == 'false'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment ${{ github.event.issue.number }} \
+            --repo ${{ github.repository }} \
+            --body "⏳ **Queued for Agent**
+
+Another issue is currently being worked on by the coding agent. This issue will be picked up automatically when the current work is complete."

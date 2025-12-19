@@ -1,0 +1,66 @@
+name: Agent Work Complete
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  cleanup-and-queue:
+    # Only run when PR is merged
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Find and close related issue
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Extract issue number from PR body or title (e.g., "Fixes #123")
+          PR_BODY="${{ github.event.pull_request.body }}"
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          
+          # Look for issue references
+          ISSUE_NUM=$(echo "$PR_BODY $PR_TITLE" | grep -oP '(?:fixes|closes|resolves)\s*#\d+' -i | grep -oP '\d+' | head -1)
+          
+          if [ -n "$ISSUE_NUM" ]; then
+            echo "Found linked issue: #$ISSUE_NUM"
+            
+            # Close the issue and remove agent-working label
+            gh issue close "$ISSUE_NUM" --repo ${{ github.repository }} \
+              --comment "✅ **Fixed by PR #${{ github.event.pull_request.number }}**
+
+This issue has been automatically closed as the fix has been merged."
+            
+            gh issue edit "$ISSUE_NUM" --repo ${{ github.repository }} \
+              --remove-label "agent-working"
+          fi
+
+      - name: Check for queued issues
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Find oldest issue with 'awaiting-agent' label
+          NEXT_ISSUE=$(gh issue list --repo ${{ github.repository }} \
+            --label "awaiting-agent" \
+            --state open \
+            --json number,createdAt \
+            --jq 'sort_by(.createdAt) | .[0].number // empty')
+          
+          if [ -n "$NEXT_ISSUE" ]; then
+            echo "📋 Found queued issue #$NEXT_ISSUE, triggering agent assignment..."
+            
+            # Remove and re-add the label to trigger the assign workflow
+            gh issue edit "$NEXT_ISSUE" --repo ${{ github.repository }} \
+              --remove-label "awaiting-agent"
+            
+            sleep 2
+            
+            gh issue edit "$NEXT_ISSUE" --repo ${{ github.repository }} \
+              --add-label "awaiting-agent"
+          else
+            echo "✅ No queued issues. Agent is now available."
+          fi

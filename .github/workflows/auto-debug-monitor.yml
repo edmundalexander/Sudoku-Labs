@@ -1,0 +1,195 @@
+name: Auto Debug Monitor
+
+on:
+  schedule:
+    # Run every 15 minutes
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+    inputs:
+      force_check:
+        description: 'Force a full check even if recently run'
+        required: false
+        default: 'false'
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  monitor-and-report:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          npm install @google-cloud/logging @octokit/rest
+
+      - name: Create Firebase credentials file
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          echo "$FIREBASE_SERVICE_ACCOUNT" > /tmp/firebase-sa.json
+
+      - name: Run Error Detection
+        id: detect
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GOOGLE_APPLICATION_CREDENTIALS: /tmp/firebase-sa.json
+        run: |
+          node << 'EOF'
+          const { Logging } = require('@google-cloud/logging');
+          const { Octokit } = require('@octokit/rest');
+          const fs = require('fs');
+
+          const CONFIG = {
+            projectId: 'sudoku-labs',
+            owner: 'edmund-alexander',
+            repo: 'Sudoku-Labs',
+            lookbackMinutes: 20,
+            labels: {
+              autoDetected: 'auto-detected',
+              inProgress: 'agent-working',
+              awaitingAgent: 'awaiting-agent'
+            }
+          };
+
+          async function main() {
+            const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
+            const logging = new Logging({ projectId: CONFIG.projectId });
+
+            // Check if there's already an issue being worked on
+            const { data: inProgressIssues } = await octokit.issues.listForRepo({
+              owner: CONFIG.owner,
+              repo: CONFIG.repo,
+              labels: CONFIG.labels.inProgress,
+              state: 'open'
+            });
+
+            if (inProgressIssues.length > 0) {
+              console.log(`⏸️  Agent already working on issue #${inProgressIssues[0].number}. Skipping.`);
+              fs.appendFileSync(process.env.GITHUB_OUTPUT, 'action=skip\n');
+              return;
+            }
+
+            // Fetch recent errors from Firebase logs
+            const log = logging.log('apphosting.googleapis.com%2Fapp');
+            const since = new Date(Date.now() - CONFIG.lookbackMinutes * 60000).toISOString();
+            
+            const [entries] = await log.getEntries({
+              filter: `timestamp >= "${since}" AND severity >= "ERROR"`,
+              orderBy: 'timestamp desc',
+              pageSize: 50
+            });
+
+            if (entries.length === 0) {
+              console.log('✅ No errors found in the last 20 minutes.');
+              fs.appendFileSync(process.env.GITHUB_OUTPUT, 'action=none\n');
+              return;
+            }
+
+            // Group and deduplicate errors
+            const errorMap = new Map();
+            for (const entry of entries) {
+              const msg = typeof entry.data === 'string' ? entry.data : JSON.stringify(entry.data);
+              const key = msg.substring(0, 100); // Group by first 100 chars
+              if (!errorMap.has(key)) {
+                errorMap.set(key, {
+                  message: msg,
+                  count: 1,
+                  firstSeen: entry.metadata.timestamp,
+                  severity: entry.metadata.severity
+                });
+              } else {
+                errorMap.get(key).count++;
+              }
+            }
+
+            // Check for existing issues with similar errors
+            const { data: existingIssues } = await octokit.issues.listForRepo({
+              owner: CONFIG.owner,
+              repo: CONFIG.repo,
+              labels: CONFIG.labels.autoDetected,
+              state: 'all',
+              per_page: 50
+            });
+
+            const existingTitles = existingIssues.map(i => i.title.toLowerCase());
+
+            // Find new errors that don't have issues yet
+            const newErrors = [];
+            for (const [key, error] of errorMap) {
+              const errorSignature = key.toLowerCase().substring(0, 50);
+              const hasExisting = existingTitles.some(t => t.includes(errorSignature.substring(0, 30)));
+              if (!hasExisting) {
+                newErrors.push(error);
+              }
+            }
+
+            if (newErrors.length === 0) {
+              console.log('✅ All detected errors already have issues.');
+              fs.appendFileSync(process.env.GITHUB_OUTPUT, 'action=none\n');
+              return;
+            }
+
+            // Create issue for the most critical/frequent error
+            const primaryError = newErrors.sort((a, b) => b.count - a.count)[0];
+            
+            const issueBody = `## 🤖 Auto-Detected Error
+
+**Detected at:** ${new Date().toISOString()}
+**Occurrences:** ${primaryError.count} times in last ${CONFIG.lookbackMinutes} minutes
+**Severity:** ${primaryError.severity}
+
+### Error Message
+\`\`\`
+${primaryError.message.substring(0, 2000)}
+\`\`\`
+
+### Context
+- **Source:** Firebase App Hosting Logs
+- **Project:** sudoku-labs
+- **Region:** europe-west4
+
+### Instructions for Agent
+1. Analyze the error and identify the root cause
+2. Implement a fix
+3. Test the fix locally if possible
+4. Create a PR with the fix
+
+---
+*This issue was automatically created by the Auto Debug Monitor workflow.*
+*Label \`${CONFIG.labels.inProgress}\` will be added when an agent starts working.*
+`;
+
+            const issueTitle = `[Auto-Debug] ${primaryError.message.substring(0, 80)}...`;
+            
+            const { data: newIssue } = await octokit.issues.create({
+              owner: CONFIG.owner,
+              repo: CONFIG.repo,
+              title: issueTitle,
+              body: issueBody,
+              labels: [CONFIG.labels.autoDetected, CONFIG.labels.awaitingAgent]
+            });
+
+            console.log(`📝 Created issue #${newIssue.number}: ${issueTitle}`);
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `action=created\n`);
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `issue_number=${newIssue.number}\n`);
+          }
+
+          main().catch(err => {
+            console.error('Monitor failed:', err);
+            process.exit(1);
+          });
+          EOF
+
+      - name: Cleanup credentials
+        if: always()
+        run: rm -f /tmp/firebase-sa.json
