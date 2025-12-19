@@ -54,27 +54,24 @@ curl "https://script.google.com/macros/s/YOUR_ID/exec?action=ping"
 
 ## Part 2: GitHub Pages Frontend
 
-### 1. Update Configuration
-- Open `config/config.local.js`
+### 1. Update Configuration (Local Dev)
+- Copy `public/config/config.example.js` to `public/config/config.local.js`
 - Update `GAS_URL` with your deployment URL from Part 1, Step 6
-- Save
+- This file is for local development only and is gitignored.
 
-### 2. Commit to GitHub
-```bash
-git add index.html config/config.local.js
-git commit -m "Deploy: Add GAS URL configuration"
-git push
-```
+### 2. Configure GitHub Actions
+- Ensure `.github/workflows/deploy.yml` exists in your repository.
+- This workflow handles building and deploying your site automatically.
 
 ### 3. Enable GitHub Pages
 - Go to GitHub repo settings
 - Scroll to **Pages** section
-- Branch: **main**
-- Folder: **/ (root)**
+- **Source**: Select **GitHub Actions**
 - Save
 
 ### 4. Access Your Game
-- Wait 1-2 minutes for GitHub Pages to build
+- Push your changes to `main`
+- Wait for the "Deploy to GitHub Pages" action to complete (check "Actions" tab)
 - Go to: `https://[username].github.io/[repo-name]/`
 - Game should load!
 
@@ -84,20 +81,22 @@ git push
 - Send chat message (should appear in sheet)
 - Check browser console (F12) for any errors
 
-## Part 3: Configure GitHub Secrets and Pages
+## Part 3: Production Configuration
 
-### 1. Add GAS_URL as a Repository Secret
+### 1. Add GAS_URL as a Repository Secret (Optional)
+If you want to inject the GAS URL during the build process (instead of loading it from a file):
 - In your GitHub repository, go to **Settings** > **Secrets and variables** > **Actions**.
 - Click **New repository secret**.
 - Name the secret `GAS_URL`.
 - Paste your full Google Apps Script deployment URL into the "Value" field.
-- Click **Add secret**.
+- *Note: You will need to update the workflow to use this secret if you choose this method.*
 
-### 2. Update GitHub Pages Source
-- Once the deployment action has run for the first time (after your next `git push`), a new branch called `gh-pages` will be created.
-- Go back to your repository **Settings** > **Pages**.
-- Change the **Source** from `main` branch to `gh-pages` branch.
-- Save your changes. Your site will now be deployed from the `gh-pages` branch, which includes the `config.local.js` file with your secret URL.
+### 2. Using Config Files (Recommended)
+- The build process copies `public/config/` to the output.
+- You can commit a `public/config/config.production.js` (or similar) and update `index.html` to load it, OR
+- Rely on the fact that `config.local.js` is ignored, and you might need a way to supply config in production.
+- **Current Setup**: The app looks for `window.CONFIG`. You can create a `public/config/config.js` with your production settings and commit it, then ensure `index.html` loads it.
+
 
 ---
 

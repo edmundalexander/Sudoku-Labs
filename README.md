@@ -36,19 +36,25 @@ Just visit the live game: **[Play Now](https://edmund-alexander.github.io/Sudoku
 
 2. **Set up configuration**
    ```bash
-   cp config/config.example.js config/config.local.js
+   cp public/config/config.example.js public/config/config.local.js
    ```
    
-3. **Open in browser**
+3. **Start Development Server**
    ```bash
-   # Serve the public directory
-   python -m http.server 8000
-   # Then visit: http://localhost:8000/public/
+   npm install
+   npm run dev
+   # Visit: http://localhost:3000/
    ```
 
-4. **For full functionality** (leaderboard, chat), you'll need to:
+4. **Build for Production**
+   ```bash
+   npm run build
+   # Output will be in dist/ folder
+   ```
+
+5. **For full functionality** (leaderboard, chat), you'll need to:
    - Deploy the Google Apps Script backend (see [Deployment Guide](docs/deployment/checklist.md))
-   - Update `config/config.local.js` with your deployment URL
+   - Update `public/config/config.local.js` with your deployment URL
 
 ## 📚 Documentation
 
@@ -76,7 +82,7 @@ public/index.html                    backend/gas/Code.gs
 ```
 
 **Tech Stack:**
-- **Frontend**: React 18, Tailwind CSS, Babel (in-browser compilation)
+- **Frontend**: React 18, Tailwind CSS, Vite
 - **Backend**: Google Apps Script
 - **Database**: Google Sheets
 - **Hosting**: GitHub Pages
