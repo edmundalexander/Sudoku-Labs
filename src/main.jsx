@@ -3,7 +3,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App.jsx";
 import { ErrorBoundary } from "./components/ErrorBoundary.jsx";
 import "./styles.css";
-import "./admin-access.js";
+import "./lib/admin-access.js";
 
 // Load config if available (for local dev)
 // In Vite, we usually use .env, but to keep compatibility with existing config.local.js:

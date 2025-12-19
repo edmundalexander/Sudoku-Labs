@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { AdminConsole } from "./components/admin/AdminConsole.jsx";
+import { AdminConsole } from "../components/admin/AdminConsole.jsx";
 
 /**
  * Sudoku Logic Lab - Admin Console Access

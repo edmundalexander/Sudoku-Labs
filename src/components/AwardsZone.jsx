@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { SOUND_PACKS, THEMES, getThemeAssetSet } from "../constants.js";
-import { SoundManager } from "../sound.js";
-import { StorageService } from "../services.js";
+import { SOUND_PACKS, THEMES, getThemeAssetSet } from "../lib/constants.js";
+import { SoundManager } from "../lib/sound.js";
+import { StorageService } from "../lib/services.js";
 import { Icons } from "./Icons.jsx";
 
 const AwardsZone = ({

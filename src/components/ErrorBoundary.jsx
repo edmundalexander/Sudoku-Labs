@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { logError } from "../services.js";
+import { logError } from "../lib/services.js";
 
 let __errorCodeCounter = 0;
 const makeErrorCode = () => {

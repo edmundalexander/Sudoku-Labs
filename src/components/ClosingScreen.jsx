@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
-import { BADGES, SOUND_PACKS, THEMES } from "../constants.js";
-import { triggerConfetti } from "../utils.js";
-import { SoundManager } from "../sound.js";
+import { BADGES, SOUND_PACKS, THEMES } from "../lib/constants.js";
+import { triggerConfetti } from "../lib/utils.js";
+import { SoundManager } from "../lib/sound.js";
 import { Icons } from "./Icons.jsx";
 
 const ClosingScreen = ({
