@@ -7,3 +7,5 @@ runConfig:
 env:
   - name: PORT
     value: "8080"
+  - name: FIREBASE_WEB_API_KEY
+    value: "AIzaSyAEriKsDKgTv4wlXEH2KM8Z3fZsY0Nbbrc"
